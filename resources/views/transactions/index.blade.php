@@ -175,6 +175,25 @@
                         </select>
                     </div>
 
+                    {{-- Payment Method --}}
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Metode Pembayaran</label>
+                        <div class="d-flex gap-2">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="payment_method" id="payment_cash" value="cash" checked>
+                                <label class="form-check-label" for="payment_cash">
+                                    <i class="bi bi-cash"></i> Cash
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="payment_method" id="payment_qris" value="qris">
+                                <label class="form-check-label" for="payment_qris">
+                                    <i class="bi bi-qr-code"></i> QRIS
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Input Uang Dibayar --}}
                     <div class="mb-2">
                         <label for="paid_amount" class="form-label small fw-bold text-success">
@@ -220,7 +239,7 @@
                     </div>
 
                     {{-- Submit Button --}}
-                    <button type="submit" class="btn btn-lg w-100 text-white fw-bold" style="background-color: #48bb78;" id="payButton" disabled>
+                    <button type="submit" class="btn btn-success btn-lg w-100 text-white fw-bold" id="payButton" disabled>
                         <i class="bi bi-check-circle"></i> Bayar Sekarang
                     </button>
                 </form>
@@ -342,14 +361,14 @@
                             qty: qty
                         });
                     } else {
-                        alert('Jumlah untuk item ini tidak valid! Maks: ' + stock);
+                        toastr.error('Jumlah untuk item ini tidak valid! Maks: ' + stock);
                         return;
                     }
                 }
             });
 
             if (selectedItems.length === 0) {
-                alert('Pilih minimal satu item!');
+                toastr.error('Pilih minimal satu item!');
                 return;
             }
 

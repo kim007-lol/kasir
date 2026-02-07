@@ -38,11 +38,11 @@
                 </div>
 
                 <!-- Custom Date Range (shown when custom is selected) -->
-                <div class="col-md-4" id="custom-dates" style="display: {{ ($filter ?? '') == 'custom' ? 'block' : 'none' }};">
+                <div class="col-md-4 {{ ($filter ?? '') == 'custom' ? '' : 'd-none' }}" id="custom-dates">
                     <label for="start_date" class="form-label fw-semibold">Tanggal Mulai</label>
                     <input type="date" class="form-control" id="start_date" name="start_date" value="{{ $startDate ?? '' }}">
                 </div>
-                <div class="col-md-4" id="custom-dates-end" style="display: {{ ($filter ?? '') == 'custom' ? 'block' : 'none' }};">
+                <div class="col-md-4 {{ ($filter ?? '') == 'custom' ? '' : 'd-none' }}" id="custom-dates-end">
                     <label for="end_date" class="form-label fw-semibold">Tanggal Akhir</label>
                     <input type="date" class="form-control" id="end_date" name="end_date" value="{{ $endDate ?? '' }}">
                 </div>
@@ -74,11 +74,11 @@
                 const customDates = document.getElementById('custom-dates');
                 const customDatesEnd = document.getElementById('custom-dates-end');
                 if (this.value === 'custom') {
-                    customDates.style.display = 'block';
-                    customDatesEnd.style.display = 'block';
+                    customDates.classList.remove('d-none');
+                    customDatesEnd.classList.remove('d-none');
                 } else {
-                    customDates.style.display = 'none';
-                    customDatesEnd.style.display = 'none';
+                    customDates.classList.add('d-none');
+                    customDatesEnd.classList.add('d-none');
                 }
             });
         });
@@ -93,6 +93,7 @@
                         <th>Invoice</th>
                         <th class="d-none d-md-table-cell">Pembeli</th>
                         <th>Total</th>
+                        <th>Metode</th>
                         <th class="d-none d-lg-table-cell">Tanggal</th>
                         <th style="width: 110px;">Aksi</th>
                     </tr>
@@ -114,11 +115,16 @@
                                 {{ $transaction->created_at->format('d/m/Y') }}
                             </small>
                         </td>
+                        <td>
+                            <span class="badge {{ $transaction->payment_method == 'qris' ? 'bg-info' : 'bg-success' }}">
+                                {{ strtoupper($transaction->payment_method) }}
+                            </span>
+                        </td>
                         <td class="d-none d-lg-table-cell">
                             <small>{{ $transaction->created_at->format('d/m/Y H:i') }}</small>
                         </td>
                         <td>
-                            <a href="{{ route('history.show', $transaction) }}" class="btn btn-sm" style="background-color: #5b9dd9; color: white;" title="Lihat Detail">
+                            <a href="{{ route('history.show', $transaction) }}" class="btn btn-info btn-sm text-white" title="Lihat Detail">
                                 <i class="bi bi-eye"></i>
                                 <span class="d-none d-md-inline">Detail</span>
                             </a>

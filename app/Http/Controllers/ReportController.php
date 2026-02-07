@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ReportsExport;
 
 class ReportController extends Controller
 {
@@ -43,11 +45,14 @@ class ReportController extends Controller
         $grossProfit = $totalRevenue; // Keuntungan kotor = total penjualan (Revenue)
 
         // Hitung total harga beli (HPP) dari item yang terjual
-        $totalCost = $transactions->flatMap->details->sum(function ($detail) {
-            // Ambil purchase_price dari warehouse item via cashier item
-            // Jika relasi tidak ditemukan, asumsikan cost 0 (profit full)
-            $purchasePrice = $detail->item->warehouseItem->purchase_price ?? 0;
-            return $detail->qty * $purchasePrice;
+        $totalCost = $transactionQuery->pluck('id')->chunk(100)->sum(function ($chunk) {
+            return TransactionDetail::whereIn('transaction_id', $chunk)
+                ->with('item.warehouseItem')
+                ->get()
+                ->sum(function ($detail) {
+                    // Jika item atau warehouse item tidak ditemukan, asumsikan cost 0 (profit full)
+                    return $detail->qty * ($detail->item?->warehouseItem?->purchase_price ?? 0);
+                });
         });
 
         $netProfit = $grossProfit - $totalCost;
@@ -63,6 +68,17 @@ class ReportController extends Controller
             ->get()
             ->map(function ($detail) use ($date, $filter, $startDate, $endDate) {
                 $item = $detail->item;
+
+                // Jika item sudah dihapus dari sistem
+                if (!$item) {
+                    return [
+                        'code' => 'N/A',
+                        'name' => '[Item Dihapus]',
+                        'total_sold' => $detail->total_sold,
+                        'stock_in' => 0,
+                        'current_stock' => 0,
+                    ];
+                }
 
                 // Get stock entries untuk periode yang sama
                 $stockEntryQuery = \App\Models\StockEntry::where('warehouse_item_id', $item->warehouse_item_id);
@@ -88,7 +104,7 @@ class ReportController extends Controller
                 ];
             });
 
-        // Top Selling Items (limit 5)
+        // Top Selling Items (limit 5) - pastikan kita handle item yang dihapus
         $topSellingItems = TransactionDetail::selectRaw('item_id, SUM(qty) as total_qty')
             ->whereHas('transaction', function ($query) use ($transactionQuery) {
                 // Apply same filter as transactions
@@ -121,12 +137,13 @@ class ReportController extends Controller
         $date = $request->get('date', now()->toDateString());
 
         $transactions = Transaction::whereDate('created_at', $date)
-            ->with(['details.item', 'member'])
+            ->with(['details.item.warehouseItem', 'member'])
             ->latest()
             ->get();
 
         $totalTransactions = $transactions->count();
         $totalRevenue = $transactions->sum('total');
+        $totalNetProfit = $transactions->sum('net_profit');
         $totalItemsSold = TransactionDetail::whereHas('transaction', function ($query) use ($date) {
             $query->whereDate('created_at', $date);
         })->sum('qty');
@@ -145,12 +162,39 @@ class ReportController extends Controller
             'transactions',
             'totalTransactions',
             'totalRevenue',
+            'totalNetProfit',
             'totalItemsSold',
             'topSellingItems',
             'date'
         ));
 
         return $pdf->download('laporan-transaksi-' . $date . '.pdf');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $date = $request->get('date', now()->toDateString());
+        $filter = $request->get('filter', 'today');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        // Build query based on filter (reuse logic or refactor)
+        // For simplicity, reusing the logic here
+        $transactionQuery = Transaction::query();
+
+        if ($filter == 'today' || !$filter) {
+            $transactionQuery->whereDate('created_at', $date);
+        } elseif ($filter == 'week') {
+            $transactionQuery->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($filter == 'month') {
+            $transactionQuery->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
+        } elseif ($filter == 'custom' && $startDate && $endDate) {
+            $transactionQuery->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate);
+        }
+
+        $transactions = $transactionQuery->with(['details.item.warehouseItem', 'member'])->latest()->get();
+
+        return Excel::download(new ReportsExport($transactions, $date), 'laporan-transaksi-' . $date . '.xlsx');
     }
 
     public function stockEntriesHistory(Request $request): View

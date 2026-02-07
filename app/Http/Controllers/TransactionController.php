@@ -127,7 +127,8 @@ class TransactionController extends Controller
     {
         $validated = $request->validate([
             'member_id' => 'nullable|exists:members,id',
-            'paid_amount' => 'required|numeric|min:0'
+            'paid_amount' => 'required|numeric|min:0',
+            'payment_method' => 'required|in:cash,qris'
         ]);
 
         $cart = session()->get('cart', []);
@@ -140,7 +141,21 @@ class TransactionController extends Controller
         $paidAmount = (float) $validated['paid_amount'];
         $changeAmount = $paidAmount - $total;
 
-        // Validasi pembayaran
+        // Validasi stok sebelum memulai transaksi database
+        $stockErrors = [];
+        foreach ($cart as $itemId => $item) {
+            $product = CashierItem::find($itemId);
+            if (!$product || $product->stock < $item['qty']) {
+                $stockErrors[] = ($product ? $product->name : 'Unknown Item') . ': stok tidak cukup (tersedia: ' . ($product ? $product->stock : 0) . ')';
+            }
+        }
+
+        if (!empty($stockErrors)) {
+            return redirect()->route('transactions.index')
+                ->with('error', implode(', ', $stockErrors));
+        }
+
+        // Validasi pembayaran (Hanya jika Cash, QRIS biasanya pas atau lebih tapi logic backend bisa sama)
         if ($paidAmount < $total) {
             return redirect()->route('transactions.index')
                 ->with('error', 'Uang pembayaran kurang! Total: Rp ' . number_format($total, 0, ',', '.') . ', Dibayar: Rp ' . number_format($paidAmount, 0, ',', '.'));
@@ -166,7 +181,7 @@ class TransactionController extends Controller
                     'total' => $total,
                     'paid_amount' => $paidAmount,
                     'change_amount' => $changeAmount,
-                    'payment_method' => 'cash',
+                    'payment_method' => $validated['payment_method'],
                     'user_id' => auth()->id()
                 ]);
 

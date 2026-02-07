@@ -9,91 +9,91 @@
             margin: 0.5cm;
             size: 80mm auto;
         }
-        
+
         body {
             background: white !important;
         }
-        
-        .sidebar, 
-        .navbar, 
-        .btn, 
-        .content > .d-flex:first-child,
+
+        .sidebar,
+        .navbar,
+        .btn,
+        .content>.d-flex:first-child,
         .alert,
         .card-header {
             display: none !important;
         }
-        
+
         .main-content {
             margin-left: 0 !important;
             width: 100% !important;
         }
-        
+
         .content {
             padding: 0 !important;
             margin: 0 !important;
         }
-        
+
         .row {
             margin: 0 !important;
         }
-        
+
         .col-md-8 {
             max-width: 100% !important;
             flex: 0 0 100% !important;
         }
-        
+
         .card {
             box-shadow: none !important;
             border: none !important;
         }
-        
+
         .card-body {
             padding: 10px !important;
         }
-        
+
         .table {
             font-size: 11px;
         }
-        
-        .table-sm td, 
+
+        .table-sm td,
         .table-sm th {
             padding: 2px 4px !important;
         }
-        
+
         hr {
             margin: 4px 0 !important;
             border-top: 1px dashed #666 !important;
         }
-        
+
         .border-bottom {
             border-bottom: 1px solid #ddd !important;
         }
-        
+
         h4 {
             font-size: 14px;
             margin-bottom: 4px !important;
         }
-        
+
         h3 {
             font-size: 16px;
         }
-        
+
         h5 {
             font-size: 12px;
         }
-        
+
         h6 {
             font-size: 11px;
         }
-        
+
         small {
             font-size: 9px;
         }
-        
+
         .text-muted {
             color: #666 !important;
         }
-        
+
         .d-flex.justify-content-center {
             display: none !important;
         }
@@ -113,9 +113,9 @@
                     <h5 class="fw-bold mb-0">Toko Makmur</h5>
                     <small class="text-muted">Surabaya</small>
                 </div>
-                
+
                 <hr style="border-top: 1px dashed #999; margin: 8px 0;">
-                
+
                 {{-- Transaction Info --}}
                 <div class="row mb-2">
                     <div class="col-6">
@@ -125,23 +125,23 @@
                         <small class="text-muted">{{ $lastTransaction->created_at->format('d/m/Y H:i') }}</small>
                     </div>
                 </div>
-                
+
                 @if ($lastTransaction->customer_name)
                 <div class="mb-2">
                     <small class="text-muted">Customer: {{ $lastTransaction->customer_name }}</small>
                 </div>
                 @endif
-                
+
                 <div class="mb-2">
                     <small class="text-muted">Kasir: {{ auth()->user()->name ?? 'Admin' }}</small>
                 </div>
-                
+
                 <hr style="border-top: 1px dashed #999; margin: 8px 0;">
-                
+
                 {{-- Items Table --}}
                 <table class="table table-sm table-borderless mb-0" style="font-size: 12px;">
                     <thead>
-                            <tr class="text-muted" style="border-bottom: 1px solid #ddd;">
+                        <tr class="text-muted" style="border-bottom: 1px solid #ddd;">
                             <th class="text-start ps-0">Produk</th>
                             <th class="text-center p-0" style="width: 30px;">Qty</th>
                             <th class="text-end p-0" style="width: 70px;"> Harga</th>
@@ -150,25 +150,29 @@
                     </thead>
                     <tbody>
                         @foreach ($details as $detail)
-                            <tr class="border-bottom" style="border-bottom: 1px dotted #ddd;">
-                                <td class="text-start ps-0 py-1">
-                                    {{ $detail->item->name }}
-                                </td>
-                                <td class="text-center py-1">{{ $detail->qty }}</td>
-                                <td class="text-end py-1">{{ number_format($detail->price, 0, ',', '.') }}</td>
-                                <td class="text-end py-1">{{ number_format($detail->subtotal, 0, ',', '.') }}</td>
-                            </tr>
+                        <tr class="border-bottom" style="border-bottom: 1px dotted #ddd;">
+                            <td class="text-start ps-0 py-1">
+                                {{ $detail->item->name }}
+                            </td>
+                            <td class="text-center py-1">{{ $detail->qty }}</td>
+                            <td class="text-end py-1">{{ number_format($detail->price, 0, ',', '.') }}</td>
+                            <td class="text-end py-1">{{ number_format($detail->subtotal, 0, ',', '.') }}</td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
-                
+
                 <hr style="border-top: 1px dashed #999; margin: 8px 0;">
-                
+
                 {{-- Payment Summary --}}
                 <table class="table table-sm table-borderless mb-0" style="font-size: 12px;">
                     <tr>
                         <td class="text-start ps-0">Total Belanja</td>
                         <td class="text-end pe-0 fw-bold">Rp {{ number_format($lastTransaction->total, 0, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-start ps-0">Metode Bayar</td>
+                        <td class="text-end pe-0">{{ strtoupper($lastTransaction->payment_method) }}</td>
                     </tr>
                     <tr>
                         <td class="text-start ps-0">Tunai</td>
@@ -179,21 +183,21 @@
                         <td class="text-end pe-0 text-success">Rp {{ number_format($lastTransaction->change_amount, 0, ',', '.') }}</td>
                     </tr>
                 </table>
-                
+
                 <hr style="border-top: 1px dashed #999; margin: 8px 0;">
-                
+
                 {{-- Footer --}}
                 <div class="text-center mb-3">
                     <small class="text-muted d-block">TERIMA KASIH</small>
-                  
+
                 </div>
-                
+
                 {{-- Barcode Simulation --}}
                 <div class="text-center mb-3">
                     <div style="height: 30px; background: repeating-linear-gradient(90deg, #000 0px, #000 2px, transparent 2px, transparent 4px);"></div>
                     <small class="text-muted">{{ $lastTransaction->invoice }}</small>
                 </div>
-                
+
                 {{-- Action Buttons --}}
                 <div class="d-flex justify-content-center gap-2 flex-wrap">
                     <button onclick="window.print()" class="btn btn-primary btn-sm">
@@ -215,25 +219,25 @@
     .card {
         border-radius: 8px;
     }
-    
+
     .table-borderless td,
     .table-borderless th {
         border: none;
     }
-    
+
     .border-bottom {
         border-bottom: 1px solid #e9ecef !important;
     }
-    
+
     @media (max-width: 576px) {
         .card-body {
             padding: 15px !important;
         }
-        
+
         .d-flex.gap-2 {
             gap: 8px !important;
         }
-        
+
         .btn {
             padding: 6px 10px;
             font-size: 12px;
@@ -241,4 +245,3 @@
     }
 </style>
 @endsection
-

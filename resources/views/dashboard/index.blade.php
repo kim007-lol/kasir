@@ -76,17 +76,17 @@
             <h5 class="fw-bold mb-3">Quick Access</h5>
         </div>
         <div class="col-12 col-sm-6 col-lg-4">
-            <a href="{{ route('transactions.index') }}" class="btn w-100 py-3 fw-bold text-white" style="background-color: #5b9dd9;">
+            <a href="{{ route('transactions.index') }}" class="btn btn-primary w-100 py-3 fw-bold text-white">
                 <i class="bi bi-plus-circle"></i> Buat Transaksi
             </a>
         </div>
         <div class="col-12 col-sm-6 col-lg-4">
-            <a href="{{ route('items.index') }}" class="btn w-100 py-3 fw-bold text-white" style="background-color: #6ba3d9;">
+            <a href="{{ route('warehouse.index') }}" class="btn btn-info w-100 py-3 fw-bold text-white">
                 <i class="bi bi-box"></i> Lihat Produk
             </a>
         </div>
         <div class="col-12 col-sm-6 col-lg-4">
-            <a href="{{ route('history.index') }}" class="btn w-100 py-3 fw-bold text-white" style="background-color: #7ab3e8;">
+            <a href="{{ route('history.index') }}" class="btn btn-secondary w-100 py-3 fw-bold text-white">
                 <i class="bi bi-clock-history"></i> History
             </a>
         </div>
@@ -98,7 +98,7 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body">
                     <h5 class="fw-bold mb-4"><i class="bi bi-graph-up"></i> Grafik Penjualan 7 Hari Terakhir</h5>
-                    <canvas id="salesChart" height="80"></canvas>
+                    <canvas id="salesChart" height="80" data-sales="{{ json_encode($salesChart) }}"></canvas>
                 </div>
             </div>
         </div>
@@ -107,7 +107,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
-    const salesData = @json($salesChart);
+    const salesChartCanvas = document.getElementById('salesChart');
+    const salesData = JSON.parse(salesChartCanvas.dataset.sales);
 
     // Prepare data for chart
     const dates = salesData.map(item => {

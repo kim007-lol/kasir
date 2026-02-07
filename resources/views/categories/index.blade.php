@@ -8,7 +8,7 @@
         <h2 class="fw-bold mb-0">
             <i class="bi bi-list"></i> Item Kategori
         </h2>
-        <a href="{{ route('categories.create') }}" class="btn text-white fw-bold" style="background-color: #5b9dd9;">
+        <a href="{{ route('categories.create') }}" class="btn btn-primary text-white fw-bold">
             <i class="bi bi-plus-circle"></i> Tambah Kategori
         </a>
     </div>
@@ -30,17 +30,16 @@
                         <td>{{ $category->name }}</td>
                         <td>
                             <div class="btn-group btn-group-sm px-2 py-1 " role="group">
-                                <a href="{{ route('categories.edit', $category) }}" class="btn" style="background-color: #ed8936; color: white; border-color: #ed8936;" title="Edit">
+                                <a href="{{ route('categories.edit', $category) }}" class="btn btn-warning text-white" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                     <span class="d-none d-md-inline">Edit</span>
                                 </a>
-                                <form action="{{ route('categories.destroy', $category) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus?')">
+                                <form action="{{ route('categories.destroy', $category) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Kategori ini akan dihapus!')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn" style="background-color: #f56565; color: white; border-color: #f56565;" title="Hapus">
+                                    <button type="submit" class="btn btn-danger text-white" title="Hapus">
                                         <i class="bi bi-trash"></i>
-                                        <span class="d-non
-                                            e d-md-inline">Hapus</span>
+                                        <span class="d-none d-md-inline">Hapus</span>
                                     </button>
                                 </form>
                             </div>

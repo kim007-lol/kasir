@@ -8,7 +8,7 @@
         <h2 class="fw-bold mb-0">
             <i class="bi bi-building"></i> Stok Gudang
         </h2>
-        <a href="{{ route('warehouse.create') }}" class="btn text-white fw-bold" style="background-color: #5b9dd9;">
+        <a href="{{ route('warehouse.create') }}" class="btn btn-primary text-white fw-bold">
             <i class="bi bi-plus-circle"></i> Tambah Barang
         </a>
     </div>
@@ -104,14 +104,14 @@
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm px-2 py-2" role="group">
-                                <a href="{{ route('warehouse.edit', $item) }}" class="btn" style="background-color: #ed8936; color: white; border-color: #ed8936;" title="Edit">
+                                <a href="{{ route('warehouse.edit', $item) }}" class="btn btn-warning text-white" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                     <span class="d-none d-lg-inline">Edit</span>
                                 </a>
-                                <form action="{{ route('warehouse.destroy', $item) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus barang ini?')">
+                                <form action="{{ route('warehouse.destroy', $item) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Barang ini akan dihapus dari gudang!')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn" style="background-color: #f56565; color: white; border-color: #f56565;" title="Hapus">
+                                    <button type="submit" class="btn btn-danger text-white" title="Hapus">
                                         <i class="bi bi-trash"></i>
                                         <span class="d-none d-lg-inline">Hapus</span>
                                     </button>

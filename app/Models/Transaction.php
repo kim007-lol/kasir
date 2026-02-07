@@ -27,4 +27,15 @@ class Transaction extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Get net profit from transaction
+     */
+    public function getNetProfitAttribute(): float
+    {
+        return $this->details->sum(function ($detail) {
+            $purchasePrice = $detail->item?->warehouseItem?->purchase_price ?? 0;
+            return ($detail->price - $purchasePrice) * $detail->qty;
+        });
+    }
 }

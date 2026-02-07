@@ -8,7 +8,7 @@
         <h2 class="fw-bold mb-0">
             <i class="bi bi-people"></i> Kelola Member
         </h2>
-        <a href="{{ route('members.create') }}" class="btn btn-sm fw-bold text-white" style="background-color: #5b9dd9;">
+        <a href="{{ route('members.create') }}" class="btn btn-primary btn-sm fw-bold text-white">
             <i class="bi bi-plus-circle"></i> Tambah Member
         </a>
     </div>
@@ -47,13 +47,13 @@
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm" role="group">
-                                <a href="{{ route('members.edit', $member) }}" class="btn btn-outline-primary" title="Edit">
+                                <a href="{{ route('members.edit', $member) }}" class="btn btn-warning text-white" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <form action="{{ route('members.destroy', $member) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin?')">
+                                <form action="{{ route('members.destroy', $member) }}" method="POST" style="display: inline;" onsubmit="confirmDelete(event, 'Data member ini akan dihapus!')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger" title="Hapus">
+                                    <button type="submit" class="btn btn-danger text-white" title="Hapus">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>

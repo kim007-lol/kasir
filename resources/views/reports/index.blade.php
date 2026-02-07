@@ -41,11 +41,11 @@
                 </div>
 
                 <!-- Custom Date Range -->
-                <div class="col-md-4" id="custom-dates" style="display: {{ ($filter ?? '') == 'custom' ? 'block' : 'none' }};">
+                <div class="col-md-4 {{ ($filter ?? '') == 'custom' ? '' : 'd-none' }}" id="custom-dates">
                     <label for="start_date" class="form-label fw-semibold">Tanggal Mulai</label>
                     <input type="date" class="form-control" id="start_date" name="start_date" value="{{ $startDate ?? '' }}">
                 </div>
-                <div class="col-md-4" id="custom-dates-end" style="display: {{ ($filter ?? '') == 'custom' ? 'block' : 'none' }};">
+                <div class="col-md-4 {{ ($filter ?? '') == 'custom' ? '' : 'd-none' }}" id="custom-dates-end">
                     <label for="end_date" class="form-label fw-semibold">Tanggal Akhir</label>
                     <input type="date" class="form-control" id="end_date" name="end_date" value="{{ $endDate ?? '' }}">
                 </div>
@@ -57,6 +57,9 @@
                         </button>
                         <a href="{{ route('reports.exportPdf', request()->all()) }}" class="btn btn-success">
                             <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                        </a>
+                        <a href="{{ route('reports.exportExcel', request()->all()) }}" class="btn btn-success">
+                            <i class="bi bi-file-earmark-excel"></i> Export Excel
                         </a>
                         <a href="{{ route('reports.stockEntries') }}" class="btn btn-info text-white">
                             <i class="bi bi-box-arrow-in-down"></i> Riwayat Stok Masuk
@@ -74,11 +77,11 @@
                 const customDates = document.getElementById('custom-dates');
                 const customDatesEnd = document.getElementById('custom-dates-end');
                 if (this.value === 'custom') {
-                    customDates.style.display = 'block';
-                    customDatesEnd.style.display = 'block';
+                    customDates.classList.remove('d-none');
+                    customDatesEnd.classList.remove('d-none');
                 } else {
-                    customDates.style.display = 'none';
-                    customDatesEnd.style.display = 'none';
+                    customDates.classList.add('d-none');
+                    customDatesEnd.classList.add('d-none');
                 }
             });
         });
@@ -226,9 +229,9 @@
                                 @foreach($topSellingItems as $index => $item)
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
-                                    <td>{{ $item->item->name }}</td>
+                                    <td>{{ $item->item->name ?? '[Item Dihapus]' }}</td>
                                     <td>
-                                        <span class="badge bg-secondary">{{ $item->item->code }}</span>
+                                        <span class="badge bg-secondary">{{ $item->item->code ?? '-' }}</span>
                                     </td>
                                     <td class="text-center">
                                         <span class="badge bg-success">{{ $item->total_qty }}</span>
@@ -260,6 +263,7 @@
                             <th>Invoice</th>
                             <th>Pembeli</th>
                             <th>Total</th>
+                            <th>Metode</th>
                             <th>Waktu</th>
                             <th style="width: 100px;">Aksi</th>
                         </tr>
@@ -276,6 +280,11 @@
                             </td>
                             <td>
                                 <strong>Rp. {{ number_format($transaction->total, 0, ',', '.') }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge {{ $transaction->payment_method == 'qris' ? 'bg-info' : 'bg-success' }}">
+                                    {{ strtoupper($transaction->payment_method) }}
+                                </span>
                             </td>
                             <td>
                                 <small>{{ $transaction->created_at->format('d/m/Y H:i') }}</small>

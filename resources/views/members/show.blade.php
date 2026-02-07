@@ -54,10 +54,10 @@
             <hr>
 
             <div class="d-flex gap-2">
-                <a href="{{ route('members.edit', $member) }}" class="btn fw-bold text-white" style="background-color: #5b9dd9;">
+                <a href="{{ route('members.edit', $member) }}" class="btn btn-warning fw-bold text-white">
                     <i class="bi bi-pencil"></i> Edit
                 </a>
-                <form action="{{ route('members.destroy', $member) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus member ini?')">
+                <form action="{{ route('members.destroy', $member) }}" method="POST" style="display: inline;" onsubmit="confirmDelete(event, 'Data member ini akan dihapus permanently!')">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger fw-bold">

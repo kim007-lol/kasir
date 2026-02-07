@@ -12,6 +12,9 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
     <style>
         :root {
             --sidebar-width: 250px;
@@ -28,6 +31,23 @@
             --danger-color: #f56565;
             --info-color: #5b9dd9;
             --transition: all 0.3s ease;
+        }
+
+        /* Toastr Customization */
+        #toast-container>.toast-success {
+            background-color: #48bb78;
+        }
+
+        #toast-container>.toast-error {
+            background-color: #f56565;
+        }
+
+        #toast-container>.toast-warning {
+            background-color: #ed8936;
+        }
+
+        #toast-container>.toast-info {
+            background-color: #5b9dd9;
         }
 
         * {
@@ -339,7 +359,7 @@
     <div class="main-content">
         @include('partials.navbar')
         <div class="content">
-            @include('partials.alert')
+            {{-- @include('partials.alert') --}}
             @yield('content')
         </div>
     </div>
@@ -347,15 +367,91 @@
     <div class="main-content" style="margin-left: 0; width: 100%;">
         @include('partials.navbar')
         <div class="content">
+            @include('partials.alert')
             @yield('content')
         </div>
     </div>
     @endauth
 
+    <!-- jQuery (Required for Toastr) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
     <!-- Bootstrap Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
+        // Global SweetAlert Delete Confirmation
+        window.confirmDelete = function(event, message = "Data yang dihapus tidak dapat dikembalikan!") {
+            event.preventDefault();
+            const form = event.target;
+
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ff6b6b',
+                cancelButtonColor: '#adb5bd',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        };
+    </script>
+
+    <!-- Toastr Data Bridge -->
+    <div id="toastr-data"
+        data-success="{{ session('success') }}"
+        data-error="{{ session('error') }}"
+        data-info="{{ session('info') }}"
+        data-warning="{{ session('warning') }}"
+        data-errors="{{ $errors->any() ? json_encode($errors->all()) : '' }}"
+        style="display: none;"></div>
+
+    <script>
+        // Toastr Configuration
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "5000",
+        };
+
+        (function() {
+            const dataEl = document.getElementById('toastr-data');
+            if (!dataEl) return;
+
+            const success = dataEl.dataset.success;
+            const error = dataEl.dataset.error;
+            const info = dataEl.dataset.info;
+            const warning = dataEl.dataset.warning;
+            const validationErrors = dataEl.dataset.errors;
+
+            if (success) toastr.success(success);
+            if (error) toastr.error(error);
+            if (info) toastr.info(info);
+            if (warning) toastr.warning(warning);
+
+            if (validationErrors) {
+                try {
+                    const errs = JSON.parse(validationErrors);
+                    errs.forEach(err => toastr.error(err));
+                } catch (e) {
+                    // Fallback if not valid JSON
+                }
+            }
+        })();
+
         document.addEventListener('DOMContentLoaded', function() {
             const toggleBtn = document.querySelector('.toggle-sidebar-btn');
             const sidebar = document.querySelector('.sidebar');
