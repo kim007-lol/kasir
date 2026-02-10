@@ -1,6 +1,6 @@
 # KasirKu - Sistem Manajamen Kasir & Stok Laravel
 
-Sistem Kasir modern yang dibangun dengan Laravel 10, mendukung manajemen stok gudang, stok kasir, membership, dan pelaporan transaksi.
+Sistem Kasir modern yang dibangun dengan **Laravel 12**, mendukung manajemen stok gudang, stok kasir, membership, dan pelaporan transaksi.
 
 ## Fitur Utama
 
@@ -13,16 +13,18 @@ Sistem Kasir modern yang dibangun dengan Laravel 10, mendukung manajemen stok gu
 
 ## Persyaratan Sistem
 
-- PHP >= 8.1
-- Composer
-- SQLite / MySQL / PostgreSQL (Sesuai konfigurasi `.env`)
-- Node.js & NPM (Opsional, untuk development aset)
+- **PHP >= 8.2** (Sudah diuji pada PHP 8.3)
+- **Composer**
+- **SQLite / MySQL / PostgreSQL** (Sesuai konfigurasi `.env`)
+- **Node.js & NPM** (Opsional, untuk development aset)
 
 ## Instalasi Awal
 
 1. **Clone & Install Dependencies**
 
     ```bash
+    git clone https://github.com/kim007-lol/kasir.git
+    cd kasir
     composer install
     ```
 
@@ -33,7 +35,7 @@ Sistem Kasir modern yang dibangun dengan Laravel 10, mendukung manajemen stok gu
     cp .env.example .env
     ```
 
-    Atur koneksi database Anda di dalam file `.env`.
+    Atur koneksi database Anda di dalam file `.env`. (Secara default Laravel 12 menggunakan SQLite).
 
 3. **Generate App Key**
 
@@ -60,3 +62,9 @@ Setelah menjalankan seeder, Anda dapat login dengan:
 
 - **Email**: `admin@example.com`
 - **Password**: `password`
+
+## Pembaruan Terakhir (Februari 2026)
+
+- Upgrade ke **Laravel 12**.
+- Perbaikan bug referensi `App\Models\Item` yang hilang.
+- Penambahan _type hinting_ pada controller untuk pengalaman development yang lebih baik.
