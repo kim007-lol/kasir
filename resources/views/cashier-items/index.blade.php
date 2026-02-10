@@ -37,92 +37,102 @@
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead style="background-color: #ff6b6b; color: white;">
-                    <tr>
-                        <th style="width: 50px;">No</th>
-                        <th>Kode</th>
-                        <th>Nama Barang</th>
-                        <th class="d-none d-lg-table-cell">Kategori</th>
-                        <th class="d-none d-lg-table-cell">Supplier</th>
-                        <th class="d-none d-md-table-cell">Harga Jual</th>
-                        <th class="d-none d-sm-table-cell">Stok</th>
-                        <th style="width: 140px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($cashierItems as $index => $item)
-                    <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>
-                            <span class="badge bg-secondary">{{ $item->code }}</span>
-                        </td>
-                        <td>
-                            <strong>{{ $item->name }}</strong>
-                            <br>
-                            <small class="text-muted d-md-none">
-                                {{ $item->category->name }} | Rp. {{ number_format($item->selling_price, 0, ',', '.') }}
-                            </small>
-                        </td>
-                        <td class="d-none d-lg-table-cell">{{ $item->category->name }}</td>
-                        <td class="d-none d-lg-table-cell">{{ $item->supplier->name }}</td>
-                        <td class="d-none d-md-table-cell">
-                            <strong>Rp. {{ number_format($item->selling_price, 0, ',', '.') }}</strong>
-                        </td>
-                        <td class="d-none d-sm-table-cell">
-                            @php
-                            $stockClass = 'bg-success';
-                            if ($item->stock < 10) {
-                                $stockClass='bg-danger' ;
-                                } elseif ($item->stock <= 20) {
-                                    $stockClass='bg-warning' ;
-                                    }
-                                    @endphp
-                                    <span class="badge {{ $stockClass }}">{{ $item->stock }}</span>
-                        </td>
-                        <td>
-                            <div class="btn-group btn-group-sm px-2 py-2" role="group">
-                                <a href="{{ route('cashier-items.edit', $item) }}" class="btn btn-warning text-white" title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                    <span class="d-none d-lg-inline">Edit</span>
-                                </a>
-                                <form action="{{ route('cashier-items.destroy', $item) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Item ini akan dikembalikan ke gudang!')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger text-white" title="Hapus">
-                                        <i class="bi bi-trash"></i>
-                                        <span class="d-none d-lg-inline">Hapus</span>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8" class="text-center py-4 text-muted">
-                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                            <p>Tidak ada data stok kasir</p>
-                            <p><small>Silakan tambah barang dari gudang</small></p>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    <div id="data-container">
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background-color: #ff6b6b; color: white;">
+                        <tr>
+                            <th style="width: 50px;">No</th>
+                            <th>Kode</th>
+                            <th>Nama Barang</th>
+                            <th class="d-none d-lg-table-cell">Kategori</th>
+                            <th class="d-none d-lg-table-cell">Supplier</th>
+                            <th class="d-none d-md-table-cell">Harga Jual</th>
+                            <th class="d-none d-md-table-cell">Diskon</th>
+                            <th class="d-none d-sm-table-cell">Stok</th>
+                            <th style="width: 140px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($cashierItems as $index => $item)
+                        <tr>
+                            <td>{{ $cashierItems->firstItem() + $index }}</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ $item->code }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ $item->name }}</strong>
+                                <br>
+                                <small class="text-muted d-md-none">
+                                    {{ $item->category->name ?? '-' }} | Rp. {{ number_format($item->selling_price, 0, ',', '.') }}
+                                </small>
+                            </td>
+                            <td class="d-none d-lg-table-cell">{{ $item->category->name ?? '-' }}</td>
+                            <td class="d-none d-lg-table-cell">{{ $item->warehouseItem->supplier->name ?? '-' }}</td>
+                            <td class="d-none d-md-table-cell">
+                                <strong>Rp. {{ number_format($item->selling_price, 0, ',', '.') }}</strong>
+                            </td>
+                            <td class="d-none d-md-table-cell">
+                                @if($item->discount > 0)
+                                <span class="badge bg-warning text-dark">{{ $item->discount }}%</span>
+                                @else
+                                <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                            <td class="d-none d-sm-table-cell">
+                                @php
+                                $stockClass = 'bg-success';
+                                if ($item->stock < 10) {
+                                    $stockClass='bg-danger' ;
+                                    } elseif ($item->stock <= 20) {
+                                        $stockClass='bg-warning' ;
+                                        }
+                                        @endphp
+                                        <span class="badge {{ $stockClass }}">{{ $item->stock }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1 justify-content-center" role="group">
+                                    <a href="{{ route('cashier-items.edit', $item) }}" class="btn btn-warning btn-sm text-white" title="Edit Stok">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <form action="{{ route('cashier-items.destroy', $item) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Item ini akan dihapus dari kasir dan stok dikembalikan ke gudang!')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm text-white" title="Hapus">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p>Tidak ada data item kasir</p>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="mt-3">
+            {{ $cashierItems->withQueryString()->links() }}
         </div>
     </div>
 </div>
 
 <style>
-    .btn-group-sm .btn {
-        padding: 0.35rem 0.5rem;
-        font-size: 0.85rem;
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
     }
 
     @media (max-width: 576px) {
-        .btn-group-sm .btn {
-            padding: 0.4rem 0.35rem;
+        .btn-sm {
+            padding: 0.15rem 0.3rem;
             font-size: 0.7rem;
         }
 

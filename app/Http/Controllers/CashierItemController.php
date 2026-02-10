@@ -11,16 +11,24 @@ use Illuminate\Support\Facades\DB;
 
 class CashierItemController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
         $search = $request->get('search');
-        $cashierItems = CashierItem::with(['category', 'supplier', 'warehouseItem'])
+        $query = CashierItem::select('id', 'code', 'name', 'stock', 'selling_price', 'discount', 'category_id', 'warehouse_item_id')
+            ->with(['category:id,name', 'warehouseItem:id,stock'])
             ->when($search, function ($query) use ($search) {
                 $query->where('name', 'ilike', '%' . $search . '%')
                     ->orWhere('code', 'ilike', '%' . $search . '%');
             })
-            ->latest()
-            ->get();
+            ->orderBy('code', 'asc');
+
+        $cashierItems = $query->paginate(15);
+
+        if ($request->ajax()) {
+            /** @var \Illuminate\View\View $view */
+            $view = view('cashier-items.index', compact('cashierItems', 'search'));
+            return $view->fragment('data-container');
+        }
 
         return view('cashier-items.index', compact('cashierItems', 'search'));
     }
@@ -61,11 +69,12 @@ class CashierItemController extends Controller
                     // Update stok kasir yang sudah ada
                     $cashierItem->increment('stock', $validated['quantity']);
 
-                    // Sync harga jika ada perubahan
+                    // Sync harga dan diskon jika ada perubahan
                     $cashierItem->update([
                         'selling_price' => $warehouse->final_price,
                         'name' => $warehouse->name,
                         'code' => $warehouse->code,
+                        'discount' => $warehouse->discount,
                     ]);
                 } else {
                     // Buat item kasir baru
@@ -76,6 +85,7 @@ class CashierItemController extends Controller
                         'code' => $warehouse->code,
                         'name' => $warehouse->name,
                         'selling_price' => $warehouse->final_price,
+                        'discount' => $warehouse->discount,
                         'stock' => $validated['quantity']
                     ]);
                 }

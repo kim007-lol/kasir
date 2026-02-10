@@ -25,8 +25,8 @@
                         <option value="{{ $item->id }}"
                             data-code="{{ $item->code }}"
                             data-name="{{ $item->name }}"
-                            data-category="{{ $item->category->name }}"
-                            data-supplier="{{ $item->supplier->name }}"
+                            data-category="{{ $item->category->name ?? '-' }}"
+                            data-supplier="{{ $item->supplier->name ?? '-' }}"
                             data-price="{{ $item->final_price }}"
                             data-stock="{{ $item->stock }}"
                             @if(old('warehouse_item_id')==$item->id) selected @endif>

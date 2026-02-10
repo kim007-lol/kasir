@@ -13,61 +13,100 @@
         </a>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead style="background-color: #ff6b6b; color: white;">
-                    <tr>
-                        <th style="width: 50px;">No</th>
-                        <th>Nama Kategori</th>
-                        <th style="width: 180px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($categories as $index => $category)
-                    <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $category->name }}</td>
-                        <td>
-                            <div class="btn-group btn-group-sm px-2 py-1 " role="group">
-                                <a href="{{ route('categories.edit', $category) }}" class="btn btn-warning text-white" title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                    <span class="d-none d-md-inline">Edit</span>
-                                </a>
-                                <form action="{{ route('categories.destroy', $category) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Kategori ini akan dihapus!')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger text-white" title="Hapus">
-                                        <i class="bi bi-trash"></i>
-                                        <span class="d-none d-md-inline">Hapus</span>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="3" class="text-center py-4 text-muted">
-                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                            <p>Tidak ada data kategori</p>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    <!-- Search Form -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form action="{{ route('categories.index') }}" method="GET">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="Cari kategori..." value="{{ $search ?? '' }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-search"></i> Cari
+                    </button>
+                    @if(request('search'))
+                    <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary">Reset</a>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="data-container">
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background-color: #ff6b6b; color: white;">
+                        <tr>
+                            <th style="width: 50px;">No</th>
+                            <th>Nama Kategori</th>
+                            <th>Status</th>
+                            <th style="width: 180px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($categories as $index => $category)
+                        <tr class="{{ $category->trashed() ? 'table-secondary text-muted' : '' }}">
+                            <td>{{ $categories->firstItem() + $index }}</td>
+                            <td>{{ $category->name }}</td>
+                            <td>
+                                @if($category->trashed())
+                                <span class="badge bg-danger">Non-Aktif</span>
+                                @else
+                                <span class="badge bg-success">Aktif</span>
+                                @endif
+                            </td>
+                            <td>
+                            <td>
+                                <div class="d-flex gap-1 justify-content-center" role="group">
+                                    <a href="{{ route('categories.edit', $category) }}" class="btn btn-warning btn-sm text-white" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    @if($category->trashed())
+                                    <form action="{{ route('categories.restore', $category->id) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="btn btn-success btn-sm text-white" title="Aktifkan">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                    </form>
+                                    @else
+                                    <form action="{{ route('categories.destroy', $category) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Kategori ini akan dihapus!')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm text-white" title="Hapus">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p>Belum ada kategori</p>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="mt-3">
+            {{ $categories->withQueryString()->links() }}
         </div>
     </div>
 </div>
 
 <style>
-    .btn-group-sm .btn {
-        padding: 0.35rem 0.5rem;
-        font-size: 0.85rem;
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
     }
 
     @media (max-width: 576px) {
-        .btn-group-sm .btn {
-            padding: 0.4rem 0.35rem;
+        .btn-sm {
+            padding: 0.15rem 0.3rem;
             font-size: 0.75rem;
         }
 

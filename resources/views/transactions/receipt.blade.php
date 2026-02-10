@@ -153,9 +153,17 @@
                         <tr class="border-bottom" style="border-bottom: 1px dotted #ddd;">
                             <td class="text-start ps-0 py-1">
                                 {{ $detail->item->name }}
+                                @if($detail->discount > 0)
+                                <br><small class="text-warning" style="font-size: 0.65rem;">({{ $detail->discount }}% off)</small>
+                                @endif
                             </td>
                             <td class="text-center py-1">{{ $detail->qty }}</td>
-                            <td class="text-end py-1">{{ number_format($detail->price, 0, ',', '.') }}</td>
+                            <td class="text-end py-1">
+                                @if($detail->discount > 0)
+                                <small style="text-decoration: line-through; color: #999; font-size: 0.7rem;">{{ number_format($detail->original_price, 0, ',', '.') }}</small><br>
+                                @endif
+                                <strong style="font-size: 0.85rem;">{{ number_format($detail->price, 0, ',', '.') }}</strong>
+                            </td>
                             <td class="text-end py-1">{{ number_format($detail->subtotal, 0, ',', '.') }}</td>
                         </tr>
                         @endforeach
@@ -168,6 +176,16 @@
                 <table class="table table-sm table-borderless mb-0" style="font-size: 12px;">
                     <tr>
                         <td class="text-start ps-0">Total Belanja</td>
+                        <td class="text-end pe-0 fw-bold">Rp {{ number_format($lastTransaction->total + ($lastTransaction->discount_amount ?? 0), 0, ',', '.') }}</td>
+                    </tr>
+                    @if(($lastTransaction->discount_amount ?? 0) > 0)
+                    <tr>
+                        <td class="text-start ps-0">Diskon ({{ $lastTransaction->discount_percent ?? 0 }}%)</td>
+                        <td class="text-end pe-0 text-danger">-Rp {{ number_format($lastTransaction->discount_amount, 0, ',', '.') }}</td>
+                    </tr>
+                    @endif
+                    <tr>
+                        <td class="text-start ps-0 fw-bold">Grand Total</td>
                         <td class="text-end pe-0 fw-bold">Rp {{ number_format($lastTransaction->total, 0, ',', '.') }}</td>
                     </tr>
                     <tr>

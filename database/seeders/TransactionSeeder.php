@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
-use App\Models\Item;
+use App\Models\CashierItem;
 use Illuminate\Database\Seeder;
 use Carbon\Carbon;
 
@@ -16,7 +16,7 @@ class TransactionSeeder extends Seeder
     public function run(): void
     {
         // Ensure there are items to sell
-        if (Item::count() == 0) {
+        if (CashierItem::count() == 0) {
             $this->command->info('No items found, skipping Transaction seeding.');
             return;
         }
@@ -38,14 +38,14 @@ class TransactionSeeder extends Seeder
                 $total = 0;
 
                 for ($j = 0; $j < $detailCount; $j++) {
-                    $item = Item::inRandomOrder()->first();
+                    $item = CashierItem::inRandomOrder()->first();
                     $qty = rand(1, 3);
-                    $subtotal = $item->price * $qty;
+                    $subtotal = $item->selling_price * $qty;
 
                     TransactionDetail::create([
                         'transaction_id' => $transaction->id,
                         'item_id' => $item->id,
-                        'price' => $item->price,
+                        'price' => $item->selling_price,
                         'qty' => $qty,
                         'subtotal' => $subtotal,
                         'created_at' => $transaction->created_at,

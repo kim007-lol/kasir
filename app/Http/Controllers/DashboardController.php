@@ -23,12 +23,24 @@ class DashboardController extends Controller
 
         $totalRevenueToday = Transaction::whereDate('created_at', $today)->sum('total');
 
-        // Data untuk grafik 7 hari terakhir
-        $salesChart = Transaction::selectRaw('CAST(created_at AS DATE) as date, COUNT(*) as count, SUM(total) as total')
-            ->whereDate('created_at', '>=', now()->subDays(6))
+        // Data untuk grafik 30 hari terakhir
+        $salesData = Transaction::selectRaw('CAST(created_at AS DATE) as date, COUNT(*) as count, SUM(total) as total')
+            ->whereDate('created_at', '>=', now()->subDays(29))
             ->groupBy('date')
             ->orderBy('date')
-            ->get();
+            ->get()
+            ->keyBy('date');
+
+        // Fill in missing dates with zero values
+        $salesChart = collect();
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $salesChart->push([
+                'date' => $date,
+                'count' => $salesData->get($date)->count ?? 0,
+                'total' => $salesData->get($date)->total ?? 0,
+            ]);
+        }
 
         return view('dashboard.index', compact(
             'totalItems',

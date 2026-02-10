@@ -60,7 +60,3 @@ Setelah menjalankan seeder, Anda dapat login dengan:
 
 - **Email**: `admin@example.com`
 - **Password**: `password`
-
-## Lisensi
-
-Sistem ini dikembangkan secara custom untuk kebutuhan operasional harian.

@@ -44,6 +44,14 @@
                     @enderror
                 </div>
 
+                <div class="mb-3">
+                    <label for="contract_date" class="form-label">Tanggal Kontrak</label>
+                    <input type="date" class="form-control @error('contract_date') is-invalid @enderror" id="contract_date" name="contract_date" value="{{ old('contract_date') }}">
+                    @error('contract_date')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-save"></i> Simpan

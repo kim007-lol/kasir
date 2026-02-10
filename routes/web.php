@@ -29,10 +29,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('categories', CategoryController::class);
+    Route::patch('/categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
     Route::resource('members', MemberController::class);
 
     // New routes for warehouse system
     Route::resource('suppliers', \App\Http\Controllers\SupplierController::class);
+    Route::patch('/suppliers/{id}/restore', [\App\Http\Controllers\SupplierController::class, 'restore'])->name('suppliers.restore');
     Route::resource('warehouse', \App\Http\Controllers\WarehouseController::class);
     Route::resource('cashier-items', \App\Http\Controllers\CashierItemController::class);
 

@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\TransactionDetail;
-use App\Models\Item;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class TransactionDetailFactory extends Factory
@@ -13,9 +12,12 @@ class TransactionDetailFactory extends Factory
     public function definition(): array
     {
         return [
-            'item_id' => Item::inRandomOrder()->first()->id ?? Item::factory(),
-            'price' => 0, // Should be set from item
-            'qty' => $this->faker->numberBetween(1, 5),
+            'transaction_id' => \App\Models\Transaction::factory(),
+            'item_id' => \App\Models\CashierItem::factory(),
+            'price' => fake()->numberBetween(5000, 100000),
+            'original_price' => fake()->numberBetween(5000, 100000),
+            'discount' => fake()->randomElement([0, 5, 10]),
+            'qty' => fake()->numberBetween(1, 5),
             'subtotal' => 0, // Should be calculated
         ];
     }

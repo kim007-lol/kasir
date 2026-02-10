@@ -6,19 +6,30 @@ use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\Rule;
 
 class SupplierController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
         $search = $request->get('search');
-        $suppliers = Supplier::when($search, function ($query) use ($search) {
-            $query->where('name', 'ilike', '%' . $search . '%')
-                ->orWhere('phone', 'ilike', '%' . $search . '%')
-                ->orWhere('email', 'ilike', '%' . $search . '%');
-        })
-            ->latest()
-            ->get();
+        $query = Supplier::select('id', 'name', 'phone', 'email', 'address', 'contract_date', 'deleted_at')
+            ->withTrashed()
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'ilike', '%' . $search . '%')
+                    ->orWhere('phone', 'ilike', '%' . $search . '%')
+                    ->orWhere('email', 'ilike', '%' . $search . '%')
+                    ->orWhere('address', 'ilike', '%' . $search . '%');
+            })
+            ->orderBy('contract_date', 'asc');
+
+        $suppliers = $query->paginate(15);
+
+        if ($request->ajax()) {
+            /** @var \Illuminate\View\View $view */
+            $view = view('suppliers.index', compact('suppliers', 'search'));
+            return $view->fragment('data-container');
+        }
 
         return view('suppliers.index', compact('suppliers', 'search'));
     }
@@ -31,10 +42,21 @@ class SupplierController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:150',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:100',
-            'address' => 'nullable|string'
+            'name' => [
+                'required',
+                'string',
+                'max:150',
+                Rule::unique('suppliers')->where(function ($query) use ($request) {
+                    return $query->where('address', $request->address);
+                })
+            ],
+            'phone' => 'required|string|max:20',
+            'email' => 'required|email|max:100|unique:suppliers,email',
+            'address' => 'required|string',
+            'contract_date' => 'required|date'
+        ], [
+            'name.unique' => 'Supplier dengan nama dan alamat yang sama sudah ada.',
+            'email.unique' => 'Email ini sudah terdaftar untuk supplier lain.'
         ]);
 
         Supplier::create($validated);
@@ -50,10 +72,21 @@ class SupplierController extends Controller
     public function update(Request $request, Supplier $supplier): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:150',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:100',
-            'address' => 'nullable|string'
+            'name' => [
+                'required',
+                'string',
+                'max:150',
+                Rule::unique('suppliers')->where(function ($query) use ($request) {
+                    return $query->where('address', $request->address);
+                })->ignore($supplier->id)
+            ],
+            'phone' => 'required|string|max:20',
+            'email' => 'required|email|max:100|unique:suppliers,email,' . $supplier->id,
+            'address' => 'required|string',
+            'contract_date' => 'required|date'
+        ], [
+            'name.unique' => 'Supplier dengan nama dan alamat yang sama sudah ada.',
+            'email.unique' => 'Email ini sudah terdaftar untuk supplier lain.'
         ]);
 
         $supplier->update($validated);
@@ -64,6 +97,13 @@ class SupplierController extends Controller
     public function destroy(Supplier $supplier): RedirectResponse
     {
         $supplier->delete();
-        return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil dihapus');
+        return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil di non-aktifkan');
+    }
+
+    public function restore($id): RedirectResponse
+    {
+        $supplier = Supplier::withTrashed()->findOrFail($id);
+        $supplier->restore();
+        return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil diaktifkan kembali');
     }
 }

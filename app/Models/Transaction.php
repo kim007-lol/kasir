@@ -11,7 +11,18 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['invoice', 'customer_name', 'total', 'user_id', 'paid_amount', 'change_amount', 'payment_method', 'member_id'];
+    protected $fillable = [
+        'invoice',
+        'customer_name',
+        'total',
+        'user_id',
+        'paid_amount',
+        'change_amount',
+        'payment_method',
+        'member_id',
+        'discount_percent',
+        'discount_amount'
+    ];
 
     public function details(): HasMany
     {

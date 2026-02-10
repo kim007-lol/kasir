@@ -6,8 +6,8 @@
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="{{ route('history.index') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Kembali
+            <a href="{{ route('reports.index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Kembali ke Laporan
             </a>
             <div class="d-flex gap-2">
                 <a href="{{ route('transactions.downloadReceipt', $transaction->id) }}" target="_blank" class="btn btn-info">
@@ -73,9 +73,19 @@
                                 @if(isset($detail->item->code))
                                 <br><small class="text-muted">{{ $detail->item->code }}</small>
                                 @endif
+                                @if($detail->discount > 0)
+                                <br><small class="text-warning">(Diskon {{ $detail->discount }}%)</small>
+                                @endif
                             </td>
                             <td class="text-center">{{ $detail->qty }}</td>
-                            <td class="text-end">Rp. {{ number_format($detail->price, 0, ',', '.') }}</td>
+                            <td class="text-end">
+                                @if($detail->discount > 0)
+                                <small class="text-muted" style="text-decoration: line-through;">
+                                    Rp. {{ number_format($detail->original_price, 0, ',', '.') }}
+                                </small><br>
+                                @endif
+                                Rp. {{ number_format($detail->price, 0, ',', '.') }}
+                            </td>
                             <td class="text-end">Rp. {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
                         </tr>
                         @empty

@@ -23,7 +23,10 @@
                 <div class="col-12">
                     <label class="form-label fw-semibold">Filter Cepat:</label>
                     <div class="btn-group w-100" role="group">
-                        <input type="radio" class="btn-check" name="filter" id="filter-today" value="today" {{ ($filter ?? '') == 'today' ? 'checked' : '' }}>
+                        <input type="radio" class="btn-check" name="filter" id="filter-all" value="all" {{ ($filter ?? '') == 'all' ? 'checked' : '' }}>
+                        <label class="btn btn-outline-primary" for="filter-all">Semua</label>
+
+                        <input type="radio" class="btn-check" name="filter" id="filter-today" value="today" {{ ($filter ?? 'today') == 'today' ? 'checked' : '' }}>
                         <label class="btn btn-outline-primary" for="filter-today">Hari Ini</label>
 
                         <input type="radio" class="btn-check" name="filter" id="filter-week" value="week" {{ ($filter ?? '') == 'week' ? 'checked' : '' }}>
@@ -84,62 +87,74 @@
         });
     </script>
 
-    <div class="card shadow-sm border-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead style="background-color: #ff6b6b; color: white;">
-                    <tr>
-                        <th style="width: 50px;">No</th>
-                        <th>Invoice</th>
-                        <th class="d-none d-md-table-cell">Pembeli</th>
-                        <th>Total</th>
-                        <th>Metode</th>
-                        <th class="d-none d-lg-table-cell">Tanggal</th>
-                        <th style="width: 110px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($transactions as $index => $transaction)
-                    <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>
-                            <span class="badge bg-secondary">{{ $transaction->invoice }}</span>
-                        </td>
-                        <td class="d-none d-md-table-cell">
-                            {{ $transaction->customer_name ?? '-' }}
-                        </td>
-                        <td>
-                            <strong>Rp. {{ number_format($transaction->total, 0, ',', '.') }}</strong>
-                            <br>
-                            <small class="text-muted d-lg-none">
-                                {{ $transaction->created_at->format('d/m/Y') }}
-                            </small>
-                        </td>
-                        <td>
-                            <span class="badge {{ $transaction->payment_method == 'qris' ? 'bg-info' : 'bg-success' }}">
-                                {{ strtoupper($transaction->payment_method) }}
-                            </span>
-                        </td>
-                        <td class="d-none d-lg-table-cell">
-                            <small>{{ $transaction->created_at->format('d/m/Y H:i') }}</small>
-                        </td>
-                        <td>
-                            <a href="{{ route('history.show', $transaction) }}" class="btn btn-info btn-sm text-white" title="Lihat Detail">
-                                <i class="bi bi-eye"></i>
-                                <span class="d-none d-md-inline">Detail</span>
-                            </a>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="text-center py-4 text-muted">
-                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                            <p>Tidak ada data transaksi</p>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    <div id="data-container">
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background-color: #ff6b6b; color: white;">
+                        <tr>
+                            <th style="width: 50px;">No</th>
+                            <th>Invoice</th>
+                            <th class="d-none d-md-table-cell">Pembeli</th>
+                            <th>Total</th>
+                            <th>Metode</th>
+                            <th class="d-none d-lg-table-cell">Tanggal</th>
+                            <th style="width: 110px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($transactions as $index => $transaction)
+                        <tr>
+                            <td>{{ $loop->iteration + ($transactions->perPage() * ($transactions->currentPage() - 1)) }}</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ $transaction->invoice }}</span>
+                            </td>
+                            <td class="d-none d-md-table-cell">
+                                {{ $transaction->customer_name ?? '-' }}
+                            </td>
+                            <td>
+                                <strong>Rp. {{ number_format($transaction->total, 0, ',', '.') }}</strong>
+                                <br>
+                                <small class="text-muted d-lg-none">
+                                    {{ $transaction->created_at->format('d/m/Y') }}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge {{ $transaction->payment_method == 'qris' ? 'bg-info' : 'bg-success' }}">
+                                    {{ strtoupper($transaction->payment_method) }}
+                                </span>
+                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <small>{{ $transaction->created_at->format('d/m/Y H:i') }}</small>
+                            </td>
+                            <td>
+                                <a href="{{ route('history.show', $transaction) }}" class="btn btn-info btn-sm text-white" title="Lihat Detail">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p>Tidak ada data transaksi</p>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="mt-3">
+            {{ $transactions->withQueryString()->links() }}
         </div>
     </div>
-    @endsection
+</div>
+<style>
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+    }
+</style>
+</div>
+@endsection

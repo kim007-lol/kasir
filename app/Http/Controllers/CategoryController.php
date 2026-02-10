@@ -9,10 +9,24 @@ use Illuminate\Http\RedirectResponse;
 
 class CategoryController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
-        $categories = Category::all();
-        return view('categories.index', compact('categories'));
+        $search = $request->get('search');
+        $query = Category::select('id', 'name', 'deleted_at')
+            ->withTrashed()
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'ilike', '%' . $search . '%');
+            })
+            ->orderBy('name', 'asc');
+
+        $categories = $query->paginate(15);
+
+        if ($request->ajax()) {
+            /** @var \Illuminate\View\View $view */
+            $view = view('categories.index', compact('categories', 'search'));
+            return $view->fragment('data-container');
+        }
+        return view('categories.index', compact('categories', 'search'));
     }
 
     public function create(): View
@@ -23,7 +37,7 @@ class CategoryController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100'
+            'name' => 'required|string|max:100|unique:categories,name'
         ]);
 
         Category::create($validated);
@@ -39,7 +53,7 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100'
+            'name' => 'required|string|max:100|unique:categories,name,' . $category->id
         ]);
 
         $category->update($validated);
@@ -50,6 +64,13 @@ class CategoryController extends Controller
     public function destroy(Category $category): RedirectResponse
     {
         $category->delete();
-        return redirect()->route('categories.index')->with('success', 'Kategori berhasil dihapus');
+        return redirect()->route('categories.index')->with('success', 'Kategori berhasil di non-aktifkan');
+    }
+
+    public function restore($id): RedirectResponse
+    {
+        $category = Category::withTrashed()->findOrFail($id);
+        $category->restore();
+        return redirect()->route('categories.index')->with('success', 'Kategori berhasil diaktifkan kembali');
     }
 }

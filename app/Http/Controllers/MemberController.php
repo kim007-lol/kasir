@@ -12,10 +12,26 @@ class MemberController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
-        $members = Member::latest()->get();
-        return view('members.index', compact('members'));
+        $search = $request->get('search');
+        $query = Member::select('id', 'name', 'phone', 'address', 'created_at')
+            ->withSum('transactions', 'total')
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'ilike', '%' . $search . '%')
+                    ->orWhere('phone', 'ilike', '%' . $search . '%');
+            })
+            ->orderByRaw('transactions_sum_total DESC NULLS LAST')
+            ->orderBy('name', 'asc');
+
+        $members = $query->paginate(15);
+
+        if ($request->ajax()) {
+            /** @var \Illuminate\View\View $view */
+            $view = view('members.index', compact('members', 'search'));
+            return $view->fragment('data-container');
+        }
+        return view('members.index', compact('members', 'search'));
     }
 
     /**

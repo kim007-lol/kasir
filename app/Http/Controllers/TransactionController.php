@@ -13,14 +13,32 @@ use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
-        $items = CashierItem::all();
-        $members = Member::all();
+        $search = $request->get('search');
+
+        $query = CashierItem::select('id', 'code', 'name', 'stock', 'selling_price', 'discount')
+            ->where('stock', '>', 0)
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'ilike', '%' . $search . '%')
+                        ->orWhere('code', 'ilike', '%' . $search . '%');
+                });
+            })
+            ->orderBy('code', 'asc');
+
+        $items = $query->paginate(15);
+        $members = Member::select('id', 'name')->orderBy('name')->get();
         $cart = session()->get('cart', []);
         $total = $this->calculateTotal($cart);
 
-        return view('transactions.index', compact('items', 'members', 'cart', 'total'));
+        if ($request->ajax()) {
+            /** @var \Illuminate\View\View $view */
+            $view = view('transactions.index', compact('items', 'members', 'cart', 'total', 'search'));
+            return $view->fragment('product-list');
+        }
+
+        return view('transactions.index', compact('items', 'members', 'cart', 'total', 'search'));
     }
 
     public function addToCart(Request $request): RedirectResponse
@@ -42,11 +60,16 @@ class TransactionController extends Controller
         if (isset($cart[$itemId])) {
             $cart[$itemId]['qty'] += $validated['qty'];
         } else {
+            // Calculate original price from final price and discount
+            $originalPrice = $item->discount > 0 ? $item->selling_price / (1 - $item->discount / 100) : $item->selling_price;
+
             $cart[$itemId] = [
                 'item_id' => $item->id,
                 'code' => $item->code,
                 'name' => $item->name,
-                'price' => $item->selling_price,
+                'price' => $item->selling_price, // Final price after discount
+                'original_price' => round($originalPrice, 2),
+                'discount' => $item->discount,
                 'qty' => $validated['qty']
             ];
         }
@@ -86,11 +109,16 @@ class TransactionController extends Controller
             if (isset($cart[$itemId])) {
                 $cart[$itemId]['qty'] += $qty;
             } else {
+                // Calculate original price from final price and discount
+                $originalPrice = $item->discount > 0 ? $item->selling_price / (1 - $item->discount / 100) : $item->selling_price;
+
                 $cart[$itemId] = [
                     'item_id' => $item->id,
                     'code' => $item->code,
                     'name' => $item->name,
-                    'price' => $item->selling_price,
+                    'price' => $item->selling_price, // Final price after discount
+                    'original_price' => round($originalPrice, 2),
+                    'discount' => $item->discount,
                     'qty' => $qty
                 ];
             }
@@ -128,7 +156,8 @@ class TransactionController extends Controller
         $validated = $request->validate([
             'member_id' => 'nullable|exists:members,id',
             'paid_amount' => 'required|numeric|min:0',
-            'payment_method' => 'required|in:cash,qris'
+            'payment_method' => 'required|in:cash,qris',
+            'discount_percent' => 'nullable|numeric|min:0|max:100', // Optional global discount
         ]);
 
         $cart = session()->get('cart', []);
@@ -137,9 +166,15 @@ class TransactionController extends Controller
             return redirect()->route('transactions.index')->with('error', 'Keranjang kosong');
         }
 
-        $total = $this->calculateTotal($cart);
+        $grossTotal = $this->calculateTotal($cart);
+
+        // Calculate Discount
+        $discountPercent = $validated['discount_percent'] ?? 0;
+        $discountAmount = $grossTotal * ($discountPercent / 100);
+        $netTotal = $grossTotal - $discountAmount;
+
         $paidAmount = (float) $validated['paid_amount'];
-        $changeAmount = $paidAmount - $total;
+        $changeAmount = $paidAmount - $netTotal;
 
         // Validasi stok sebelum memulai transaksi database
         $stockErrors = [];
@@ -155,10 +190,10 @@ class TransactionController extends Controller
                 ->with('error', implode(', ', $stockErrors));
         }
 
-        // Validasi pembayaran (Hanya jika Cash, QRIS biasanya pas atau lebih tapi logic backend bisa sama)
-        if ($paidAmount < $total) {
+        // Validasi pembayaran
+        if ($paidAmount < $netTotal) {
             return redirect()->route('transactions.index')
-                ->with('error', 'Uang pembayaran kurang! Total: Rp ' . number_format($total, 0, ',', '.') . ', Dibayar: Rp ' . number_format($paidAmount, 0, ',', '.'));
+                ->with('error', 'Uang pembayaran kurang! Total: Rp ' . number_format($netTotal, 0, ',', '.') . ', Dibayar: Rp ' . number_format($paidAmount, 0, ',', '.'));
         }
 
         try {
@@ -166,10 +201,10 @@ class TransactionController extends Controller
 
             $transactionId = null;
 
-            DB::transaction(function () use ($cart, $validated, $invoice, $total, $paidAmount, $changeAmount, &$transactionId) {
+            DB::transaction(function () use ($cart, $validated, $invoice, $grossTotal, $netTotal, $discountPercent, $discountAmount, $paidAmount, $changeAmount, &$transactionId) {
                 // Determine customer name based on member_id
                 $customerName = 'Non Member';
-                if ($validated['member_id']) {
+                if (!empty($validated['member_id'])) {
                     $member = Member::find($validated['member_id']);
                     $customerName = $member->name ?? 'Non Member';
                 }
@@ -178,10 +213,12 @@ class TransactionController extends Controller
                     'invoice' => $invoice,
                     'customer_name' => $customerName,
                     'member_id' => $validated['member_id'] ?? null,
-                    'total' => $total,
+                    'total' => $netTotal, // Store Net Total
                     'paid_amount' => $paidAmount,
                     'change_amount' => $changeAmount,
                     'payment_method' => $validated['payment_method'],
+                    'discount_percent' => $discountPercent,
+                    'discount_amount' => $discountAmount,
                     'user_id' => auth()->id()
                 ]);
 
@@ -191,7 +228,9 @@ class TransactionController extends Controller
                     TransactionDetail::create([
                         'transaction_id' => $transaction->id,
                         'item_id' => $item['item_id'],
-                        'price' => $item['price'],
+                        'price' => $item['price'], // Final price
+                        'original_price' => $item['original_price'] ?? $item['price'],
+                        'discount' => $item['discount'] ?? 0,
                         'qty' => $item['qty'],
                         'subtotal' => $item['price'] * $item['qty']
                     ]);

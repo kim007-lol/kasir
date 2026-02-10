@@ -68,6 +68,16 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
+        /* ===== PAGINATION ICON SIZE FIX ===== */
+        .pagination svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .pagination .flex.justify-between.flex-1 {
+            display: none;
+        }
+
         /* ===== SIDEBAR ===== */
         .sidebar {
             width: var(--sidebar-width);

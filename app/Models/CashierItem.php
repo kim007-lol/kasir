@@ -17,11 +17,13 @@ class CashierItem extends Model
         'code',
         'name',
         'selling_price',
+        'discount',
         'stock'
     ];
 
     protected $casts = [
         'selling_price' => 'decimal:2',
+        'discount' => 'decimal:2',
     ];
 
     public function warehouseItem(): BelongsTo
@@ -31,7 +33,7 @@ class CashierItem extends Model
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Category::class)->withTrashed();
     }
 
     public function supplier(): BelongsTo

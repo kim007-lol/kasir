@@ -13,16 +13,28 @@ use Illuminate\Support\Facades\DB;
 
 class WarehouseController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
         $search = $request->get('search');
-        $warehouseItems = WarehouseItem::with(['category', 'supplier'])
+
+        $query = WarehouseItem::select('id', 'code', 'name', 'category_id', 'supplier_id', 'purchase_price', 'selling_price', 'discount', 'stock', 'exp_date')
+            ->with(['category:id,name', 'supplier:id,name'])
             ->when($search, function ($query) use ($search) {
                 $query->where('name', 'ilike', '%' . $search . '%')
-                    ->orWhere('code', 'ilike', '%' . $search . '%');
+                    ->orWhere('code', 'ilike', '%' . $search . '%')
+                    ->orWhereHas('supplier', function ($q) use ($search) {
+                        $q->where('name', 'ilike', '%' . $search . '%');
+                    });
             })
-            ->latest()
-            ->get();
+            ->orderBy('code', 'asc');
+
+        $warehouseItems = $query->paginate(15);
+
+        if ($request->ajax()) {
+            /** @var \Illuminate\View\View $view */
+            $view = view('warehouse.index', compact('warehouseItems', 'search'));
+            return $view->fragment('data-container');
+        }
 
         return view('warehouse.index', compact('warehouseItems', 'search'));
     }

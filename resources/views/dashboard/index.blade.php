@@ -97,7 +97,7 @@
         <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-body">
-                    <h5 class="fw-bold mb-4"><i class="bi bi-graph-up"></i> Grafik Penjualan 7 Hari Terakhir</h5>
+                    <h5 class="fw-bold mb-4"><i class="bi bi-graph-up"></i> Grafik Penjualan 30 Hari Terakhir</h5>
                     <canvas id="salesChart" height="80" data-sales="{{ json_encode($salesChart) }}"></canvas>
                 </div>
             </div>

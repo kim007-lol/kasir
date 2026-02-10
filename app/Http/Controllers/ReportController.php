@@ -6,6 +6,7 @@ use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
@@ -13,7 +14,7 @@ use App\Exports\ReportsExport;
 
 class ReportController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
         $filter = $request->get('filter', 'today');
         $date = $request->get('date', now()->toDateString());
@@ -23,34 +24,59 @@ class ReportController extends Controller
         // Build query berdasarkan filter
         $transactionQuery = Transaction::query();
 
-        if ($filter == 'today' || !$filter) {
+        if ($filter == 'today') {
             $transactionQuery->whereDate('created_at', $date);
         } elseif ($filter == 'week') {
             $transactionQuery->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
         } elseif ($filter == 'month') {
             $transactionQuery->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
         } elseif ($filter == 'custom' && $startDate && $endDate) {
-            $transactionQuery->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate);
+            $transactionQuery->whereBetween('created_at', [
+                Carbon::parse($startDate)->startOfDay(),
+                Carbon::parse($endDate)->endOfDay()
+            ]);
         }
+        // If filter is 'all', we don't apply any date constraints
 
-        $transactions = $transactionQuery->with(['details.item', 'member'])->latest()->get();
+        // Efficient Aggregates
+        $totalTransactions = $transactionQuery->count();
+        $totalRevenue = $transactionQuery->sum('total');
 
-        $totalTransactions = $transactions->count();
-        $totalRevenue = $transactions->sum('total');
+        $transactions = $transactionQuery->with(['details.item', 'member'])
+            ->latest()
+            ->paginate(10);
+        /** @var \Illuminate\Pagination\LengthAwarePaginator $transactions */
+        $transactions->withQueryString();
 
-        // Total barang terjual
-        $totalItemsSold = $transactions->flatMap->details->sum('qty');
+        // Total barang terjual (Efficient)
+        $totalItemsSold = TransactionDetail::whereHas('transaction', function ($q) use ($date, $filter, $startDate, $endDate) {
+            if ($filter == 'today' || !$filter) {
+                $q->whereDate('created_at', $date);
+            } elseif ($filter == 'week') {
+                $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+            } elseif ($filter == 'month') {
+                $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
+            } elseif ($filter == 'custom' && $startDate && $endDate) {
+                $q->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate);
+            }
+        })->sum('qty');
 
         // Perhitungan keuntungan kotor dan bersih
         $grossProfit = $totalRevenue; // Keuntungan kotor = total penjualan (Revenue)
 
         // Hitung total harga beli (HPP) dari item yang terjual
+        // Note: usage of original $transactionQuery might be affected if we don't clone? 
+        // Query builder is mutable? No, usually fine unless we call get().
+        // Actually, we called count() and sum() which reset binding? No.
+        // But to be safe, let's rebuild or clone if needed. 
+        // Transaction::query() returns a new builder.
+        // But $transactionQuery is reused.
+
         $totalCost = $transactionQuery->pluck('id')->chunk(100)->sum(function ($chunk) {
             return TransactionDetail::whereIn('transaction_id', $chunk)
                 ->with('item.warehouseItem')
                 ->get()
                 ->sum(function ($detail) {
-                    // Jika item atau warehouse item tidak ditemukan, asumsikan cost 0 (profit full)
                     return $detail->qty * ($detail->item?->warehouseItem?->purchase_price ?? 0);
                 });
         });
@@ -60,7 +86,6 @@ class ReportController extends Controller
         // Detail barang terjual dengan stok masuk
         $itemDetails = TransactionDetail::selectRaw('item_id, SUM(qty) as total_sold')
             ->whereHas('transaction', function ($query) use ($transactionQuery) {
-                // Apply same filter as transactions
                 $query->whereIn('id', $transactionQuery->pluck('id'));
             })
             ->with('item.category')
@@ -69,7 +94,6 @@ class ReportController extends Controller
             ->map(function ($detail) use ($date, $filter, $startDate, $endDate) {
                 $item = $detail->item;
 
-                // Jika item sudah dihapus dari sistem
                 if (!$item) {
                     return [
                         'code' => 'N/A',
@@ -80,7 +104,6 @@ class ReportController extends Controller
                     ];
                 }
 
-                // Get stock entries untuk periode yang sama
                 $stockEntryQuery = \App\Models\StockEntry::where('warehouse_item_id', $item->warehouse_item_id);
 
                 if ($filter == 'today' || !$filter) {
@@ -104,19 +127,18 @@ class ReportController extends Controller
                 ];
             });
 
-        // Top Selling Items (limit 5) - pastikan kita handle item yang dihapus
-        $topSellingItems = TransactionDetail::selectRaw('item_id, SUM(qty) as total_qty')
+        // Top Selling Items
+        $topSellingItems = TransactionDetail::select('item_id', DB::raw('SUM(qty) as total_qty'))
             ->whereHas('transaction', function ($query) use ($transactionQuery) {
-                // Apply same filter as transactions
                 $query->whereIn('id', $transactionQuery->pluck('id'));
             })
             ->with('item')
             ->groupBy('item_id')
-            ->orderBy('total_qty', 'desc')
+            ->orderByDesc('total_qty')
             ->take(5)
             ->get();
 
-        return view('reports.index', compact(
+        $view = view('reports.index', compact(
             'transactions',
             'totalTransactions',
             'totalRevenue',
@@ -130,6 +152,14 @@ class ReportController extends Controller
             'startDate',
             'endDate'
         ));
+
+        if ($request->ajax()) {
+            /** @var \Illuminate\View\View $view */
+            $view->fragment('data-container');
+            return $view;
+        }
+
+        return $view;
     }
 
     public function exportPdf(Request $request)
@@ -158,17 +188,22 @@ class ReportController extends Controller
             ->take(5)
             ->get();
 
-        $pdf = Pdf::loadView('reports.pdf', compact(
+        $type = $request->get('type', 'detail'); // summary or detail
+
+        $pdfView = $type === 'summary' ? 'reports.pdf_summary' : 'reports.pdf';
+
+        $pdf = Pdf::loadView($pdfView, compact(
             'transactions',
             'totalTransactions',
             'totalRevenue',
             'totalNetProfit',
             'totalItemsSold',
             'topSellingItems',
-            'date'
+            'date',
+            'type'
         ));
 
-        return $pdf->download('laporan-transaksi-' . $date . '.pdf');
+        return $pdf->download('laporan-transaksi-' . $type . '-' . $date . '.pdf');
     }
 
     public function exportExcel(Request $request)
@@ -206,7 +241,14 @@ class ReportController extends Controller
             ->when($startDate, fn($q) => $q->whereDate('entry_date', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('entry_date', '<=', $endDate))
             ->latest('entry_date')
-            ->paginate(50);
+            ->paginate(10);
+
+        if ($request->ajax()) {
+            /** @var \Illuminate\View\View $entriesView */
+            $entriesView = view('reports.stock-entries', compact('entries', 'startDate', 'endDate'));
+            $entriesView->fragment('data-container');
+            return $entriesView;
+        }
 
         return view('reports.stock-entries', compact('entries', 'startDate', 'endDate'));
     }

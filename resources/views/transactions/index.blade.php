@@ -20,83 +20,85 @@
                     @csrf
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="mb-0 fw-bold">
-                            <i class="bi bi-check-square"></i> Pilih Beberapa Produk Sekaligus Atau Satuan
+                            <i class="bi bi-check-square"></i> Pilih Produk
                         </h6>
                         <button type="button" class="btn btn-success fw-bold" id="addSelectedBtn">
-                            <i class="bi bi-cart-plus"></i> Tambah Terpilih ke Keranjang
+                            <i class="bi bi-cart-plus"></i> Tambah Terpilih
                         </button>
                     </div>
 
-                    {{-- Search Box --}}
+                    {{-- Search Box with Server-Side Search --}}
                     <div class="mb-3">
                         <div class="input-group">
                             <span class="input-group-text bg-white">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" id="searchItem" class="form-control" placeholder="Cari berdasarkan nama atau kode produk..." />
-                            <button type="button" class="btn btn-outline-secondary" id="clearSearchBtn">
-                                <i class="bi bi-x-lg"></i>
-                            </button>
+                            <input type="text" id="searchItem" name="search" class="form-control" placeholder="Cari kode atau nama produk (Tekan Enter)..." value="{{ $search ?? '' }}" />
+                            <button type="button" class="btn btn-primary" id="searchBtn">Cari</button>
+                            @if(request('search'))
+                            <a href="{{ route('transactions.index') }}" class="btn btn-outline-secondary">Reset</a>
+                            @endif
                         </div>
                     </div>
 
-                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                        <table class="table table-bordered table-hover mb-0" id="itemsTable">
-                            <thead class="table-dark sticky-top" style="top: 0;">
-                                <tr>
-                                    <th style="width: 50px;">
-                                        <input type="checkbox" id="selectAll">
-                                    </th>
-                                    <th>Kode</th>
-                                    <th>Nama Produk</th>
-                                    <th>Harga</th>
-                                    <th>Stok Produk</th>
-                                    <th style="width: 100px;">Jumlah</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($items as $item)
-                                @if ($item->stock > 0)
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" class="item-checkbox" data-stock="{{ $item->stock }}" data-item-id="{{ $item->id }}">
-                                    </td>
-                                    <td><small>{{ $item->code }}</small></td>
-                                    <td>{{ $item->name }}</td>
-                                    <td>Rp. {{ number_format($item->selling_price, 0, ',', '.') }}</td>
-                                    <td>
-                                        @php
-                                        $stockClass = 'bg-success';
-                                        if ($item->stock < 10) {
-                                            $stockClass='bg-danger' ;
-                                            } elseif ($item->stock <= 20) {
-                                                $stockClass='bg-warning' ;
-                                                }
-                                                @endphp
-                                                <span class="badge {{ $stockClass }}">
-                                                {{ $item->stock }}
-                                                </span>
-                                    </td>
-                                    <td>
-                                        <input type="number" class="form-control form-control-sm qty-input"
-                                            value="1"
-                                            min="1"
-                                            max="{{ $item->stock }}"
-                                            data-item-id="{{ $item->id }}"
-                                            disabled>
-                                    </td>
-                                </tr>
-                                @endif
-                                @empty
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                        <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
-                                        <p class="mt-2 mb-0">Tidak ada produk tersedia</p>
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                    <div id="product-list">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th style="width: 50px;">
+                                            <input type="checkbox" id="selectAll">
+                                        </th>
+                                        <th>Kode</th>
+                                        <th>Nama Produk</th>
+                                        <th>Harga</th>
+                                        <th>Stok</th>
+                                        <th style="width: 100px;">Jumlah</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($items as $item)
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="item-checkbox" data-stock="{{ $item->stock }}" data-item-id="{{ $item->id }}">
+                                        </td>
+                                        <td><small>{{ $item->code }}</small></td>
+                                        <td>{{ $item->name }}</td>
+                                        <td>Rp. {{ number_format($item->selling_price, 0, ',', '.') }}</td>
+                                        <td>
+                                            @php
+                                            $stockClass = 'bg-success';
+                                            if ($item->stock < 10) {
+                                                $stockClass='bg-danger' ;
+                                                } elseif ($item->stock <= 20) {
+                                                    $stockClass='bg-warning' ;
+                                                    }
+                                                    @endphp
+                                                    <span class="badge {{ $stockClass }}">{{ $item->stock }}</span>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm qty-input"
+                                                value="1"
+                                                min="1"
+                                                max="{{ $item->stock }}"
+                                                data-item-id="{{ $item->id }}"
+                                                disabled>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
+                                            <p class="mt-2 mb-0">Tidak ada produk ditemukan</p>
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-3">
+                            {{ $items->withQueryString()->links() }}
+                        </div>
                     </div>
                 </form>
             </div>
@@ -129,12 +131,20 @@
                         <tr>
                             <td>
                                 <small>{{ substr($item['name'], 0, 15) }}...</small>
+                                @if(isset($item['discount']) && $item['discount'] > 0)
+                                <br><span class="badge bg-warning text-dark" style="font-size: 0.65rem;">-{{ $item['discount'] }}%</span>
+                                @endif
                             </td>
                             <td>
                                 <span class="badge bg-info">{{ $item['qty'] }}</span>
                             </td>
                             <td class="d-none d-md-table-cell">
-                                <small>Rp. {{ number_format($item['price'] * $item['qty'], 0, ',', '.') }}</small>
+                                @if(isset($item['discount']) && $item['discount'] > 0)
+                                <small class="text-muted" style="text-decoration: line-through; font-size: 0.7rem;">
+                                    Rp. {{ number_format($item['original_price'] * $item['qty'], 0, ',', '.') }}
+                                </small><br>
+                                @endif
+                                <small class="fw-bold">Rp. {{ number_format($item['price'] * $item['qty'], 0, ',', '.') }}</small>
                             </td>
                             <td>
                                 <form action="{{ route('transactions.removeFromCart', $itemId) }}" method="POST" style="display:inline;">
@@ -262,33 +272,6 @@
             padding: 0.75rem;
         }
 
-        .table-sm {
-            font-size: 0.8rem;
-        }
-
-        .badge {
-            font-size: 0.75rem;
-        }
-
-        small {
-            font-size: 0.75rem;
-        }
-    }
-
-    @media (max-width: 576px) {
-        h2 {
-            font-size: 1.25rem;
-        }
-
-        .form-select-lg,
-        .form-control-lg {
-            font-size: 0.95rem;
-        }
-
-        .btn-lg {
-            padding: 0.6rem 1rem;
-            font-size: 0.9rem;
-        }
     }
 
     .card {
@@ -298,157 +281,135 @@
 
 <div id="blade-data"
     data-total="{{ json_encode($total ?? 0) }}"
-    data-quick-amounts="{{ json_encode([10000, 20000, 50000, 100000]) }}"
     style="display: none;"></div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Data dari Blade
         const bladeData = document.getElementById('blade-data');
         const totalAmount = JSON.parse(bladeData.dataset.total);
-        const quickAmounts = JSON.parse(bladeData.dataset.quickAmounts);
 
-        // Element references
-        const selectAllCheckbox = document.getElementById('selectAll');
-        const itemCheckboxes = document.querySelectorAll('.item-checkbox');
-        const qtyInputs = document.querySelectorAll('.qty-input');
-        const addSelectedBtn = document.getElementById('addSelectedBtn');
-        const searchInput = document.getElementById('searchItem');
-        const clearSearchBtn = document.getElementById('clearSearchBtn');
-        const paidAmountInput = document.getElementById('paid_amount');
-        const changeDisplay = document.getElementById('changeDisplay');
-        const changeAmount = document.getElementById('changeAmount');
-        const payButton = document.getElementById('payButton');
-        const paymentError = document.getElementById('paymentError');
-        const paymentErrorText = document.getElementById('paymentErrorText');
-        const quickPayButtons = document.querySelectorAll('.quick-pay-btn');
-        const pasBtn = document.getElementById('pasBtn');
+        // --- Event Delegation for Dynamic Elements (Checkboxes & Inputs) ---
+        const productList = document.getElementById('product-list');
 
-        // Toggle quantity input saat checkbox di klik
-        itemCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const row = this.closest('tr');
+        // Handle "Select All" click
+        document.body.addEventListener('change', function(e) {
+            if (e.target.id === 'selectAll') {
+                const checkboxes = document.querySelectorAll('.item-checkbox');
+                const qtyInputs = document.querySelectorAll('.qty-input');
+                checkboxes.forEach((cb, index) => {
+                    cb.checked = e.target.checked;
+                    if (qtyInputs[index]) qtyInputs[index].disabled = !e.target.checked;
+                });
+            }
+        });
+
+        // Handle individual item checkbox
+        document.body.addEventListener('change', function(e) {
+            if (e.target.classList.contains('item-checkbox')) {
+                const row = e.target.closest('tr');
                 const qtyInput = row.querySelector('.qty-input');
-                qtyInput.disabled = !this.checked;
-                if (this.checked) {
-                    qtyInput.focus();
+                if (qtyInput) {
+                    qtyInput.disabled = !e.target.checked;
+                    if (e.target.checked) qtyInput.focus();
                 }
-            });
+            }
         });
 
-        // Select all functionality
-        selectAllCheckbox.addEventListener('change', function() {
-            itemCheckboxes.forEach((cb, index) => {
-                cb.checked = this.checked;
-                qtyInputs[index].disabled = !this.checked;
-            });
+        // --- Search ---
+        const searchInput = document.getElementById('searchItem');
+        const searchBtn = document.getElementById('searchBtn');
+
+        function performSearch() {
+            const query = searchInput.value;
+            const url = new URL("{{ route('transactions.index') }}");
+            url.searchParams.set('search', query);
+
+            // Show loading
+            if (productList) productList.style.opacity = '0.5';
+
+            fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContent = doc.querySelector('#product-list');
+                    if (newContent && productList) {
+                        productList.innerHTML = newContent.innerHTML;
+                    }
+                })
+                .finally(() => {
+                    if (productList) productList.style.opacity = '1';
+                });
+        }
+
+        if (searchBtn) searchBtn.addEventListener('click', performSearch);
+        if (searchInput) searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
         });
 
-        // Add selected to cart
-        addSelectedBtn.addEventListener('click', function() {
-            const selectedItems = [];
-            itemCheckboxes.forEach(cb => {
-                if (cb.checked) {
-                    const itemId = cb.dataset.itemId;
+
+        // --- Add Selected to Cart ---
+        const addSelectedBtn = document.getElementById('addSelectedBtn');
+        if (addSelectedBtn) {
+            addSelectedBtn.addEventListener('click', function() {
+                const selectedItems = [];
+                document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
                     const row = cb.closest('tr');
                     const qtyInput = row.querySelector('.qty-input');
                     const qty = parseInt(qtyInput.value) || 1;
                     const stock = parseInt(cb.dataset.stock);
+                    const itemId = cb.dataset.itemId;
 
                     if (qty > 0 && qty <= stock) {
                         selectedItems.push({
                             item_id: itemId,
                             qty: qty
                         });
-                    } else {
-                        toastr.error('Jumlah untuk item ini tidak valid! Maks: ' + stock);
-                        return;
                     }
+                });
+
+                if (selectedItems.length === 0) {
+                    toastr.error('Pilih minimal satu item!');
+                    return;
                 }
+
+                // Create hidden inputs and submit
+                const form = document.getElementById('multiCartForm');
+                // Clean info
+                form.querySelectorAll('input[type="hidden"][name^="items"]').forEach(el => el.remove());
+
+                selectedItems.forEach((item, index) => {
+                    const idInput = document.createElement('input');
+                    idInput.type = 'hidden';
+                    idInput.name = `items[${index}][item_id]`;
+                    idInput.value = item.item_id;
+                    form.appendChild(idInput);
+
+                    const qtyInput = document.createElement('input');
+                    qtyInput.type = 'hidden';
+                    qtyInput.name = `items[${index}][qty]`;
+                    qtyInput.value = item.qty;
+                    form.appendChild(qtyInput);
+                });
+
+                form.submit();
             });
-
-            if (selectedItems.length === 0) {
-                toastr.error('Pilih minimal satu item!');
-                return;
-            }
-
-            // Submit form dengan data item
-            const form = document.getElementById('multiCartForm');
-
-            // Hapus input items sebelumnya jika ada
-            const existingItems = form.querySelectorAll('input[name^="items["]');
-            existingItems.forEach(input => input.remove());
-
-            // Hapus selected_items
-            const selectedItemsInputs = form.querySelectorAll('input[name="selected_items[]"]');
-            selectedItemsInputs.forEach(input => input.remove());
-
-            // Buat input hidden untuk setiap item
-            selectedItems.forEach((item, index) => {
-                const itemIdInput = document.createElement('input');
-                itemIdInput.type = 'hidden';
-                itemIdInput.name = `items[${index}][item_id]`;
-                itemIdInput.value = item.item_id;
-                form.appendChild(itemIdInput);
-
-                const qtyInput = document.createElement('input');
-                qtyInput.type = 'hidden';
-                qtyInput.name = `items[${index}][qty]`;
-                qtyInput.value = item.qty;
-                form.appendChild(qtyInput);
-            });
-
-            form.submit();
-        });
-
-        // Search functionality
-        searchInput.addEventListener('input', filterItems);
-        clearSearchBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            filterItems();
-        });
-
-        function filterItems() {
-            const filter = searchInput.value.toLowerCase();
-            const table = document.getElementById('itemsTable');
-            const rows = table.getElementsByTagName('tr');
-            let visibleCount = 0;
-
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                const codeCell = row.cells[1];
-                const nameCell = row.cells[2];
-
-                if (codeCell && nameCell) {
-                    const codeText = codeCell.textContent || codeCell.innerText;
-                    const nameText = nameCell.textContent || nameCell.innerText;
-
-                    if (codeText.toLowerCase().indexOf(filter) > -1 ||
-                        nameText.toLowerCase().indexOf(filter) > -1) {
-                        row.style.display = '';
-                        visibleCount++;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                }
-            }
-
-            // Tampilkan pesan jika tidak ada hasil
-            let emptyRow = table.querySelector('.no-results-row');
-            if (visibleCount === 0) {
-                if (!emptyRow) {
-                    emptyRow = table.insertRow();
-                    emptyRow.className = 'no-results-row';
-                    emptyRow.innerHTML = '<td colspan="6" class="text-center text-muted py-4"><i class="bi bi-search" style="font-size: 2rem; opacity: 0.3;"></i><p class="mt-2 mb-0">Produk tidak ditemukan</p></td>';
-                }
-                emptyRow.style.display = '';
-            } else if (emptyRow) {
-                emptyRow.style.display = 'none';
-            }
         }
 
-        // Payment calculation
-        paidAmountInput.addEventListener('input', calculateChange);
+        // --- Payment Logic (Static Elements) ---
+        const paidAmountInput = document.getElementById('paid_amount');
+        const changeDisplay = document.getElementById('changeDisplay');
+        const changeAmount = document.getElementById('changeAmount');
+        const payButton = document.getElementById('payButton');
+        const paymentError = document.getElementById('paymentError');
+        const paymentErrorText = document.getElementById('paymentErrorText');
 
         function calculateChange() {
             const paidAmount = parseFloat(paidAmountInput.value) || 0;
@@ -458,13 +419,12 @@
                 if (paidAmount < totalAmount) {
                     changeDisplay.style.display = 'none';
                     paymentError.style.display = 'block';
-                    const kurang = totalAmount - paidAmount;
-                    paymentErrorText.textContent = 'Kurang: Rp ' + formatNumber(kurang);
+                    paymentErrorText.textContent = 'Kurang: Rp ' + (totalAmount - paidAmount).toLocaleString('id-ID');
                     payButton.disabled = true;
                 } else {
                     paymentError.style.display = 'none';
                     changeDisplay.style.display = 'block';
-                    changeAmount.textContent = 'Rp ' + formatNumber(change);
+                    changeAmount.textContent = 'Rp ' + change.toLocaleString('id-ID');
                     payButton.disabled = false;
                 }
             } else {
@@ -474,25 +434,21 @@
             }
         }
 
-        // Quick payment buttons
-        quickPayButtons.forEach(btn => {
+        if (paidAmountInput) paidAmountInput.addEventListener('input', calculateChange);
+
+        document.querySelectorAll('.quick-pay-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                const amount = parseInt(this.dataset.amount);
-                paidAmountInput.value = amount;
+                paidAmountInput.value = this.dataset.amount;
                 calculateChange();
             });
         });
 
-        // Pas button
-        pasBtn.addEventListener('click', function() {
-            const pasAmount = Math.ceil(totalAmount / 1000) * 1000;
-            paidAmountInput.value = pasAmount;
-            calculateChange();
-        });
-
-        // Format number function
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        const pasBtn = document.getElementById('pasBtn');
+        if (pasBtn) {
+            pasBtn.addEventListener('click', function() {
+                paidAmountInput.value = Math.ceil(totalAmount / 1000) * 1000; // Round up to nearest 1000
+                calculateChange();
+            });
         }
     });
 </script>

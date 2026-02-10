@@ -13,14 +13,17 @@ class TransactionFactory extends Factory
     public function definition(): array
     {
         return [
-            'invoice' => 'INV-' . strtoupper($this->faker->unique()->bothify('####??')),
-            'customer_name' => $this->faker->name(),
-            'total' => 0, // Will be calculated after adding details
-            'user_id' => User::first()->id ?? User::factory(),
-            'paid_amount' => 0,
+            'invoice' => 'INV-' . strtoupper(fake()->unique()->bothify('####??')),
+            'customer_name' => fake()->name(),
+            'total' => fake()->numberBetween(10000, 500000),
+            'user_id' => \App\Models\User::first()->id ?? \App\Models\User::factory(),
+            'paid_amount' => 500000,
             'change_amount' => 0,
-            'payment_method' => $this->faker->randomElement(['cash', 'qris']),
-            'created_at' => $this->faker->dateTimeBetween('-7 days', 'now'),
+            'payment_method' => fake()->randomElement(['cash', 'qris']),
+            'member_id' => fake()->boolean(30) ? \App\Models\Member::factory() : null,
+            'discount_percent' => fake()->randomElement([0, 0, 5, 10]),
+            'discount_amount' => 0,
+            'created_at' => fake()->dateTimeBetween('-1 month', 'now'),
         ];
     }
 }

@@ -45,67 +45,67 @@
         </div>
     </div>
 
-    <!-- Stock Entries Table -->
-    <div class="card shadow-sm border-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead style="background-color: #ff6b6b; color: white;">
-                    <tr>
-                        <th style="width: 50px;">No</th>
-                        <th>Tanggal Masuk</th>
-                        <th>Kode Barang</th>
-                        <th>Nama Barang</th>
-                        <th class="d-none d-lg-table-cell">Kategori</th>
-                        <th class="d-none d-md-table-cell">Supplier</th>
-                        <th class="text-center">Jumlah Masuk</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($entries as $index => $entry)
-                    <tr>
-                        <td>{{ ($entries->currentPage() - 1) * $entries->perPage() + $index + 1 }}</td>
-                        <td>
-                            <small>{{ $entry->entry_date->format('d/m/Y') }}</small>
-                            <br>
-                            <small class="text-muted">{{ $entry->created_at->format('H:i') }}</small>
-                        </td>
-                        <td>
-                            <span class="badge bg-secondary">{{ $entry->warehouseItem->code }}</span>
-                        </td>
-                        <td>
-                            <strong>{{ $entry->warehouseItem->name }}</strong>
-                            <br>
-                            <small class="text-muted d-md-none">
-                                {{ $entry->warehouseItem->category->name }} | {{ $entry->supplier->name }}
-                            </small>
-                        </td>
-                        <td class="d-none d-lg-table-cell">{{ $entry->warehouseItem->category->name }}</td>
-                        <td class="d-none d-md-table-cell">{{ $entry->supplier->name }}</td>
-                        <td class="text-center">
-                            <span class="badge bg-success" style="font-size: 0.9rem; padding: 0.5rem 0.8rem;">
-                                +{{ $entry->quantity }}
-                            </span>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="text-center py-4 text-muted">
-                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                            <p>Tidak ada riwayat stok masuk</p>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    <div id="data-container">
+        <!-- Stock Entries Table -->
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background-color: #ff6b6b; color: white;">
+                        <tr>
+                            <th style="width: 50px;">No</th>
+                            <th>Tanggal Masuk</th>
+                            <th>Kode Barang</th>
+                            <th>Nama Barang</th>
+                            <th class="d-none d-lg-table-cell">Kategori</th>
+                            <th class="d-none d-md-table-cell">Supplier</th>
+                            <th class="text-center">Jumlah Masuk</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($entries as $index => $entry)
+                        <tr>
+                            <td>{{ ($entries->currentPage() - 1) * $entries->perPage() + $index + 1 }}</td>
+                            <td>
+                                <small>{{ $entry->entry_date->format('d/m/Y') }}</small>
+                                <br>
+                                <small class="text-muted">{{ $entry->created_at->format('H:i') }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ $entry->warehouseItem->code }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ $entry->warehouseItem->name }}</strong>
+                                <br>
+                                <small class="text-muted d-md-none">
+                                    {{ $entry->warehouseItem->category->name }} | {{ $entry->supplier->name }}
+                                </small>
+                            </td>
+                            <td class="d-none d-lg-table-cell">{{ $entry->warehouseItem->category->name }}</td>
+                            <td class="d-none d-md-table-cell">{{ $entry->supplier->name }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-success" style="font-size: 0.9rem; padding: 0.5rem 0.8rem;">
+                                    +{{ $entry->quantity }}
+                                </span>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p>Tidak ada riwayat stok masuk</p>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4">
+            {{ $entries->withQueryString()->links() }}
         </div>
     </div>
-
-    <!-- Pagination -->
-    @if($entries->hasPages())
-    <div class="mt-4">
-        {{ $entries->links() }}
-    </div>
-    @endif
 </div>
 
 <style>
