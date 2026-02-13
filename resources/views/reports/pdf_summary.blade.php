@@ -166,7 +166,7 @@
     @endif
 
     <div class="footer">
-        <p>Ringkasan Laporan ini dibuat secara otomatis oleh sistem KasirKu</p>
+        <p>Ringkasan Laporan ini dibuat secara otomatis oleh sistem SMEGABIZ</p>
     </div>
 </body>
 

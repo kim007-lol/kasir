@@ -204,7 +204,7 @@
     @endif
 
     <div class="footer">
-        <p>Laporan ini dibuat secara otomatis oleh sistem KasirKu</p>
+        <p>Laporan ini dibuat secara otomatis oleh sistem SMEGABIZ</p>
     </div>
 </body>
 

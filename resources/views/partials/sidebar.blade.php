@@ -1,6 +1,6 @@
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <h5><i class="bi bi-cash-register"></i> Kasir App</h5>
+        <h5><i class="bi bi-cash-register"></i> SMEGABIZ</h5>
     </div>
     <nav>
         <a href="{{ route('dashboard') }}" class="@if(request()->routeIs('dashboard')) active @endif">

@@ -1,4 +1,4 @@
-# KasirKu - Sistem Manajamen Kasir & Stok Laravel
+# SMEGABIZ - Sistem Manajamen Kasir & Stok Laravel
 
 Sistem Kasir modern yang dibangun dengan **Laravel 12**, mendukung manajemen stok gudang, stok kasir, membership, dan pelaporan transaksi.
 
@@ -35,7 +35,7 @@ Sistem Kasir modern yang dibangun dengan **Laravel 12**, mendukung manajemen sto
     cp .env.example .env
     ```
 
-    Atur koneksi database Anda di dalam file `.env`. (Secara default Laravel 12 menggunakan SQLite).
+    Atur koneksi database Anda di dalam file `.env`.
 
 3. **Generate App Key**
 
