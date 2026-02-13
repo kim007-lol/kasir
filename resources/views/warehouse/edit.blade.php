@@ -76,8 +76,8 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="discount" class="form-label">Diskon (%)</label>
-                            <input type="number" step="0.01" min="0" max="100" class="form-control @error('discount') is-invalid @enderror" id="discount" name="discount" value="{{ old('discount', $warehouse->discount) }}">
+                            <label for="discount" class="form-label">Potongan (Rp)</label>
+                            <input type="number" step="1" min="0" class="form-control @error('discount') is-invalid @enderror" id="discount" name="discount" value="{{ old('discount', $warehouse->discount) }}">
                             @error('discount')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -86,7 +86,7 @@
                         <div class="mb-3">
                             <label for="final_price_display" class="form-label">Harga Akhir (Otomatis)</label>
                             <input type="text" class="form-control bg-light" id="final_price_display" readonly value="Rp. {{ number_format($warehouse->final_price, 0, ',', '.') }}">
-                            <small class="text-muted">Harga jual - (harga jual × diskon%)</small>
+                            <small class="text-muted">Harga jual - Potongan Rp</small>
                         </div>
                     </div>
                 </div>
@@ -133,8 +133,7 @@
         const sellingPrice = parseFloat(document.getElementById('selling_price').value) || 0;
         const discount = parseFloat(document.getElementById('discount').value) || 0;
 
-        const discountAmount = sellingPrice * (discount / 100);
-        const finalPrice = sellingPrice - discountAmount;
+        const finalPrice = sellingPrice - discount;
 
         document.getElementById('final_price_display').value = 'Rp. ' + finalPrice.toLocaleString('id-ID', {
             minimumFractionDigits: 0,

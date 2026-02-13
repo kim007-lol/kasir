@@ -188,22 +188,17 @@ class ReportController extends Controller
             ->take(5)
             ->get();
 
-        $type = $request->get('type', 'detail'); // summary or detail
-
-        $pdfView = $type === 'summary' ? 'reports.pdf_summary' : 'reports.pdf';
-
-        $pdf = Pdf::loadView($pdfView, compact(
+        $pdf = Pdf::loadView('reports.pdf', compact(
             'transactions',
             'totalTransactions',
             'totalRevenue',
             'totalNetProfit',
             'totalItemsSold',
             'topSellingItems',
-            'date',
-            'type'
+            'date'
         ));
 
-        return $pdf->download('laporan-transaksi-' . $type . '-' . $date . '.pdf');
+        return $pdf->download('laporan-transaksi-detail-' . $date . '.pdf');
     }
 
     public function exportExcel(Request $request)

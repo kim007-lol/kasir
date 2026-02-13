@@ -60,15 +60,14 @@ class TransactionController extends Controller
         if (isset($cart[$itemId])) {
             $cart[$itemId]['qty'] += $validated['qty'];
         } else {
-            // Calculate original price from final price and discount
-            $originalPrice = $item->discount > 0 ? $item->selling_price / (1 - $item->discount / 100) : $item->selling_price;
+            $originalPrice = $item->selling_price + $item->discount;
 
             $cart[$itemId] = [
                 'item_id' => $item->id,
                 'code' => $item->code,
                 'name' => $item->name,
                 'price' => $item->selling_price, // Final price after discount
-                'original_price' => round($originalPrice, 2),
+                'original_price' => $originalPrice,
                 'discount' => $item->discount,
                 'qty' => $validated['qty']
             ];
@@ -109,15 +108,14 @@ class TransactionController extends Controller
             if (isset($cart[$itemId])) {
                 $cart[$itemId]['qty'] += $qty;
             } else {
-                // Calculate original price from final price and discount
-                $originalPrice = $item->discount > 0 ? $item->selling_price / (1 - $item->discount / 100) : $item->selling_price;
+                $originalPrice = $item->selling_price + $item->discount;
 
                 $cart[$itemId] = [
                     'item_id' => $item->id,
                     'code' => $item->code,
                     'name' => $item->name,
                     'price' => $item->selling_price, // Final price after discount
-                    'original_price' => round($originalPrice, 2),
+                    'original_price' => $originalPrice,
                     'discount' => $item->discount,
                     'qty' => $qty
                 ];
@@ -157,7 +155,7 @@ class TransactionController extends Controller
             'member_id' => 'nullable|exists:members,id',
             'paid_amount' => 'required|numeric|min:0',
             'payment_method' => 'required|in:cash,qris',
-            'discount_percent' => 'nullable|numeric|min:0|max:100', // Optional global discount
+            'discount_amount' => 'nullable|numeric|min:0', // Optional global discount in Rupiah
         ]);
 
         $cart = session()->get('cart', []);
@@ -169,8 +167,7 @@ class TransactionController extends Controller
         $grossTotal = $this->calculateTotal($cart);
 
         // Calculate Discount
-        $discountPercent = $validated['discount_percent'] ?? 0;
-        $discountAmount = $grossTotal * ($discountPercent / 100);
+        $discountAmount = (float) ($validated['discount_amount'] ?? 0);
         $netTotal = $grossTotal - $discountAmount;
 
         $paidAmount = (float) $validated['paid_amount'];
@@ -201,7 +198,7 @@ class TransactionController extends Controller
 
             $transactionId = null;
 
-            DB::transaction(function () use ($cart, $validated, $invoice, $grossTotal, $netTotal, $discountPercent, $discountAmount, $paidAmount, $changeAmount, &$transactionId) {
+            DB::transaction(function () use ($cart, $validated, $invoice, $grossTotal, $netTotal, $discountAmount, $paidAmount, $changeAmount, &$transactionId) {
                 // Determine customer name based on member_id
                 $customerName = 'Non Member';
                 if (!empty($validated['member_id'])) {
@@ -217,7 +214,7 @@ class TransactionController extends Controller
                     'paid_amount' => $paidAmount,
                     'change_amount' => $changeAmount,
                     'payment_method' => $validated['payment_method'],
-                    'discount_percent' => $discountPercent,
+                    'discount_percent' => 0,
                     'discount_amount' => $discountAmount,
                     'user_id' => auth()->id()
                 ]);

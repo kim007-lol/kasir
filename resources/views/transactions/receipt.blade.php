@@ -6,8 +6,8 @@
 <style>
     @media print {
         @page {
-            margin: 0.5cm;
-            size: 80mm auto;
+            margin: 0;
+            size: 58mm auto;
         }
 
         body {
@@ -154,14 +154,11 @@
                             <td class="text-start ps-0 py-1">
                                 {{ $detail->item->name }}
                                 @if($detail->discount > 0)
-                                <br><small class="text-warning" style="font-size: 0.65rem;">({{ $detail->discount }}% off)</small>
+                                <br><small class="text-muted" style="font-size: 0.65rem;">(Potongan: Rp {{ number_format($detail->discount, 0, ',', '.') }})</small>
                                 @endif
                             </td>
                             <td class="text-center py-1">{{ $detail->qty }}</td>
                             <td class="text-end py-1">
-                                @if($detail->discount > 0)
-                                <small style="text-decoration: line-through; color: #999; font-size: 0.7rem;">{{ number_format($detail->original_price, 0, ',', '.') }}</small><br>
-                                @endif
                                 <strong style="font-size: 0.85rem;">{{ number_format($detail->price, 0, ',', '.') }}</strong>
                             </td>
                             <td class="text-end py-1">{{ number_format($detail->subtotal, 0, ',', '.') }}</td>
@@ -180,7 +177,7 @@
                     </tr>
                     @if(($lastTransaction->discount_amount ?? 0) > 0)
                     <tr>
-                        <td class="text-start ps-0">Diskon ({{ $lastTransaction->discount_percent ?? 0 }}%)</td>
+                        <td class="text-start ps-0">Potongan</td>
                         <td class="text-end pe-0 text-danger">-Rp {{ number_format($lastTransaction->discount_amount, 0, ',', '.') }}</td>
                     </tr>
                     @endif
@@ -217,15 +214,15 @@
                 </div>
 
                 {{-- Action Buttons --}}
-                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <div class="d-flex justify-content-center gap-2 flex-wrap no-print">
                     <button onclick="window.print()" class="btn btn-primary btn-sm">
                         <i class="bi bi-printer"></i> Print
                     </button>
-                    <a href="{{ route('transactions.downloadReceipt', $lastTransaction->id) }}" target="_blank" class="btn btn-info btn-sm">
-                        <i class="bi bi-file-earmark-pdf"></i> PDF
-                    </a>
+                    <button onclick="goBack()" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> Kembali
+                    </button>
                     <a href="{{ route('transactions.index') }}" class="btn btn-success btn-sm">
-                        <i class="bi bi-arrow-repeat"></i> Baru
+                        <i class="bi bi-plus-circle"></i> Transaksi Baru
                     </a>
                 </div>
             </div>
@@ -262,4 +259,24 @@
         }
     }
 </style>
+
+<script>
+    function goBack() {
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href = "{{ route('transactions.index') }}";
+        }
+    }
+
+    window.onload = function() {
+        // Auto-print only if redirected from checkout (has success message)
+        const hasSuccess = @json(session('success') ? true : false);
+        if (hasSuccess) {
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+    }
+</script>
 @endsection

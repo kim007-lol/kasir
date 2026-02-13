@@ -35,8 +35,7 @@ class WarehouseItem extends Model
 
     public function getFinalPriceAttribute()
     {
-        $discountAmount = $this->selling_price * ($this->discount / 100);
-        return round($this->selling_price - $discountAmount, 2);
+        return round($this->selling_price - $this->discount, 2);
     }
 
     public function category(): BelongsTo
