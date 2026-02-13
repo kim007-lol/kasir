@@ -53,4 +53,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/export-pdf', [ReportController::class, 'exportPdf'])->name('reports.exportPdf');
     Route::get('/reports/export-excel', [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
     Route::get('/reports/stock-entries', [ReportController::class, 'stockEntriesHistory'])->name('reports.stockEntries');
+    Route::get('/about', [\App\Http\Controllers\BusinessProfileController::class, 'index'])->name('about');
 });

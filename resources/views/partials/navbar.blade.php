@@ -6,17 +6,20 @@
         <span class="navbar-brand mb-0 h1" style="color: white;">
             <i class="bi bi-cash-register"></i>
             @auth
-                Kasir - {{ auth()->user()->name }}
+            SMEGABIZ - {{ auth()->user()->name }}
             @else
-        Kasirku
+            SMEGABIZ
             @endauth
         </span>
         @auth
-            <div class="ms-auto d-flex align-items-center gap-3">
-                <span class="d-none d-md-inline text-light small">
-                    <i class="bi bi-person-circle"></i> {{ auth()->user()->name }}
-                </span>
-            </div>
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <a href="{{ route('about') }}" class="nav-link text-light small d-flex align-items-center gap-2">
+                <i class="bi bi-info-circle"></i> Profile
+            </a>
+            <span class="d-none d-md-inline text-light small">
+                <i class="bi bi-person-circle"></i> {{ auth()->user()->name }}
+            </span>
+        </div>
         @endauth
     </div>
 </nav>
