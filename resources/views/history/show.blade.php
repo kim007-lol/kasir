@@ -74,7 +74,7 @@
                                 <br><small class="text-muted">{{ $detail->item->code }}</small>
                                 @endif
                                 @if($detail->discount > 0)
-                                <br><small class="text-warning">(Diskon {{ $detail->discount }}%)</small>
+                                <br><small class="text-warning">(Potongan: Rp {{ number_format($detail->discount, 0, ',', '.') }})</small>
                                 @endif
                             </td>
                             <td class="text-center">{{ $detail->qty }}</td>

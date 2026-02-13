@@ -33,7 +33,7 @@
                             <span class="input-group-text bg-white">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" id="searchItem" name="search" class="form-control" placeholder="Cari kode atau nama produk (Tekan Enter)..." value="{{ $search ?? '' }}" />
+                            <input type="text" id="searchItem" name="search" class="form-control" placeholder="Scan Barcode atau Cari Produk..." value="{{ $search ?? '' }}" autofocus />
                             <button type="button" class="btn btn-primary" id="searchBtn">Cari</button>
                             @if(request('search'))
                             <a href="{{ route('transactions.index') }}" class="btn btn-outline-secondary">Reset</a>
@@ -132,7 +132,7 @@
                             <td>
                                 <small>{{ substr($item['name'], 0, 15) }}...</small>
                                 @if(isset($item['discount']) && $item['discount'] > 0)
-                                <br><span class="badge bg-warning text-dark" style="font-size: 0.65rem;">-{{ $item['discount'] }}%</span>
+                                <br><span class="badge bg-warning text-dark" style="font-size: 0.65rem;">-Rp {{ number_format($item['discount'], 0, ',', '.') }}</span>
                                 @endif
                             </td>
                             <td>
@@ -201,6 +201,21 @@
                                     <i class="bi bi-qr-code"></i> QRIS
                                 </label>
                             </div>
+                        </div>
+                    </div>
+
+                    {{-- Global Discount (Potongan Rp) --}}
+                    <div class="mb-2">
+                        <label for="discount_amount" class="form-label small fw-bold">Potongan (Rp)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light">Rp</span>
+                            <input
+                                type="number"
+                                name="discount_amount"
+                                id="discount_amount"
+                                class="form-control"
+                                placeholder="0"
+                                min="0" />
                         </div>
                     </div>
 
@@ -339,6 +354,22 @@
                     const newContent = doc.querySelector('#product-list');
                     if (newContent && productList) {
                         productList.innerHTML = newContent.innerHTML;
+
+                        // Barcode Auto-Add Logic:
+                        // If there is exactly one item and the search was non-empty
+                        const items = productList.querySelectorAll('.item-checkbox');
+                        if (items.length === 1 && query.trim().length > 0) {
+                            const itemId = items[0].dataset.itemId;
+                            const stock = parseInt(items[0].dataset.stock);
+                            if (stock > 0) {
+                                // Add to cart automatically
+                                addToCart(itemId, 1);
+                                // Clear search
+                                searchInput.value = '';
+                                // Reset list (optional, but good for clean look)
+                                setTimeout(() => performSearch(), 100);
+                            }
+                        }
                     }
                 })
                 .finally(() => {
@@ -443,12 +474,39 @@
             });
         });
 
-        const pasBtn = document.getElementById('pasBtn');
         if (pasBtn) {
             pasBtn.addEventListener('click', function() {
                 paidAmountInput.value = Math.ceil(totalAmount / 1000) * 1000; // Round up to nearest 1000
                 calculateChange();
             });
+        }
+
+        // --- Helper Function for Auto-Add ---
+        function addToCart(itemId, qty) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ route('transactions.addToCart') }}";
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = "{{ csrf_token() }}";
+            form.appendChild(csrfInput);
+
+            const idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'item_id';
+            idInput.value = itemId;
+            form.appendChild(idInput);
+
+            const qtyInput = document.createElement('input');
+            qtyInput.type = 'hidden';
+            qtyInput.name = 'qty';
+            qtyInput.value = qty;
+            form.appendChild(qtyInput);
+
+            document.body.appendChild(form);
+            form.submit();
         }
     });
 </script>

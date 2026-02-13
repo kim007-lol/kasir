@@ -47,9 +47,8 @@
                             <th>Kode</th>
                             <th>Nama Barang</th>
                             <th class="d-none d-lg-table-cell">Kategori</th>
-                            <th class="d-none d-lg-table-cell">Supplier</th>
                             <th class="d-none d-md-table-cell">Harga Jual</th>
-                            <th class="d-none d-md-table-cell">Diskon</th>
+                            <th class="d-none d-md-table-cell">Potongan (Rp)</th>
                             <th class="d-none d-sm-table-cell">Stok</th>
                             <th style="width: 140px;">Aksi</th>
                         </tr>
@@ -69,13 +68,12 @@
                                 </small>
                             </td>
                             <td class="d-none d-lg-table-cell">{{ $item->category->name ?? '-' }}</td>
-                            <td class="d-none d-lg-table-cell">{{ $item->warehouseItem->supplier->name ?? '-' }}</td>
                             <td class="d-none d-md-table-cell">
                                 <strong>Rp. {{ number_format($item->selling_price, 0, ',', '.') }}</strong>
                             </td>
                             <td class="d-none d-md-table-cell">
                                 @if($item->discount > 0)
-                                <span class="badge bg-warning text-dark">{{ $item->discount }}%</span>
+                                <span class="badge bg-warning text-dark">Rp. {{ number_format($item->discount, 0, ',', '.') }}</span>
                                 @else
                                 <span class="text-muted">-</span>
                                 @endif
@@ -108,7 +106,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center py-4 text-muted">
+                            <td colspan="8" class="text-center py-4 text-muted">
                                 <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                                 <p>Tidak ada data item kasir</p>
                             </td>

@@ -50,7 +50,7 @@
                             <th class="d-none d-lg-table-cell">Supplier</th>
                             <th class="d-none d-md-table-cell">Harga Beli</th>
                             <th class="d-none d-md-table-cell">Harga Jual</th>
-                            <th class="d-none d-xl-table-cell">Diskon</th>
+                            <th class="d-none d-xl-table-cell">Potongan</th>
                             <th class="d-none d-xl-table-cell">Harga Akhir</th>
                             <th class="d-none d-sm-table-cell">Stok</th>
                             <th class="d-none d-xl-table-cell">Exp Date</th>
@@ -81,7 +81,7 @@
                             </td>
                             <td class="d-none d-xl-table-cell">
                                 @if($item->discount > 0)
-                                <span class="badge bg-warning text-dark">{{ $item->discount }}%</span>
+                                <span class="badge bg-warning text-dark">Rp {{ number_format($item->discount, 0, ',', '.') }}</span>
                                 @else
                                 <span class="text-muted">-</span>
                                 @endif

@@ -55,7 +55,7 @@ class WarehouseController extends Controller
             'name' => 'required|string|max:150',
             'purchase_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
-            'discount' => 'nullable|numeric|min:0|max:100',
+            'discount' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'exp_date' => 'nullable|date'
         ]);
@@ -95,7 +95,7 @@ class WarehouseController extends Controller
             'name' => 'required|string|max:150',
             'purchase_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
-            'discount' => 'nullable|numeric|min:0|max:100',
+            'discount' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'exp_date' => 'nullable|date'
         ]);

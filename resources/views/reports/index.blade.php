@@ -55,14 +55,9 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-search"></i> Tampilkan Laporan
                         </button>
-                        <div class="btn-group">
-                            <a href="{{ route('reports.exportPdf', array_merge(request()->all(), ['type' => 'detail'])) }}" class="btn btn-success">
-                                <i class="bi bi-file-earmark-pdf"></i> PDF Detail
-                            </a>
-                            <a href="{{ route('reports.exportPdf', array_merge(request()->all(), ['type' => 'summary'])) }}" class="btn btn-outline-success">
-                                <i class="bi bi-file-earmark-pdf"></i> Ringkasan
-                            </a>
-                        </div>
+                        <a href="{{ route('reports.exportPdf', array_merge(request()->all(), ['type' => 'detail'])) }}" class="btn btn-success">
+                            <i class="bi bi-file-earmark-pdf"></i> PDF Detail
+                        </a>
                         <a href="{{ route('reports.exportExcel', request()->all()) }}" class="btn btn-success">
                             <i class="bi bi-file-earmark-excel"></i> Export Excel
                         </a>
