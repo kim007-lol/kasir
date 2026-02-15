@@ -36,7 +36,7 @@ class DummyDataSeeder extends Seeder
 
         $categories = collect();
         foreach ($categoryNames as $name) {
-            $categories->push(\App\Models\Category::create(['name' => $name]));
+            $categories->push(\App\Models\Category::firstOrCreate(['name' => $name]));
         }
 
         // 2. Suppliers (Indonesian Names)
@@ -53,12 +53,14 @@ class DummyDataSeeder extends Seeder
 
         $suppliers = collect();
         foreach ($supplierNames as $name) {
-            $suppliers->push(\App\Models\Supplier::create([
-                'name' => $name,
-                'email' => strtolower(str_replace(' ', '', $name)) . '@gmail.com',
-                'phone' => $faker->phoneNumber,
-                'address' => $faker->address
-            ]));
+            $suppliers->push(\App\Models\Supplier::firstOrCreate(
+                ['email' => strtolower(str_replace(' ', '', $name)) . '@gmail.com'],
+                [
+                    'name' => $name,
+                    'phone' => $faker->phoneNumber,
+                    'address' => $faker->address
+                ]
+            ));
         }
 
         // 3. Members (Indonesian Names)
@@ -97,29 +99,36 @@ class DummyDataSeeder extends Seeder
         foreach ($products as $prod) {
             $catId = $categories->where('name', $prod['cat'])->first()->id ?? $categories->first()->id;
 
-            $warehouseItems[] = \App\Models\WarehouseItem::factory()->create([
-                'category_id' => $catId,
-                'supplier_id' => $suppliers->random()->id,
-                'name' => $prod['name'],
-                'purchase_price' => $prod['price'] * 0.8,
-                'selling_price' => $prod['price'],
-                'stock' => $faker->numberBetween(10, 100),
-            ]);
-        }
+            // Use a deterministic code or identify by name to make it idempotent
+            // Since factory might generate random codes, let's use a predictable slug/prefix
+            $code = strtoupper(substr(str_replace(' ', '', $prod['name']), 0, 3)) . rand(100, 999);
 
-        // 5. Cashier Items (Linked)
-        foreach ($warehouseItems as $whItem) {
-            \App\Models\CashierItem::factory()->create([
-                'warehouse_item_id' => $whItem->id,
-                'category_id' => $whItem->category_id,
-                'supplier_id' => $whItem->supplier_id,
-                'code' => $whItem->code,
-                'name' => $whItem->name,
-                'selling_price' => $whItem->selling_price,
-                'discount' => 0,
-                'stock' => $whItem->stock,
-                'is_consignment' => false,
-            ]);
+            $whItem = \App\Models\WarehouseItem::updateOrCreate(
+                ['name' => $prod['name']],
+                [
+                    'category_id' => $catId,
+                    'supplier_id' => $suppliers->random()->id,
+                    'code' => strtoupper(substr(str_replace(' ', '', $prod['name']), 0, 3)) . rand(100, 999),
+                    'purchase_price' => $prod['price'] * 0.8,
+                    'selling_price' => $prod['price'],
+                    'stock' => $faker->numberBetween(10, 100),
+                ]
+            );
+            $warehouseItems[] = $whItem;
+
+            \App\Models\CashierItem::updateOrCreate(
+                ['warehouse_item_id' => $whItem->id],
+                [
+                    'category_id' => $whItem->category_id,
+                    'supplier_id' => $whItem->supplier_id,
+                    'code' => $whItem->code,
+                    'name' => $whItem->name,
+                    'selling_price' => $whItem->selling_price,
+                    'discount' => 0,
+                    'stock' => $whItem->stock,
+                    'is_consignment' => false,
+                ]
+            );
         }
 
         // 6. Consignment Items (Indonesian Snacks/Kue Basah)
@@ -139,20 +148,21 @@ class DummyDataSeeder extends Seeder
 
         // a. Today's Items
         foreach ($consignmentNames as $index => $name) {
-            \App\Models\CashierItem::factory()->create([
-                'warehouse_item_id' => null,
-                'category_id' => $categories->where('name', 'Makanan Ringan')->first()->id,
-                'supplier_id' => null,
-                'is_consignment' => true,
-                'name' => $name,
-                'consignment_source' => $sources[$index % count($sources)] . ' (Hari Ini)',
-                'created_at' => now(),
-                'updated_at' => now(),
-                'selling_price' => 2000 + ($index * 500),
-                'cost_price' => 1500 + ($index * 400),
-                'stock' => 20,
-                'discount' => 0,
-            ]);
+            \App\Models\CashierItem::updateOrCreate(
+                ['name' => $name, 'consignment_source' => $sources[$index % count($sources)] . ' (Hari Ini)'],
+                [
+                    'warehouse_item_id' => null,
+                    'category_id' => $categories->where('name', 'Makanan Ringan')->first()->id,
+                    'supplier_id' => null,
+                    'is_consignment' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                    'selling_price' => 2000 + ($index * 500),
+                    'cost_price' => 1500 + ($index * 400),
+                    'stock' => 20,
+                    'discount' => 0,
+                ]
+            );
         }
 
         // b. Historical Items (Previous Days)
@@ -160,18 +170,20 @@ class DummyDataSeeder extends Seeder
             $daysAgo = $faker->numberBetween(1, 5);
             $date = now()->subDays($daysAgo);
 
-            \App\Models\CashierItem::factory()->create([
-                'warehouse_item_id' => null,
-                'category_id' => $categories->where('name', 'Makanan Ringan')->first()->id,
-                'supplier_id' => null,
-                'is_consignment' => true,
-                'name' => $name . " (Kemarin)",
-                'consignment_source' => $sources[$index % count($sources)] . " ($daysAgo hari lalu)",
-                'created_at' => $date,
-                'updated_at' => $date,
-                'stock' => $faker->numberBetween(0, 5), // Mostly sold out
-                'discount' => 0,
-            ]);
+            \App\Models\CashierItem::updateOrCreate(
+                ['name' => $name . " (Kemarin)"],
+                [
+                    'warehouse_item_id' => null,
+                    'category_id' => $categories->where('name', 'Makanan Ringan')->first()->id,
+                    'supplier_id' => null,
+                    'is_consignment' => true,
+                    'consignment_source' => $sources[$index % count($sources)] . " ($daysAgo hari lalu)",
+                    'created_at' => $date,
+                    'updated_at' => $date,
+                    'stock' => $faker->numberBetween(0, 5), // Mostly sold out
+                    'discount' => 0,
+                ]
+            );
         }
 
         // 7. Stock Entries
@@ -190,13 +202,26 @@ class DummyDataSeeder extends Seeder
 
         for ($i = 0; $i < 60; $i++) {
             $transactionDate = now()->subDays($faker->numberBetween(0, 60))->setTime($faker->numberBetween(8, 20), $faker->numberBetween(0, 59));
+            $invoice = 'TRX-' . $transactionDate->format('ymd') . '-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT);
 
-            $transaction = \App\Models\Transaction::factory()->create([
+            // Skip if invoice exists
+            if (\App\Models\Transaction::where('invoice', $invoice)->exists()) {
+                continue;
+            }
+
+            $transaction = \App\Models\Transaction::create([
                 'user_id' => $user->id,
                 'member_id' => $faker->boolean(30) ? $members->random()->id : null,
                 'created_at' => $transactionDate,
                 'updated_at' => $transactionDate,
-                'invoice' => 'TRX-' . $transactionDate->format('ymd') . '-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT),
+                'invoice' => $invoice,
+                'total' => 0,
+                'paid_amount' => 0,
+                'change_amount' => 0,
+                'payment_method' => 'cash',
+                'customer_name' => $faker->name,
+                'discount_percent' => 0,
+                'discount_amount' => 0,
             ]);
 
             $detailsCount = $faker->numberBetween(1, 6);

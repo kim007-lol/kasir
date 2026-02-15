@@ -21,79 +21,93 @@ class DatabaseSeeder extends Seeder
 
 
         // Create default supplier
-        $supplier = Supplier::create([
-            'name' => 'Supplier Utama',
-            'email' => 'supplier@example.com',
-            'phone' => '081234567890',
-            'address' => 'Jl. Kebahagiaan No. 1'
-        ]);
+        $supplier = Supplier::firstOrCreate(
+            ['email' => 'supplier@example.com'],
+            [
+                'name' => 'Supplier Utama',
+                'phone' => '081234567890',
+                'address' => 'Jl. Kebahagiaan No. 1'
+            ]
+        );
 
         // Create categories
-        $kategoriElektronik = Category::create(['name' => 'Elektronik']);
-        $kategoriMakanan = Category::create(['name' => 'Makanan']);
-        $kategoriMinuman = Category::create(['name' => 'Minuman']);
+        $kategoriElektronik = Category::firstOrCreate(['name' => 'Elektronik']);
+        $kategoriMakanan = Category::firstOrCreate(['name' => 'Makanan']);
+        $kategoriMinuman = Category::firstOrCreate(['name' => 'Minuman']);
 
         // Create items for Elektronik
-        WarehouseItem::create([
-            'category_id' => $kategoriElektronik->id,
-            'supplier_id' => $supplier->id,
-            'code' => 'ELE001',
-            'name' => 'Lampu LED 10W',
-            'purchase_price' => 60000,
-            'selling_price' => 85000,
-            'stock' => 50
-        ]);
+        WarehouseItem::updateOrCreate(
+            ['code' => 'ELE001'],
+            [
+                'category_id' => $kategoriElektronik->id,
+                'supplier_id' => $supplier->id,
+                'name' => 'Lampu LED 10W',
+                'purchase_price' => 60000,
+                'selling_price' => 85000,
+                'stock' => 50
+            ]
+        );
 
-        WarehouseItem::create([
-            'category_id' => $kategoriElektronik->id,
-            'supplier_id' => $supplier->id,
-            'code' => 'ELE002',
-            'name' => 'Kabel HDMI',
-            'purchase_price' => 30000,
-            'selling_price' => 45000,
-            'stock' => 30
-        ]);
+        WarehouseItem::updateOrCreate(
+            ['code' => 'ELE002'],
+            [
+                'category_id' => $kategoriElektronik->id,
+                'supplier_id' => $supplier->id,
+                'name' => 'Kabel HDMI',
+                'purchase_price' => 30000,
+                'selling_price' => 45000,
+                'stock' => 30
+            ]
+        );
 
         // Create items for Makanan
-        WarehouseItem::create([
-            'category_id' => $kategoriMakanan->id,
-            'supplier_id' => $supplier->id,
-            'code' => 'MAK001',
-            'name' => 'Roti Tawar',
-            'purchase_price' => 20000,
-            'selling_price' => 25000,
-            'stock' => 100
-        ]);
+        WarehouseItem::updateOrCreate(
+            ['code' => 'MAK001'],
+            [
+                'category_id' => $kategoriMakanan->id,
+                'supplier_id' => $supplier->id,
+                'name' => 'Roti Tawar',
+                'purchase_price' => 20000,
+                'selling_price' => 25000,
+                'stock' => 100
+            ]
+        );
 
-        WarehouseItem::create([
-            'category_id' => $kategoriMakanan->id,
-            'supplier_id' => $supplier->id,
-            'code' => 'MAK002',
-            'name' => 'Mie Instan',
-            'purchase_price' => 2800,
-            'selling_price' => 3500,
-            'stock' => 200
-        ]);
+        WarehouseItem::updateOrCreate(
+            ['code' => 'MAK002'],
+            [
+                'category_id' => $kategoriMakanan->id,
+                'supplier_id' => $supplier->id,
+                'name' => 'Mie Instan',
+                'purchase_price' => 2800,
+                'selling_price' => 3500,
+                'stock' => 200
+            ]
+        );
 
         // Create items for Minuman
-        WarehouseItem::create([
-            'category_id' => $kategoriMinuman->id,
-            'supplier_id' => $supplier->id,
-            'code' => 'MIN001',
-            'name' => 'Air Mineral 600ml',
-            'purchase_price' => 2500,
-            'selling_price' => 4000,
-            'stock' => 150
-        ]);
+        WarehouseItem::updateOrCreate(
+            ['code' => 'MIN001'],
+            [
+                'category_id' => $kategoriMinuman->id,
+                'supplier_id' => $supplier->id,
+                'name' => 'Air Mineral 600ml',
+                'purchase_price' => 2500,
+                'selling_price' => 4000,
+                'stock' => 150
+            ]
+        );
 
-        WarehouseItem::create([
-            'category_id' => $kategoriMinuman->id,
-            'supplier_id' => $supplier->id,
-            'code' => 'MIN002',
-            'name' => 'Kopi Instant',
-            'purchase_price' => 12000,
-            'selling_price' => 15000,
-            'stock' => 80
-        ]);
+        WarehouseItem::updateOrCreate(
+            ['code' => 'MIN002'],
+            [
+                'category_id' => $kategoriMinuman->id,
+                'supplier_id' => $supplier->id,
+                'name' => 'Kopi Instant',
+                'purchase_price' => 12000,
+                'selling_price' => 15000,
+                'stock' => 80
+            ]
+        );
     }
 }
