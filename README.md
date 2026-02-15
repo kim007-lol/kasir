@@ -87,8 +87,27 @@ Sistem ini mendukung pengelolaan yang lengkap:
 
 ### Akun Login Default
 
-- **Email**: `admin@example.com`
-- **Password**: `password`
+Jika Anda baru saja menjalankan migrasi dengan seeder (`php artisan migrate --seed`), gunakan akun berikut:
+
+| Peran     | Username / Email                   | Password        |
+| :-------- | :--------------------------------- | :-------------- |
+| **Admin** | `admin` atau `devidiana@gmail.com` | `adminsmegabiz` |
+| **Kasir** | `kasir` atau `kasir123@gmail.com`  | `kasir123`      |
+
+---
+
+## 🔐 Panduan Login
+
+Untuk masuk ke sistem, ikuti langkah-langkah berikut:
+
+1.  **Akses Halaman Login**: Buka [http://127.0.0.1:8000/login](http://127.0.0.1:8000/login) di browser Anda.
+2.  **Masukkan Kredensial**:
+    - Anda bisa menggunakan **Username** atau **Email** di kolom pertama.
+    - Masukkan **Password** yang sesuai dengan peran Anda.
+3.  **Klik Login**: Sistem akan mendeteksi peran Anda secara otomatis:
+    - **Dashboard Admin**: Fokus pada manajemen stok gudang, supplier, kategori, dan laporan keuangan.
+    - **Dashboard Kasir**: Fokus pada transaksi cepat, manajemen stok kasir, dan barang titipan.
+4.  **Logout**: Klik tombol Logout di sidebar atau navbar untuk keluar dengan aman.
 
 ---
 
