@@ -112,8 +112,8 @@
             <div class="col-12 col-sm-6 col-lg-3">
                 <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #ffc107;">
                     <div class="card-body">
-                        <p class="text-muted mb-2 small">Keuntungan Kotor</p>
-                        <h4 class="mb-0" style="color: #ffc107;">Rp. {{ number_format($grossProfit, 0, ',', '.') }}</h4>
+                        <p class="text-muted mb-2 small">Total Pendapatan</p>
+                        <h4 class="mb-0" style="color: #ffc107;">Rp. {{ number_format($totalRevenue, 0, ',', '.') }}</h4>
                         <small class="text-muted">Total Penjualan</small>
                     </div>
                 </div>
@@ -121,9 +121,9 @@
             <div class="col-12 col-sm-6 col-lg-3">
                 <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #17a2b8;">
                     <div class="card-body">
-                        <p class="text-muted mb-2 small">Keuntungan Bersih</p>
+                        <p class="text-muted mb-2 small">Laba Bersih</p>
                         <h4 class="mb-0" style="color: #17a2b8;">Rp. {{ number_format($netProfit, 0, ',', '.') }}</h4>
-                        <small class="text-muted">Estimasi (Perlu purchase_price)</small>
+                        <small class="text-muted">Estimasi (Setelah HPP)</small>
                     </div>
                 </div>
             </div>

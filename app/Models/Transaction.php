@@ -41,12 +41,19 @@ class Transaction extends Model
 
     /**
      * Get net profit from transaction
+     * H3+H4 Fix: Memperhitungkan diskon global (discount_amount)
      */
     public function getNetProfitAttribute(): float
     {
-        return $this->details->sum(function ($detail) {
-            $purchasePrice = $detail->item?->warehouseItem?->purchase_price ?? 0;
+        $grossProfit = $this->details->sum(function ($detail) {
+            // Use historical purchase price if available, otherwise fallback to current price
+            $purchasePrice = $detail->purchase_price > 0
+                ? $detail->purchase_price
+                : ($detail->item?->warehouseItem?->purchase_price ?? 0);
             return ($detail->price - $purchasePrice) * $detail->qty;
         });
+
+        // Kurangi diskon global dari profit
+        return $grossProfit - ($this->discount_amount ?? 0);
     }
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
@@ -23,6 +25,16 @@ class LoginController extends Controller
             'password.required' => 'Password harus diisi',
         ]);
 
+        // M2 Fix: Rate limiting - 5 percobaan per menit
+        $throttleKey = Str::lower($request->input('login')) . '|' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            return back()->withErrors([
+                'login' => "Terlalu banyak percobaan login. Coba lagi dalam {$seconds} detik.",
+            ])->onlyInput('login');
+        }
+
         // Cek apakah input adalah email atau username
         $loginType = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
@@ -32,6 +44,7 @@ class LoginController extends Controller
         ];
 
         if (Auth::attempt($loginCredentials)) {
+            RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
 
             // Redirect based on role
@@ -42,6 +55,8 @@ class LoginController extends Controller
 
             return redirect()->intended(route('dashboard'));
         }
+
+        RateLimiter::hit($throttleKey, 60);
 
         return back()->withErrors([
             'login' => 'Username/Email atau password salah.',

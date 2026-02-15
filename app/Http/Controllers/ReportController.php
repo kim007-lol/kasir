@@ -39,7 +39,8 @@ class ReportController extends Controller
         // If filter is 'all', we don't apply any date constraints
 
         // Efficient Aggregates
-        $totalTransactions = $transactionQuery->count();
+        $transactionIds = $transactionQuery->pluck('id');
+        $totalTransactions = $transactionIds->count();
         $totalRevenue = $transactionQuery->sum('total');
 
         $transactions = $transactionQuery->with(['details.item', 'member'])
@@ -49,44 +50,29 @@ class ReportController extends Controller
         $transactions->withQueryString();
 
         // Total barang terjual (Efficient)
-        $totalItemsSold = TransactionDetail::whereHas('transaction', function ($q) use ($date, $filter, $startDate, $endDate) {
-            if ($filter == 'today' || !$filter) {
-                $q->whereDate('created_at', $date);
-            } elseif ($filter == 'week') {
-                $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-            } elseif ($filter == 'month') {
-                $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
-            } elseif ($filter == 'custom' && $startDate && $endDate) {
-                $q->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate);
-            }
-        })->sum('qty');
+        $totalItemsSold = TransactionDetail::whereIn('transaction_id', $transactionIds)->sum('qty');
 
-        // Perhitungan keuntungan kotor dan bersih
-        $grossProfit = $totalRevenue; // Keuntungan kotor = total penjualan (Revenue)
+        // Total Pendapatan
+        $totalRevenueValue = $totalRevenue;
 
-        // Hitung total harga beli (HPP) dari item yang terjual
-        // Note: usage of original $transactionQuery might be affected if we don't clone? 
-        // Query builder is mutable? No, usually fine unless we call get().
-        // Actually, we called count() and sum() which reset binding? No.
-        // But to be safe, let's rebuild or clone if needed. 
-        // Transaction::query() returns a new builder.
-        // But $transactionQuery is reused.
+        // Efficient Total Cost Calculation (HPP)
+        $totalCost = TransactionDetail::whereIn('transaction_id', $transactionIds)
+            ->with('item.warehouseItem') // Eager load for fallback
+            ->get()
+            ->sum(function ($detail) {
+                // Use historical purchase price if available (> 0), otherwise fallback (for older records)
+                $purchasePrice = $detail->purchase_price > 0
+                    ? $detail->purchase_price
+                    : ($detail->item?->warehouseItem?->purchase_price ?? 0);
+                return $detail->qty * $purchasePrice;
+            });
 
-        // Efficient Total Cost Calculation using Joins
-        $totalCost = TransactionDetail::join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
-            ->join('cashier_items', 'transaction_details.item_id', '=', 'cashier_items.id')
-            ->join('warehouse_items', 'cashier_items.warehouse_item_id', '=', 'warehouse_items.id')
-            ->whereIn('transactions.id', $transactionQuery->pluck('id'))
-            ->sum(DB::raw('transaction_details.qty * warehouse_items.purchase_price'));
-
-        $netProfit = $grossProfit - $totalCost;
+        $netProfit = $totalRevenueValue - $totalCost;
 
         // Efficient Stock Entries Retrieval
         // 1. Get all relevant warehouse_item_ids from the sold items
         $soldItemIds = TransactionDetail::select('item_id')
-            ->whereHas('transaction', function ($query) use ($transactionQuery) {
-                $query->whereIn('id', $transactionQuery->pluck('id'));
-            })
+            ->whereIn('transaction_id', $transactionIds)
             ->distinct()
             ->pluck('item_id');
 
@@ -111,9 +97,7 @@ class ReportController extends Controller
 
         // Detail barang terjual dengan stok masuk (Memory Mapping)
         $itemDetails = TransactionDetail::selectRaw('item_id, SUM(qty) as total_sold')
-            ->whereHas('transaction', function ($query) use ($transactionQuery) {
-                $query->whereIn('id', $transactionQuery->pluck('id'));
-            })
+            ->whereIn('transaction_id', $transactionIds)
             ->with(['item.category']) // Eager load category
             ->groupBy('item_id')
             ->get()
@@ -145,9 +129,7 @@ class ReportController extends Controller
 
         // Top Selling Items
         $topSellingItems = TransactionDetail::select('item_id', DB::raw('SUM(qty) as total_qty'))
-            ->whereHas('transaction', function ($query) use ($transactionQuery) {
-                $query->whereIn('id', $transactionQuery->pluck('id'));
-            })
+            ->whereIn('transaction_id', $transactionIds)
             ->with('item')
             ->groupBy('item_id')
             ->orderByDesc('total_qty')
@@ -159,7 +141,6 @@ class ReportController extends Controller
             'totalTransactions',
             'totalRevenue',
             'totalItemsSold',
-            'grossProfit',
             'netProfit',
             'itemDetails',
             'topSellingItems',

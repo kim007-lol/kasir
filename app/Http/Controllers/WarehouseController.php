@@ -123,6 +123,18 @@ class WarehouseController extends Controller
 
     public function destroy(WarehouseItem $warehouse): RedirectResponse
     {
+        // H5 Fix: Cek apakah ada item kasir aktif yang merujuk warehouse item ini
+        $activeCashierItem = \App\Models\CashierItem::where('warehouse_item_id', $warehouse->id)
+            ->where('stock', '>', 0)
+            ->first();
+
+        if ($activeCashierItem) {
+            return redirect()->route('warehouse.index')->with(
+                'error',
+                "Tidak bisa menghapus. Item kasir \"{$activeCashierItem->name}\" masih memiliki stok ({$activeCashierItem->stock}). Kosongkan stok kasir terlebih dahulu."
+            );
+        }
+
         $warehouse->delete();
         return redirect()->route('warehouse.index')->with('success', 'Barang gudang berhasil dihapus');
     }

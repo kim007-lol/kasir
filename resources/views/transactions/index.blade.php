@@ -47,6 +47,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                     </div>
 
                     <div id="product-list">
+                        @fragment('product-list')
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover mb-0">
                                 <thead class="table-dark">
@@ -104,6 +105,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                         <div class="mt-3">
                             {{ $items->withQueryString()->links() }}
                         </div>
+                        @endfragment
                     </div>
                 </form>
             </div>
@@ -210,6 +212,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                     </div>
 
                     {{-- Global Discount (Potongan Rp) --}}
+                    @if(auth()->check() && auth()->user()->role === 'admin')
                     <div class="mb-2">
                         <label for="discount_amount" class="form-label small fw-bold">Potongan (Rp)</label>
                         <div class="input-group input-group-sm">
@@ -223,6 +226,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                                 min="0" />
                         </div>
                     </div>
+                    @endif
 
                     {{-- Input Uang Dibayar --}}
                     <div class="mb-2">
@@ -340,41 +344,50 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
         const searchBtn = document.getElementById('searchBtn');
 
         function performSearch() {
-            const query = searchInput.value;
+            const query = searchInput.value.trim();
+            if (!query) return;
+
             const url = new URL("{{ route($routePrefix . 'transactions.index') }}");
             url.searchParams.set('search', query);
 
             // Show loading
-            if (productList) productList.style.opacity = '0.5';
+            if (productList) {
+                productList.style.opacity = '0.5';
+                productList.style.pointerEvents = 'none';
+            }
 
             fetch(url, {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
-                .then(res => res.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newContent = doc.querySelector('#product-list');
-                    if (newContent && productList) {
-                        productList.innerHTML = newContent.innerHTML;
+                .then(async res => {
+                    const contentType = res.headers.get("content-type");
+                    if (contentType && contentType.includes("application/json")) {
+                        const data = await res.json();
+                        if (data.auto_added) {
+                            searchInput.value = '';
+                            window.location.href = data.redirect_url;
+                            return;
+                        }
+                    }
 
-                        // Barcode Auto-Add Logic:
-                        // If there is exactly one item and the search was non-empty
-                        const items = productList.querySelectorAll('.item-checkbox');
-                        if (items.length === 1 && query.trim().length > 0) {
-                            const itemId = items[0].dataset.itemId;
-                            const stock = parseInt(items[0].dataset.stock);
-                            if (stock > 0) {
-                                // Add to cart automatically
-                                addToCart(itemId, 1);
-                                // Clear search
-                                searchInput.value = '';
-                                // Reset list (optional, but good for clean look)
-                                setTimeout(() => performSearch(), 100);
+                    const html = await res.text();
+                    // Crucial: check if html starts with headers/garbage (the bug seen in screenshot)
+                    if (html.includes('HTTP/1.0 200 OK') || html.includes('{"auto_added":true')) {
+                        // This means the server-side JSON response was sent but caught as text
+                        // We can try to parse it manually if it contains the signal
+                        if (html.includes('"auto_added":true')) {
+                            const match = html.match(/"redirect_url":"([^"]+)"/);
+                            if (match) {
+                                window.location.href = match[1].replace(/\\\//g, '/');
+                                return;
                             }
                         }
+                    }
+
+                    if (productList) {
+                        productList.innerHTML = html;
                     }
                 })
                 .finally(() => {
@@ -389,6 +402,22 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                 performSearch();
             }
         });
+
+        // Ensure search input stays focused for continuous scanning
+        if (searchInput) {
+            searchInput.focus();
+            document.addEventListener('click', function(e) {
+                // Don't steal focus if clicking on other inputs, buttons, or specifically the payment section
+                const isFormElement = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName);
+                const isWithinPaymentForm = e.target.closest('#paymentForm');
+
+                if (!isFormElement && !isWithinPaymentForm) {
+                    searchInput.focus({
+                        preventScroll: true
+                    });
+                }
+            });
+        }
 
 
         // --- Add Selected to Cart ---

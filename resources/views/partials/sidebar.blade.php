@@ -36,6 +36,10 @@
             <i class="bi bi-file-earmark-bar-graph"></i>
             <span>Laporan</span>
         </a>
+        <a href="{{ route('users.index') }}" class="@if(request()->routeIs('users.*')) active @endif">
+            <i class="bi bi-person-gear"></i>
+            <span>Kelola User</span>
+        </a>
     </nav>
     <hr class="bg-secondary my-3">
     <div class="logout-btn">

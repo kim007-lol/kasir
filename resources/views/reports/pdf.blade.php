@@ -133,7 +133,7 @@
         </div>
         <div class="summary-item">
             <h3>Rp. {{ number_format($totalNetProfit, 0, ',', '.') }}</h3>
-            <p>Keuntungan</p>
+            <p>Laba (Estimasi)</p>
         </div>
         <div class="summary-item">
             <h3>{{ $totalItemsSold }}</h3>
@@ -180,7 +180,7 @@
                 <th>Invoice</th>
                 <th>Pembeli</th>
                 <th>Total</th>
-                <th>Untung</th>
+                <th>Laba</th>
                 <th>Waktu</th>
             </tr>
         </thead>

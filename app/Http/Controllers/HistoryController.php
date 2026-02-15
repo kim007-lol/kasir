@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class HistoryController extends Controller
@@ -17,6 +18,10 @@ class HistoryController extends Controller
         $endDate = $request->get('end_date');
 
         $query = Transaction::with(['details.item.warehouseItem', 'user', 'member'])
+            ->when(auth()->user()->role === 'kasir', function ($q) {
+                // Security: Cashier can only see their own transactions
+                $q->where('user_id', auth()->id());
+            })
             ->when($filter == 'today', fn($q) => $q->whereDate('created_at', today()))
             ->when($filter == 'week', fn($q) => $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]))
             ->when($filter == 'month', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
@@ -36,8 +41,14 @@ class HistoryController extends Controller
         return view('history.index', compact('transactions', 'filter', 'search', 'startDate', 'endDate'));
     }
 
-    public function show(Transaction $transaction): View
+    public function show(Transaction $transaction): View|RedirectResponse
     {
+        // IDOR Fix: Kasir hanya bisa melihat transaksi miliknya sendiri
+        if (auth()->user()->role !== 'admin' && $transaction->user_id !== auth()->id()) {
+            $route = auth()->user()->role === 'kasir' ? 'cashier.history.index' : 'history.index';
+            return redirect()->route($route)->with('error', 'Anda tidak memiliki akses untuk melihat transaksi ini');
+        }
+
         $details = TransactionDetail::where('transaction_id', $transaction->id)->with('item')->get();
         return view('history.show', compact('transaction', 'details'));
     }

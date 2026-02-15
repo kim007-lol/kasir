@@ -259,8 +259,10 @@ class CashierItemController extends Controller
                     });
             })
             ->when($search, function ($query) use ($search) {
-                $query->where('name', 'ilike', '%' . $search . '%')
-                    ->orWhere('code', 'ilike', '%' . $search . '%');
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'ilike', '%' . $search . '%')
+                        ->orWhere('code', 'ilike', '%' . $search . '%');
+                });
             })
             ->orderByRaw('created_at DESC');
 
@@ -370,7 +372,9 @@ class CashierItemController extends Controller
             'consignment_source' => 'required|string|max:150',
         ]);
 
-        $code = 'CSG-' . date('ymdHis') . '-' . rand(10, 99);
+        do {
+            $code = 'CSG-' . date('ymdHis') . '-' . rand(10, 99);
+        } while (CashierItem::where('code', $code)->exists());
 
         CashierItem::create([
             'code' => $code,

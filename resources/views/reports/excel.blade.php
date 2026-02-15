@@ -12,7 +12,7 @@
             <th>Waktu</th>
             <th>Pelanggan</th>
             <th>Total Belanja</th>
-            <th>Keuntungan Bersih</th>
+            <th>Laba (Estimasi)</th>
             <th>Metode Pembayaran</th>
             <th>Item</th>
         </tr>
@@ -41,7 +41,7 @@
             <td></td>
         </tr>
         <tr>
-            <td colspan="4" style="text-align: right; font-weight: bold;">Total Keuntungan Bersih</td>
+            <td colspan="4" style="text-align: right; font-weight: bold;">Total Laba (Estimasi)</td>
             <td style="font-weight: bold;">{{ $transactions->sum('net_profit') }}</td>
             <td></td>
             <td></td>

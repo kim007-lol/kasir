@@ -11,6 +11,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\CashierItemController;
 use App\Http\Controllers\BusinessProfileController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\Auth\LoginController;
 
 /*
@@ -60,7 +61,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::resource('suppliers', SupplierController::class);
     Route::patch('/suppliers/{id}/restore', [SupplierController::class, 'restore'])->name('suppliers.restore');
-    Route::resource('warehouse', WarehouseController::class);
 
     // Cashier Item Management (Admin Side)
     Route::resource('cashier-items', CashierItemController::class);
@@ -77,7 +77,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Route::delete('/transaksi/hapus/{itemId}', [TransactionController::class, 'removeFromCart'])->name('transactions.removeFromCart');
     // Route::post('/transaksi/bayar', [TransactionController::class, 'checkout'])->name('transactions.checkout');
     // Route::get('/transaksi/struk', [TransactionController::class, 'receipt'])->name('transactions.receipt');
-    // Route::get('/transaksi/download/{id}', [TransactionController::class, 'downloadReceipt'])->name('transactions.downloadReceipt');
+    Route::get('/transaksi/download/{id}', [TransactionController::class, 'downloadReceipt'])->name('transactions.downloadReceipt');
 
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
     Route::get('/history/{transaction}', [HistoryController::class, 'show'])->name('history.show');
@@ -87,6 +87,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/reports/export-excel', [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
     Route::get('/reports/stock-entries', [ReportController::class, 'stockEntriesHistory'])->name('reports.stockEntries');
     Route::get('/reports/transfer-history', [ReportController::class, 'transferHistory'])->name('reports.transferHistory');
+    Route::resource('users', UserController::class)->only(['index', 'create', 'store']);
     Route::get('/about', [BusinessProfileController::class, 'index'])->name('about');
 });
 

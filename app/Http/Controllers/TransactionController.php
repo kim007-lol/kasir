@@ -13,11 +13,39 @@ use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
+    /**
+     * Helper: mendapatkan route name berdasarkan role user
+     */
+    private function getRoutePrefix(): string
+    {
+        return (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+    }
+
+    private function routeIndex(): string
+    {
+        return $this->getRoutePrefix() . 'transactions.index';
+    }
+
+    private function routeReceipt(): string
+    {
+        return $this->getRoutePrefix() . 'transactions.receipt';
+    }
+
     public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
-        // Clear cart on fresh page load (Refresh / Navigation) unless we have flash messages (redirects)
+        // Clear cart ONLY if it's a clean entry from another page (Referer is different)
+        // and there are no flash messages or active search/page queries.
+        $referer = $request->headers->get('referer');
+        $currentUrl = $request->url();
+
+        // If coming from receipt, we MUST ensure freshness
+        $isFromReceipt = $referer && str_contains($referer, 'struk');
+        $isForwardNavigation = !$referer || !str_contains($referer, $currentUrl);
+
         if (
-            !$request->ajax() && empty($request->query()) &&
+            !$request->ajax() &&
+            ($isForwardNavigation || $isFromReceipt) &&
+            empty($request->query()) &&
             !session()->has('success') && !session()->has('error') &&
             !session()->has('warning') && !session()->has('info')
         ) {
@@ -25,7 +53,66 @@ class TransactionController extends Controller
             session()->forget('last_transaction_id');
         }
 
-        $search = $request->get('search');
+        $search = trim($request->get('search'));
+
+        // Feature: Barcode Auto-Add (Exact Match)
+        if ($search) {
+            $exactItem = CashierItem::where('code', $search)
+                ->where('stock', '>', 0)
+                ->where(function ($q) {
+                    $q->where('is_consignment', false)->orWhereNull('is_consignment')
+                        ->orWhere(function ($sub) {
+                            $sub->where('is_consignment', true)->whereDate('created_at', today());
+                        });
+                })
+                ->first();
+
+            if ($exactItem) {
+                $cart = session()->get('cart', []);
+                $itemId = $exactItem->id;
+
+                // C4 Fix: Validasi stok sebelum menambah via barcode
+                $currentQty = isset($cart[$itemId]) ? $cart[$itemId]['qty'] : 0;
+                if ($exactItem->stock < ($currentQty + 1)) {
+                    $route = $this->routeIndex();
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'auto_added' => false,
+                            'redirect_url' => route($route) . '?error=' . urlencode("Stok tidak cukup. Sisa stok: {$exactItem->stock}")
+                        ]);
+                    }
+                    return redirect()->route($route)->with('error', "Stok tidak cukup. Sisa: {$exactItem->stock}. Di keranjang: {$currentQty}");
+                }
+
+                if (isset($cart[$itemId])) {
+                    $cart[$itemId]['qty'] += 1;
+                } else {
+                    $originalPrice = $exactItem->selling_price + $exactItem->discount;
+                    $cart[$itemId] = [
+                        'item_id' => $exactItem->id,
+                        'code' => $exactItem->code,
+                        'name' => $exactItem->name,
+                        'price' => $exactItem->selling_price,
+                        'original_price' => $originalPrice,
+                        'discount' => $exactItem->discount,
+                        'qty' => 1
+                    ];
+                }
+
+                session()->put('cart', $cart);
+
+                $route = $this->routeIndex();
+
+                if ($request->ajax()) {
+                    return response()->json([
+                        'auto_added' => true,
+                        'redirect_url' => route($route) . '?success=' . urlencode("Item {$exactItem->name} ditambahkan")
+                    ]);
+                }
+
+                return redirect()->route($route)->with('success', "Item {$exactItem->name} ditambahkan via Barcode");
+            }
+        }
 
         $query = CashierItem::select('id', 'code', 'name', 'stock', 'selling_price', 'discount')
             ->where('stock', '>', 0)
@@ -71,12 +158,11 @@ class TransactionController extends Controller
         $item = CashierItem::find($validated['item_id']);
 
         if (!$item) {
-            return redirect()->back()->with('error', 'Item tidak ditemukan.');
+            return redirect()->route($this->routeIndex())->with('error', 'Item tidak ditemukan.');
         }
 
         if ($item->is_consignment && !$item->created_at->isToday()) {
-            $route = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
-            return redirect()->route($route)->with('error', 'Item titipan kadaluarsa.');
+            return redirect()->route($this->routeIndex())->with('error', 'Item titipan kadaluarsa.');
         }
 
         $cart = session()->get('cart', []);
@@ -86,8 +172,7 @@ class TransactionController extends Controller
         $newQty = $validated['qty'];
 
         if ($item->stock < ($currentQty + $newQty)) {
-            $route = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
-            return redirect()->route($route)->with('error', "Stok tidak cukup. Sisa stok: {$item->stock}. Di keranjang: {$currentQty}");
+            return redirect()->route($this->routeIndex())->with('error', "Stok tidak cukup. Sisa stok: {$item->stock}. Di keranjang: {$currentQty}");
         }
 
         if (isset($cart[$itemId])) {
@@ -108,8 +193,7 @@ class TransactionController extends Controller
 
         session()->put('cart', $cart);
 
-        $route = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
-        return redirect()->route($route)->with('success', 'Item ditambahkan ke keranjang');
+        return redirect()->route($this->routeIndex())->with('success', 'Item ditambahkan ke keranjang');
     }
 
     /**
@@ -131,9 +215,16 @@ class TransactionController extends Controller
             $item = CashierItem::find($itemData['item_id']);
             $qty = (int) $itemData['qty'];
 
-            // Cek stok
-            if ($item->stock < $qty) {
-                $errors[] = "{$item->name}: Stok tidak cukup (tersedia: {$item->stock})";
+            // H2 Fix: Cek stok termasuk qty yang sudah ada di keranjang
+            $currentQty = isset($cart[$itemData['item_id']]) ? $cart[$itemData['item_id']]['qty'] : 0;
+            if ($item->stock < ($currentQty + $qty)) {
+                $errors[] = "{$item->name}: Stok tidak cukup (tersedia: {$item->stock}, di keranjang: {$currentQty})";
+                continue;
+            }
+
+            // Cek item titipan kadaluarsa (Refresh harian)
+            if ($item->is_consignment && !$item->created_at->isToday()) {
+                $errors[] = "{$item->name}: Item titipan kadaluarsa.";
                 continue;
             }
 
@@ -159,7 +250,7 @@ class TransactionController extends Controller
 
         session()->put('cart', $cart);
 
-        $route = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
+        $route = $this->routeIndex();
 
         // Build response message
         if ($addedCount > 0 && empty($errors)) {
@@ -182,8 +273,7 @@ class TransactionController extends Controller
             session()->put('cart', $cart);
         }
 
-        $route = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
-        return redirect()->route($route)->with('success', 'Item dihapus dari keranjang');
+        return redirect()->route($this->routeIndex())->with('success', 'Item dihapus dari keranjang');
     }
 
     public function checkout(Request $request): RedirectResponse
@@ -197,7 +287,7 @@ class TransactionController extends Controller
 
         $cart = session()->get('cart', []);
 
-        $routeIndex = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
+        $routeIndex = $this->routeIndex();
 
         if (empty($cart)) {
             return redirect()->route($routeIndex)->with('error', 'Keranjang kosong');
@@ -207,6 +297,18 @@ class TransactionController extends Controller
 
         // Calculate Discount
         $discountAmount = (float) ($validated['discount_amount'] ?? 0);
+
+        // Security: Only Admin can apply discount
+        if (auth()->check() && auth()->user()->role !== 'admin') {
+            $discountAmount = 0;
+        }
+
+        // Security: Discount cannot exceed gross total
+        if ($discountAmount > $grossTotal) {
+            return redirect()->route($routeIndex)
+                ->with('error', 'Diskon tidak boleh melebihi total belanja (Rp ' . number_format($grossTotal, 0, ',', '.') . ')');
+        }
+
         $netTotal = $grossTotal - $discountAmount;
 
         $paidAmount = (float) $validated['paid_amount'];
@@ -233,7 +335,8 @@ class TransactionController extends Controller
         }
 
         try {
-            $invoice = 'INV-' . date('YmdHis');
+            // C2 Fix: Tambah random suffix untuk mencegah invoice collision
+            $invoice = 'INV-' . date('YmdHis') . '-' . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
 
             $transactionId = null;
 
@@ -272,14 +375,27 @@ class TransactionController extends Controller
                         throw new \Exception("Stok {$product->name} tidak cukup saat pemrosesan akhir. Sisa: {$product->stock}");
                     }
 
+                    // C3 Fix: Gunakan harga terkini dari database, bukan dari session
+                    $currentPrice = $product->selling_price;
+                    $currentDiscount = $product->discount;
+                    $currentOriginalPrice = $currentPrice + $currentDiscount;
+
+                    $purchasePrice = 0;
+                    if ($product->is_consignment) {
+                        $purchasePrice = $product->cost_price ?? 0;
+                    } else {
+                        $purchasePrice = $product->warehouseItem?->purchase_price ?? 0;
+                    }
+
                     TransactionDetail::create([
                         'transaction_id' => $transaction->id,
                         'item_id' => $item['item_id'],
-                        'price' => $item['price'], // Final price
-                        'original_price' => $item['original_price'] ?? $item['price'],
-                        'discount' => $item['discount'] ?? 0,
+                        'price' => $currentPrice,
+                        'original_price' => $currentOriginalPrice,
+                        'discount' => $currentDiscount,
                         'qty' => $item['qty'],
-                        'subtotal' => $item['price'] * $item['qty']
+                        'subtotal' => $currentPrice * $item['qty'],
+                        'purchase_price' => $purchasePrice
                     ]);
 
                     $product->decrement('stock', $item['qty']);
@@ -290,8 +406,7 @@ class TransactionController extends Controller
 
             session()->put('last_transaction_id', $transactionId);
 
-            $routeReceipt = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.receipt' : 'transactions.receipt';
-            return redirect()->route($routeReceipt)->with('success', 'Transaksi berhasil disimpan');
+            return redirect()->route($this->routeReceipt())->with('success', 'Transaksi berhasil disimpan');
         } catch (\Exception $e) {
             return redirect()->route($routeIndex)->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
@@ -308,8 +423,7 @@ class TransactionController extends Controller
         }
 
         if (!$lastTransaction) {
-            $routeIndex = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
-            return redirect()->route($routeIndex)->with('error', 'Tidak ada transaksi');
+            return redirect()->route($this->routeIndex())->with('error', 'Tidak ada transaksi');
         }
 
         $details = TransactionDetail::where('transaction_id', $lastTransaction->id)->with('item')->get();
@@ -322,9 +436,15 @@ class TransactionController extends Controller
         $transaction = Transaction::find($id);
 
         if (!$transaction) {
-            $routeIndex = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
-            return redirect()->route($routeIndex)->with('error', 'Transaksi tidak ditemukan');
+            return redirect()->route($this->routeIndex())->with('error', 'Transaksi tidak ditemukan');
         }
+
+        // Keamanan: Cek hak akses (IDOR Fix)
+        // Kasir hanya bisa melihat transaksi miliknya sendiri, Admin bisa melihat semua
+        if (auth()->user()->role !== 'admin' && $transaction->user_id !== auth()->id()) {
+            return redirect()->route($this->routeIndex())->with('error', 'Anda tidak memiliki akses untuk mengunduh struk ini.');
+        }
+
 
         $details = TransactionDetail::where('transaction_id', $transaction->id)->with('item')->get();
 
