@@ -27,6 +27,7 @@ Sistem ini mendukung pengelolaan yang lengkap:
 - **Dashboard**: Statistik penjualan harian dan grafik tren 7 hari terakhir.
 - **Sinkronisasi Gudang & Kasir**: Pemisahan antara stok gudang (stok besar) dan stok kasir (siap jual).
 - **Manajemen Barang Titipan (Consignment)**: Input barang titipan langsung dari sisi kasir.
+- **Manajemen Pengguna (User Management)**: Admin dapat menambahkan akun baru untuk staf dengan validasi role (Admin/Kasir) dan keamanan password.
 - **Membership**: Sistem pendataan member untuk loyalitas pelanggan.
 - **Laporan**: Ekspor laporan harian/periode ke PDF dan Excel.
 
@@ -37,6 +38,7 @@ Sistem ini mendukung pengelolaan yang lengkap:
 ### Untuk Admin
 
 - **Input Barang**: Masuk ke menu **Gudang**, tambah barang baru, dan tentukan supplier serta harganya.
+- **Kelola Pengguna**: Tambahkan akun staf baru melalui menu **Kelola User**. Sistem mendukung dua level akses: **Admin** (Akses Penuh) dan **Kasir** (Hanya Transaksi).
 - **Transfer Stok**: Untuk mengisi stok kasir, buka menu **Stok Item Kasir**, lalu pilih "Tambah dari Gudang".
 - **Laporan**: Download laporan penjualan di menu **Laporan** untuk melihat keuntungan bersih.
 
