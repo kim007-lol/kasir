@@ -13,7 +13,10 @@ Berikut adalah beberapa perbaikan besar yang baru saja kami terapkan:
 3.  **Perbaikan Navbar (Layar Mengambang)**: Menu navigasi di atas sekarang tetap di depan (Z-Index 1050), sehingga konten produk tidak lagi menabrak atau menutupi menu saat di-scroll.
 4.  **Sistem "Jejak Digital" (Soft Deletes)**: Jika Anda menghapus kategori, supplier, atau barang, sistem hanya menyembunyikannya. Di riwayat transaksi, nama barang tersebut **tetap muncul** dengan benar.
 5.  **Validasi Stok Real-time**: Kasir tidak akan bisa menjual barang melebihi stok yang ada. Pesan error akan muncul jika stok tidak cukup.
-    16: 6. **Keamanan Privasi (History Access Control)**: Kasir hanya dapat melihat riwayat transaksi mereka sendiri untuk mencegah kebocoran data penjualan toko secara keseluruhan. Admin tetap memiliki akses penuh.
+6.  **Keamanan Privasi (History Access Control)**: Kasir hanya dapat melihat riwayat transaksi mereka sendiri untuk mencegah kebocoran data penjualan toko secara keseluruhan. Admin tetap memiliki akses penuh.
+7.  **Infrastruktur Testing Terisolasi**: Konfigurasi `phpunit.xml` kini menggunakan database PostgreSQL terpisah (`kasirku_testing`) untuk mencegah gangguan pada data development saat menjalankan pengujian otomatis.
+8.  **Peningkatan Factory Data**: Pembaruan pada `UserFactory` dan `TransactionFactory` untuk mendukung pembuatan data dummy yang lebih akurat dan lengkap (termasuk role dan username unik).
+9.  **Perbaikan Stabilitas Database**: Migrasi ke PostgreSQL untuk environment testing menjamin konsistensi yang lebih baik dibandingkan SQLite in-memory untuk fitur-fitur spesifik database.
 
 ---
 
