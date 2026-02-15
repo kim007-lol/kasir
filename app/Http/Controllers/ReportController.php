@@ -72,26 +72,52 @@ class ReportController extends Controller
         // Transaction::query() returns a new builder.
         // But $transactionQuery is reused.
 
-        $totalCost = $transactionQuery->pluck('id')->chunk(100)->sum(function ($chunk) {
-            return TransactionDetail::whereIn('transaction_id', $chunk)
-                ->with('item.warehouseItem')
-                ->get()
-                ->sum(function ($detail) {
-                    return $detail->qty * ($detail->item?->warehouseItem?->purchase_price ?? 0);
-                });
-        });
+        // Efficient Total Cost Calculation using Joins
+        $totalCost = TransactionDetail::join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
+            ->join('cashier_items', 'transaction_details.item_id', '=', 'cashier_items.id')
+            ->join('warehouse_items', 'cashier_items.warehouse_item_id', '=', 'warehouse_items.id')
+            ->whereIn('transactions.id', $transactionQuery->pluck('id'))
+            ->sum(DB::raw('transaction_details.qty * warehouse_items.purchase_price'));
 
         $netProfit = $grossProfit - $totalCost;
 
-        // Detail barang terjual dengan stok masuk
+        // Efficient Stock Entries Retrieval
+        // 1. Get all relevant warehouse_item_ids from the sold items
+        $soldItemIds = TransactionDetail::select('item_id')
+            ->whereHas('transaction', function ($query) use ($transactionQuery) {
+                $query->whereIn('id', $transactionQuery->pluck('id'));
+            })
+            ->distinct()
+            ->pluck('item_id');
+
+        $warehouseItemIds = \App\Models\CashierItem::whereIn('id', $soldItemIds)->pluck('warehouse_item_id', 'id');
+
+        // 2. Pre-fetch Stock Entries aggregated by warehouse_item_id
+        $stockEntriesQuery = \App\Models\StockEntry::selectRaw('warehouse_item_id, SUM(quantity) as total_quantity')
+            ->whereIn('warehouse_item_id', $warehouseItemIds->values());
+
+        if ($filter == 'today' || !$filter) {
+            $stockEntriesQuery->whereDate('entry_date', $date);
+        } elseif ($filter == 'week') {
+            $stockEntriesQuery->whereBetween('entry_date', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($filter == 'month') {
+            $stockEntriesQuery->whereMonth('entry_date', now()->month);
+        } elseif ($filter == 'custom' && $startDate && $endDate) {
+            $stockEntriesQuery->whereDate('entry_date', '>=', $startDate)->whereDate('entry_date', '<=', $endDate);
+        }
+
+        $stockEntriesMap = $stockEntriesQuery->groupBy('warehouse_item_id')
+            ->pluck('total_quantity', 'warehouse_item_id');
+
+        // Detail barang terjual dengan stok masuk (Memory Mapping)
         $itemDetails = TransactionDetail::selectRaw('item_id, SUM(qty) as total_sold')
             ->whereHas('transaction', function ($query) use ($transactionQuery) {
                 $query->whereIn('id', $transactionQuery->pluck('id'));
             })
-            ->with('item.category')
+            ->with(['item.category']) // Eager load category
             ->groupBy('item_id')
             ->get()
-            ->map(function ($detail) use ($date, $filter, $startDate, $endDate) {
+            ->map(function ($detail) use ($stockEntriesMap, $warehouseItemIds) {
                 $item = $detail->item;
 
                 if (!$item) {
@@ -104,23 +130,13 @@ class ReportController extends Controller
                     ];
                 }
 
-                $stockEntryQuery = \App\Models\StockEntry::where('warehouse_item_id', $item->warehouse_item_id);
-
-                if ($filter == 'today' || !$filter) {
-                    $stockEntryQuery->whereDate('entry_date', $date);
-                } elseif ($filter == 'week') {
-                    $stockEntryQuery->whereBetween('entry_date', [now()->startOfWeek(), now()->endOfWeek()]);
-                } elseif ($filter == 'month') {
-                    $stockEntryQuery->whereMonth('entry_date', now()->month);
-                } elseif ($filter == 'custom' && $startDate && $endDate) {
-                    $stockEntryQuery->whereDate('entry_date', '>=', $startDate)->whereDate('entry_date', '<=', $endDate);
-                }
-
-                $stockIn = $stockEntryQuery->sum('quantity');
+                // Map using pre-fetched data
+                $warehouseItemId = $item->warehouse_item_id;
+                $stockIn = $stockEntriesMap[$warehouseItemId] ?? 0;
 
                 return [
                     'code' => $item->code,
-                    'name' => $item->name,
+                    'name' => $item->name, // Ensure relationship is loaded or accessible
                     'total_sold' => $detail->total_sold,
                     'stock_in' => $stockIn,
                     'current_stock' => $item->stock,
@@ -246,5 +262,18 @@ class ReportController extends Controller
         }
 
         return view('reports.stock-entries', compact('entries', 'startDate', 'endDate'));
+    }
+    public function transferHistory(Request $request): View
+    {
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $logs = \App\Models\StockTransferLog::with(['warehouseItem', 'cashierItem', 'user'])
+            ->when($startDate, fn($q) => $q->whereDate('created_at', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('created_at', '<=', $endDate))
+            ->latest()
+            ->paginate(15);
+
+        return view('reports.transfer-history', compact('logs', 'startDate', 'endDate'));
     }
 }

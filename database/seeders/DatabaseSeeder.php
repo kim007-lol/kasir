@@ -16,13 +16,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create test user
-        User::create([
-            'name' => 'Ngabdullah Hakim',
-            'username' => 'admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-        ]);
+        // Call UserSeeder to create admin and kasir users
+        $this->call(UserSeeder::class);
+
 
         // Create default supplier
         $supplier = Supplier::create([

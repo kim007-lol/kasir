@@ -20,5 +20,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Illuminate\Pagination\Paginator::useBootstrapFive();
+        \Carbon\Carbon::setLocale('id');
+
+        \App\Models\WarehouseItem::observe(\App\Observers\WarehouseItemObserver::class);
+        \App\Models\CashierItem::observe(\App\Observers\CashierItemObserver::class);
     }
 }

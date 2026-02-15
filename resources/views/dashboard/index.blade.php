@@ -15,7 +15,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="text-muted mb-2">Total Produk</p>
-                            <h2 class="mb-0" style="color: #ff6b6b;">{{ $totalItems }}</h2>
+                            <h2 class="mb-0" id="totalItems" style="color: #ff6b6b;">{{ $totalItems }}</h2>
                         </div>
                         <i class="bi bi-box" style="font-size: 2.5rem; color: #ff6b6b; opacity: 0.2;"></i>
                     </div>
@@ -29,7 +29,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="text-muted mb-2">Total Transaksi</p>
-                            <h2 class="mb-0" style="color: #ff8a80;">{{ $totalTransactions }}</h2>
+                            <h2 class="mb-0" id="totalTransactions" style="color: #ff8a80;">{{ $totalTransactions }}</h2>
                         </div>
                         <i class="bi bi-receipt" style="font-size: 2.5rem; color: #ff8a80; opacity: 0.2;"></i>
                     </div>
@@ -48,7 +48,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="text-muted mb-2">Produk Terjual Hari Ini</p>
-                            <h2 class="mb-0" style="color: #28a745;">{{ $totalProductsSoldToday }}</h2>
+                            <h2 class="mb-0" id="totalProductsSoldToday" style="color: #28a745;">{{ $totalProductsSoldToday }}</h2>
                         </div>
                         <i class="bi bi-cart-check" style="font-size: 2.5rem; color: #28a745; opacity: 0.2;"></i>
                     </div>
@@ -61,7 +61,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="text-muted mb-2">Pendapatan Hari Ini</p>
-                            <h2 class="mb-0" style="color: #ffc107;">Rp. {{ number_format($totalRevenueToday, 0, ',', '.') }}</h2>
+                            <h2 class="mb-0" id="totalRevenueToday" style="color: #ffc107;">Rp. {{ number_format($totalRevenueToday, 0, ',', '.') }}</h2>
                         </div>
                         <i class="bi bi-cash-stack" style="font-size: 2.5rem; color: #ffc107; opacity: 0.2;"></i>
                     </div>
@@ -76,11 +76,6 @@
             <h5 class="fw-bold mb-3">Quick Access</h5>
         </div>
         <div class="col-12 col-sm-6 col-lg-4">
-            <a href="{{ route('transactions.index') }}" class="btn btn-primary w-100 py-3 fw-bold text-white">
-                <i class="bi bi-plus-circle"></i> Buat Transaksi
-            </a>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-4">
             <a href="{{ route('warehouse.index') }}" class="btn btn-info w-100 py-3 fw-bold text-white">
                 <i class="bi bi-box"></i> Lihat Produk
             </a>
@@ -88,6 +83,11 @@
         <div class="col-12 col-sm-6 col-lg-4">
             <a href="{{ route('history.index') }}" class="btn btn-secondary w-100 py-3 fw-bold text-white">
                 <i class="bi bi-clock-history"></i> History
+            </a>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-4">
+            <a href="{{ route('reports.index') }}" class="btn btn-warning w-100 py-3 fw-bold text-white">
+                <i class="bi bi-file-earmark-bar-graph"></i> Laporan
             </a>
         </div>
     </div>
@@ -198,6 +198,19 @@
             }
         }
     });
+
+    // Auto Refresh Dashboard Statistics every 15 seconds
+    setInterval(function() {
+        fetch("{{ route('dashboard.stats') }}")
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('totalItems').innerText = data.totalItems;
+                document.getElementById('totalTransactions').innerText = data.totalTransactions;
+                document.getElementById('totalProductsSoldToday').innerText = data.totalProductsSoldToday;
+                document.getElementById('totalRevenueToday').innerText = 'Rp. ' + new Intl.NumberFormat('id-ID').format(data.totalRevenueToday);
+            })
+            .catch(error => console.error('Error fetching stats:', error));
+    }, 15000);
 </script>
 
 

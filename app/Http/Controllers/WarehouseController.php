@@ -126,4 +126,9 @@ class WarehouseController extends Controller
         $warehouse->delete();
         return redirect()->route('warehouse.index')->with('success', 'Barang gudang berhasil dihapus');
     }
+    public function getStockStatus(): \Illuminate\Http\JsonResponse
+    {
+        $stocks = WarehouseItem::select('id', 'stock')->get();
+        return response()->json($stocks);
+    }
 }

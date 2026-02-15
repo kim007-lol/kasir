@@ -1,6 +1,11 @@
-@extends('layouts.app')
+@extends(auth()->check() && auth()->user()->role === 'kasir' ? 'layouts.cashier' : 'layouts.app')
 
 @section('title', 'Transaksi')
+
+@php
+// Determine route prefix based on user role
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+@endphp
 
 @section('content')
 <div class="row g-3">
@@ -16,7 +21,7 @@
             </div>
             <div class="card-body">
                 <hr class="my-4">
-                <form action="{{ route('transactions.addMultipleToCart') }}" method="POST" id="multiCartForm">
+                <form action="{{ route($routePrefix . 'transactions.addMultipleToCart') }}" method="POST" id="multiCartForm">
                     @csrf
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="mb-0 fw-bold">
@@ -36,7 +41,7 @@
                             <input type="text" id="searchItem" name="search" class="form-control" placeholder="Scan Barcode atau Cari Produk..." value="{{ $search ?? '' }}" autofocus />
                             <button type="button" class="btn btn-primary" id="searchBtn">Cari</button>
                             @if(request('search'))
-                            <a href="{{ route('transactions.index') }}" class="btn btn-outline-secondary">Reset</a>
+                            <a href="{{ route($routePrefix . 'transactions.index') }}" class="btn btn-outline-secondary">Reset</a>
                             @endif
                         </div>
                     </div>
@@ -74,7 +79,7 @@
                                                     $stockClass='bg-warning' ;
                                                     }
                                                     @endphp
-                                                    <span class="badge {{ $stockClass }}">{{ $item->stock }}</span>
+                                                    <span class="badge {{ $stockClass }}" id="stock-badge-{{ $item->id }}">{{ $item->stock }}</span>
                                         </td>
                                         <td>
                                             <input type="number" class="form-control form-control-sm qty-input"
@@ -147,7 +152,7 @@
                                 <small class="fw-bold">Rp. {{ number_format($item['price'] * $item['qty'], 0, ',', '.') }}</small>
                             </td>
                             <td>
-                                <form action="{{ route('transactions.removeFromCart', $itemId) }}" method="POST" style="display:inline;">
+                                <form action="{{ route($routePrefix . 'transactions.removeFromCart', $itemId) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
@@ -170,7 +175,7 @@
                 </div>
 
                 {{-- Payment Form --}}
-                <form action="{{ route('transactions.checkout') }}" method="POST" id="paymentForm">
+                <form action="{{ route($routePrefix . 'transactions.checkout') }}" method="POST" id="paymentForm">
                     @csrf
                     <div class="mb-2">
                         <label for="member_id" class="form-label small fw-bold">Pilih Member</label>
@@ -336,7 +341,7 @@
 
         function performSearch() {
             const query = searchInput.value;
-            const url = new URL("{{ route('transactions.index') }}");
+            const url = new URL("{{ route($routePrefix . 'transactions.index') }}");
             url.searchParams.set('search', query);
 
             // Show loading
@@ -485,7 +490,7 @@
         function addToCart(itemId, qty) {
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = "{{ route('transactions.addToCart') }}";
+            form.action = "{{ route($routePrefix . 'transactions.addToCart') }}";
 
             const csrfInput = document.createElement('input');
             csrfInput.type = 'hidden';
@@ -508,6 +513,52 @@
             document.body.appendChild(form);
             form.submit();
         }
+
+        // --- Real-time Stock Polling ---
+        function pollStockStatus() {
+            fetch("{{ route($routePrefix . 'stock.status') }}")
+                .then(res => res.json())
+                .then(data => {
+                    data.forEach(item => {
+                        // Update Badge Text
+                        const badge = document.getElementById(`stock-badge-${item.id}`);
+                        if (badge) {
+                            badge.textContent = item.stock;
+
+                            // Update Badge Color
+                            badge.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+                            if (item.stock < 10) {
+                                badge.classList.add('bg-danger');
+                            } else if (item.stock <= 20) {
+                                badge.classList.add('bg-warning');
+                            } else {
+                                badge.classList.add('bg-success');
+                            }
+                        }
+
+                        // Update Checkbox Data Attribute (for validation)
+                        const checkbox = document.querySelector(`.item-checkbox[data-item-id="${item.id}"]`);
+                        if (checkbox) {
+                            checkbox.dataset.stock = item.stock;
+                        }
+
+                        // Update Quantity Input Max (if exists)
+                        const qtyInput = document.querySelector(`.qty-input[data-item-id="${item.id}"]`);
+                        if (qtyInput) {
+                            qtyInput.max = item.stock;
+                            // If current value > new stock, adjust it? 
+                            // Only if active? Maybe just cap it.
+                            if (parseInt(qtyInput.value) > item.stock) {
+                                qtyInput.value = item.stock;
+                            }
+                        }
+                    });
+                })
+                .catch(err => console.error('Stock poll failed', err));
+        }
+
+        // Poll every 5 seconds
+        setInterval(pollStockStatus, 5000);
     });
 </script>
 @endsection

@@ -19,6 +19,6 @@ class TransactionDetail extends Model
 
     public function item(): BelongsTo
     {
-        return $this->belongsTo(CashierItem::class, 'item_id');
+        return $this->belongsTo(CashierItem::class, 'item_id')->withTrashed();
     }
 }

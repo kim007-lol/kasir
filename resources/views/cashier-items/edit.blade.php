@@ -32,6 +32,15 @@
                     <td><strong>Harga Jual:</strong></td>
                     <td>Rp. {{ number_format($cashierItem->selling_price, 0, ',', '.') }}</td>
                 </tr>
+                @if($cashierItem->warehouse_item_id && !$cashierItem->is_consignment)
+                <tr>
+                    <td><strong>Stok Gudang:</strong></td>
+                    <td>
+                        <span class="badge bg-info text-white">{{ $cashierItem->warehouseItem->stock ?? 0 }}</span>
+                        <small class="text-muted">tersedia di gudang</small>
+                    </td>
+                </tr>
+                @endif
             </table>
         </div>
     </div>
@@ -48,7 +57,11 @@
                     @error('stock')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                    <small class="text-muted">Edit manual stok kasir (tidak mempengaruhi stok gudang)</small>
+                    @if($cashierItem->warehouse_item_id && !$cashierItem->is_consignment)
+                    <small class="text-muted">Menambah stok = diambil dari gudang. Mengurangi stok = dikembalikan ke gudang.</small>
+                    @else
+                    <small class="text-muted">Item ini tidak terhubung ke gudang (titipan/manual).</small>
+                    @endif
                 </div>
 
                 <div class="d-flex gap-2">

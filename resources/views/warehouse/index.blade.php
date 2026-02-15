@@ -54,7 +54,7 @@
                             <th class="d-none d-xl-table-cell">Harga Akhir</th>
                             <th class="d-none d-sm-table-cell">Stok</th>
                             <th class="d-none d-xl-table-cell">Exp Date</th>
-                            <th style="width: 140px;">Aksi</th>
+                            <th style="width: 140px;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -68,11 +68,11 @@
                                 <strong>{{ $item->name }}</strong>
                                 <br>
                                 <small class="text-muted d-md-none">
-                                    {{ $item->category->name ?? 'Kategori Tidak Aktif' }} | {{ $item->supplier->name ?? 'Supplier Tidak Aktif' }}
+                                    {{ $item->category->name ?? '-' }} | {{ $item->supplier->name ?? '-' }}
                                 </small>
                             </td>
-                            <td class="d-none d-lg-table-cell">{{ $item->category->name ?? 'Kategori Tidak Aktif' }}</td>
-                            <td class="d-none d-lg-table-cell">{{ $item->supplier->name ?? 'Supplier Tidak Aktif' }}</td>
+                            <td class="d-none d-lg-table-cell">{{ $item->category->name ?? '-' }}</td>
+                            <td class="d-none d-lg-table-cell">{{ $item->supplier->name ?? '-' }}</td>
                             <td class="d-none d-md-table-cell">
                                 Rp. {{ number_format($item->purchase_price, 0, ',', '.') }}
                             </td>
@@ -98,13 +98,14 @@
                                         $stockClass='bg-warning' ;
                                         }
                                         @endphp
-                                        <span class="badge {{ $stockClass }}">{{ $item->stock }}</span>
+                                        <span class="badge {{ $stockClass }}" id="warehouse-stock-{{ $item->id }}">{{ $item->stock }}</span>
                             </td>
                             <td class="d-none d-xl-table-cell">
                                 {{ $item->exp_date ? $item->exp_date->format('d/m/Y') : '-' }}
                             </td>
                             <td>
                                 <div class="d-flex gap-1 justify-content-center" role="group">
+
                                     <a href="{{ route('warehouse.edit', $item) }}" class="btn btn-warning btn-sm text-white" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
@@ -134,6 +135,10 @@
             {{ $warehouseItems->withQueryString()->links() }}
         </div>
     </div>
+
+
+
+
 
     <style>
         .btn-sm {
@@ -177,4 +182,34 @@
             padding: 0.4rem 0.6rem;
         }
     </style>
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function pollWarehouseStock() {
+                fetch("{{ route('warehouse.status') }}")
+                    .then(res => res.json())
+                    .then(data => {
+                        data.forEach(item => {
+                            const badge = document.getElementById(`warehouse-stock-${item.id}`);
+                            if (badge) {
+                                badge.textContent = item.stock;
+
+                                badge.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+                                if (item.stock < 10) {
+                                    badge.classList.add('bg-danger');
+                                } else if (item.stock <= 20) {
+                                    badge.classList.add('bg-warning');
+                                } else {
+                                    badge.classList.add('bg-success');
+                                }
+                            }
+                        });
+                    })
+                    .catch(err => console.error('Warehouse stock poll failed', err));
+            }
+
+            setInterval(pollWarehouseStock, 5000);
+        });
+    </script>
     @endsection

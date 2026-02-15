@@ -10,10 +10,26 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    public function stats(): \Illuminate\Http\JsonResponse
+    {
+        $today = Carbon::today();
+
+        return response()->json([
+            'totalItems' => WarehouseItem::count(),
+            'totalTransactions' => Transaction::count(),
+            'totalProductsSoldToday' => TransactionDetail::whereHas('transaction', function ($query) use ($today) {
+                $query->whereDate('created_at', $today);
+            })->sum('qty'),
+            'totalRevenueToday' => Transaction::whereDate('created_at', $today)->sum('total')
+        ]);
+    }
+
     public function index(): View
     {
         $totalItems = WarehouseItem::count();
         $totalTransactions = Transaction::count();
+        // ... (rest of the method remains valid, no need to duplicate logic here if I can just call the private method or similar, but for now I will duplicate the small queries or refactor)
+        // Refactoring to reuse logic is better but for this small change, I will keep index as is to avoid breaking it, and just add the stats method.
 
         $today = Carbon::today();
 

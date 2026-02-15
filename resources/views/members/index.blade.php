@@ -49,7 +49,7 @@
                             <th class="d-none d-lg-table-cell">Alamat</th>
                             <th class="d-none d-md-table-cell">Bergabung</th>
                             <th class="d-none d-sm-table-cell">Total Transaksi</th>
-                            <th style="width: 150px;">Aksi</th>
+                            <th style="width: 150px;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

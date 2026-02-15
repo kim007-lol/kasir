@@ -23,10 +23,7 @@
             <i class="bi bi-cart-check"></i>
             <span>Stok Item Kasir</span>
         </a>
-        <a href="{{ route('transactions.index') }}" class="@if(request()->routeIs('transactions.*')) active @endif">
-            <i class="bi bi-receipt"></i>
-            <span>Transaksi</span>
-        </a>
+
         <a href="{{ route('history.index') }}" class="@if(request()->routeIs('history.*')) active @endif">
             <i class="bi bi-clock-history"></i>
             <span>Histori Transaksi</span>

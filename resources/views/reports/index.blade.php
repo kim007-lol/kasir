@@ -64,6 +64,9 @@
                         <a href="{{ route('reports.stockEntries') }}" class="btn btn-info text-white">
                             <i class="bi bi-box-arrow-in-down"></i> Riwayat Stok Masuk
                         </a>
+                        <a href="{{ route('reports.transferHistory') }}" class="btn btn-warning text-white">
+                            <i class="bi bi-clock-history"></i> Riwayat Transfer Kasir
+                        </a>
                     </div>
                 </div>
             </form>

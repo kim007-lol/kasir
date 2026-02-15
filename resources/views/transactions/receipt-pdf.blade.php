@@ -260,13 +260,13 @@
 <body>
     <div class="receipt">
         <div class="store-info">
-            <h3>Toko Makmur</h3>
+            <h3>SMEGABIZ</h3>
             <p>Surabaya</p>
         </div>
 
         <div class="header">
             <h2>STRUK PEMBELIAN</h2>
-            <p>Toko Makmur</p>
+            <p>SMEGABIZ</p>
         </div>
 
         <div class="info">
@@ -276,7 +276,7 @@
             </div>
             <div class="info-row">
                 <span class="info-label">Tgl:</span>
-                <span class="info-value">{{ $transaction->created_at->format('d/m/Y H:i') }}</span>
+                <span class="info-value">{{ $transaction->created_at->isoFormat('dddd, D MMMM Y HH:mm') }}</span>
             </div>
             @if ($transaction->customer_name)
             <div class="info-row">
@@ -345,7 +345,7 @@
 
         <div class="footer">
             <p>*** TERIMA KASIH ***</p>
-            <p style="margin-top: 8px; font-size: 9px;">{{ date('d/m/Y H:i:s') }}</p>
+            <p style="margin-top: 8px; font-size: 9px;">{{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y HH:mm:ss') }}</p>
         </div>
     </div>
 
@@ -353,10 +353,14 @@
         <button onclick="window.print()" class="btn-print">
             <i class="bi bi-printer"></i> Print Struk
         </button>
-        <a href="{{ route('transactions.index') }}" class="btn-new">
+        @php
+        $transactionRoute = auth()->check() && auth()->user()->role === 'kasir' ? 'cashier.transactions.index' : 'transactions.index';
+        $historyRoute = auth()->check() && auth()->user()->role === 'kasir' ? 'cashier.history.index' : 'history.index';
+        @endphp
+        <a href="{{ route($transactionRoute) }}" class="btn-new">
             <i class="bi bi-plus-circle"></i> Transaksi Baru
         </a>
-        <a href="{{ route('history.index') }}" class="btn-back">
+        <a href="{{ route($historyRoute) }}" class="btn-back">
             <i class="bi bi-arrow-left"></i> Kembali
         </a>
     </div>

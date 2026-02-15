@@ -50,7 +50,7 @@
                             <th class="d-none d-md-table-cell">Harga Jual</th>
                             <th class="d-none d-md-table-cell">Potongan (Rp)</th>
                             <th class="d-none d-sm-table-cell">Stok</th>
-                            <th style="width: 140px;">Aksi</th>
+                            <th style="width: 140px;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -89,7 +89,10 @@
                                         @endphp
                                         <span class="badge {{ $stockClass }}">{{ $item->stock }}</span>
                             </td>
-                            <td>
+                            <td class="text-center">
+                                @if($item->is_consignment)
+                                <span class="badge bg-info">Titipan</span>
+                                @else
                                 <div class="d-flex gap-1 justify-content-center" role="group">
                                     <a href="{{ route('cashier-items.edit', $item) }}" class="btn btn-warning btn-sm text-white" title="Edit Stok">
                                         <i class="bi bi-pencil-square"></i>
@@ -102,6 +105,7 @@
                                         </button>
                                     </form>
                                 </div>
+                                @endif
                             </td>
                         </tr>
                         @empty

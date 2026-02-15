@@ -39,7 +39,7 @@
                             <th style="width: 50px;">No</th>
                             <th>Nama Kategori</th>
                             <th>Status</th>
-                            <th style="width: 180px;">Aksi</th>
+                            <th style="width: 180px;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

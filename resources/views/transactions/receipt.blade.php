@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(auth()->check() && auth()->user()->role === 'kasir' ? 'layouts.cashier' : 'layouts.app')
 
 @section('title', 'Struk Transaksi')
 
@@ -102,7 +102,7 @@
 
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
-        <div class="card shadow-sm border-0" id="receiptCard">
+        <div class="card shadow-sm border-0" id="receiptCard" data-print="{{ session()->has('success') ? 'true' : 'false' }}">
             {{-- Header Receipt Style --}}
             <div class="card-header bg-dark text-white text-center py-2">
                 <h6 class="mb-0 fw-bold">STRUK PEMBELIAN</h6>
@@ -110,7 +110,7 @@
             <div class="card-body p-3">
                 {{-- Store Info --}}
                 <div class="text-center mb-2">
-                    <h5 class="fw-bold mb-0">Toko Makmur</h5>
+                    <h5 class="fw-bold mb-0">SMEGABIZ</h5>
                     <small class="text-muted">Surabaya</small>
                 </div>
 
@@ -122,7 +122,7 @@
                         <small class="text-muted">No: {{ $lastTransaction->invoice }}</small>
                     </div>
                     <div class="col-6 text-end">
-                        <small class="text-muted">{{ $lastTransaction->created_at->format('d/m/Y H:i') }}</small>
+                        <small class="text-muted">{{ $lastTransaction->created_at->isoFormat('dddd, D MMMM Y HH:mm') }}</small>
                     </div>
                 </div>
 
@@ -221,7 +221,10 @@
                     <button onclick="goBack()" class="btn btn-secondary btn-sm">
                         <i class="bi bi-arrow-left"></i> Kembali
                     </button>
-                    <a href="{{ route('transactions.index') }}" class="btn btn-success btn-sm">
+                    @php
+                    $transactionRoute = auth()->check() && auth()->user()->role === 'kasir' ? 'cashier.transactions.index' : 'transactions.index';
+                    @endphp
+                    <a href="{{ route($transactionRoute) }}" class="btn btn-success btn-sm">
                         <i class="bi bi-plus-circle"></i> Transaksi Baru
                     </a>
                 </div>
@@ -265,13 +268,14 @@
         if (window.history.length > 1) {
             window.history.back();
         } else {
-            window.location.href = "{{ route('transactions.index') }}";
+            window.location.href = "{{ route($transactionRoute) }}";
         }
     }
 
     window.onload = function() {
         // Auto-print only if redirected from checkout (has success message)
-        const hasSuccess = @json(session('success') ? true : false);
+        const receiptCard = document.getElementById('receiptCard');
+        const hasSuccess = receiptCard ? receiptCard.dataset.print === 'true' : false;
         if (hasSuccess) {
             setTimeout(() => {
                 window.print();

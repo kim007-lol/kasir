@@ -25,7 +25,7 @@ class LoginController extends Controller
 
         // Cek apakah input adalah email atau username
         $loginType = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-        
+
         $loginCredentials = [
             $loginType => $credentials['login'],
             'password' => $credentials['password']
@@ -33,7 +33,14 @@ class LoginController extends Controller
 
         if (Auth::attempt($loginCredentials)) {
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard');
+
+            // Redirect based on role
+            $user = Auth::user();
+            if ($user->role === 'kasir') {
+                return redirect()->intended(route('cashier.dashboard'));
+            }
+
+            return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([

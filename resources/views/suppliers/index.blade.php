@@ -49,7 +49,7 @@
                             <th>Email</th>
                             <th>Alamat</th>
                             <th>Tanggal Kontrak</th>
-                            <th style="width: 180px;">Aksi</th>
+                            <th style="width: 180px;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

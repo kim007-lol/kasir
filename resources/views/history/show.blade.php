@@ -1,16 +1,20 @@
-@extends('layouts.app')
+@extends(auth()->check() && auth()->user()->role === 'kasir' ? 'layouts.cashier' : 'layouts.app')
 
 @section('title', 'Detail Transaksi')
+
+@php
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+@endphp
 
 @section('content')
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="{{ route('reports.index') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Kembali ke Laporan
+            <a href="{{ url()->previous() }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Kembali
             </a>
             <div class="d-flex gap-2">
-                <a href="{{ route('transactions.downloadReceipt', $transaction->id) }}" target="_blank" class="btn btn-info">
+                <a href="{{ route($routePrefix . 'transactions.downloadReceipt', $transaction->id) }}" target="_blank" class="btn btn-info">
                     <i class="bi bi-printer"></i> Print Struk
                 </a>
             </div>
@@ -20,7 +24,7 @@
             <div class="card-body p-4">
                 <div class="text-center mb-4">
                     <h4 class="fw-bold mb-1">STRUK PEMBELIAN</h4>
-                    <p class="text-muted mb-0">Toko Makmur</p>
+                    <p class="text-muted mb-0">SMEGABIZ</p>
                 </div>
 
                 <hr class="my-3">
@@ -39,7 +43,7 @@
                     </div>
                     <div class="col-6 text-end">
                         <p class="mb-1"><strong>Tanggal:</strong></p>
-                        <p class="text-muted">{{ $transaction->created_at->format('d/m/Y H:i:s') }}</p>
+                        <p class="text-muted">{{ $transaction->created_at->isoFormat('dddd, D MMMM Y H:mm:ss') }}</p>
                     </div>
                 </div>
 

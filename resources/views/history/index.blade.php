@@ -1,6 +1,10 @@
-@extends('layouts.app')
+@extends(auth()->check() && auth()->user()->role === 'kasir' ? 'layouts.cashier' : 'layouts.app')
 
 @section('title', 'History Transaksi')
+
+@php
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+@endphp
 
 @section('content')
 <div class="mb-4">
@@ -18,7 +22,7 @@
             </h5>
         </div>
         <div class="card-body">
-            <form method="GET" action="{{ route('history.index') }}" class="row g-3">
+            <form method="GET" action="{{ route($routePrefix . 'history.index') }}" class="row g-3">
                 <!-- Quick Filter Tabs -->
                 <div class="col-12">
                     <label class="form-label fw-semibold">Filter Cepat:</label>
@@ -61,7 +65,7 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-search"></i> Terapkan Filter
                         </button>
-                        <a href="{{ route('history.index') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route($routePrefix . 'history.index') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-clockwise"></i> Reset
                         </a>
                     </div>
@@ -116,7 +120,7 @@
                                 <strong>Rp. {{ number_format($transaction->total, 0, ',', '.') }}</strong>
                                 <br>
                                 <small class="text-muted d-lg-none">
-                                    {{ $transaction->created_at->format('d/m/Y') }}
+                                    {{ $transaction->created_at->isoFormat('dddd, D MMMM Y') }}
                                 </small>
                             </td>
                             <td>
@@ -125,10 +129,10 @@
                                 </span>
                             </td>
                             <td class="d-none d-lg-table-cell">
-                                <small>{{ $transaction->created_at->format('d/m/Y H:i') }}</small>
+                                <small>{{ $transaction->created_at->isoFormat('dddd, D MMMM Y HH:mm') }}</small>
                             </td>
                             <td>
-                                <a href="{{ route('history.show', $transaction) }}" class="btn btn-info btn-sm text-white" title="Lihat Detail">
+                                <a href="{{ route($routePrefix . 'history.show', $transaction) }}" class="btn btn-info btn-sm text-white" title="Lihat Detail">
                                     <i class="bi bi-eye"></i>
                                 </a>
                             </td>

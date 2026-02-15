@@ -16,7 +16,7 @@ class HistoryController extends Controller
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
 
-        $query = Transaction::with(['details.item', 'user', 'member'])
+        $query = Transaction::with(['details.item.warehouseItem', 'user', 'member'])
             ->when($filter == 'today', fn($q) => $q->whereDate('created_at', today()))
             ->when($filter == 'week', fn($q) => $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]))
             ->when($filter == 'month', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))

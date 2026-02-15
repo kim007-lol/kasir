@@ -23,11 +23,11 @@ class StockEntry extends Model
 
     public function warehouseItem(): BelongsTo
     {
-        return $this->belongsTo(WarehouseItem::class);
+        return $this->belongsTo(WarehouseItem::class)->withTrashed();
     }
 
     public function supplier(): BelongsTo
     {
-        return $this->belongsTo(Supplier::class);
+        return $this->belongsTo(Supplier::class)->withTrashed();
     }
 }

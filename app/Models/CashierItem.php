@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class CashierItem extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'warehouse_item_id',
@@ -17,18 +19,22 @@ class CashierItem extends Model
         'code',
         'name',
         'selling_price',
+        'cost_price',
         'discount',
-        'stock'
+        'stock',
+        'is_consignment',
+        'consignment_source'
     ];
 
     protected $casts = [
         'selling_price' => 'decimal:2',
+        'cost_price' => 'decimal:2',
         'discount' => 'decimal:2',
     ];
 
     public function warehouseItem(): BelongsTo
     {
-        return $this->belongsTo(WarehouseItem::class);
+        return $this->belongsTo(WarehouseItem::class)->withTrashed();
     }
 
     public function category(): BelongsTo
@@ -38,6 +44,6 @@ class CashierItem extends Model
 
     public function supplier(): BelongsTo
     {
-        return $this->belongsTo(Supplier::class);
+        return $this->belongsTo(Supplier::class)->withTrashed();
     }
 }

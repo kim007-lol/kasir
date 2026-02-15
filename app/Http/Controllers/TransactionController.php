@@ -15,10 +15,30 @@ class TransactionController extends Controller
 {
     public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
+        // Clear cart on fresh page load (Refresh / Navigation) unless we have flash messages (redirects)
+        if (
+            !$request->ajax() && empty($request->query()) &&
+            !session()->has('success') && !session()->has('error') &&
+            !session()->has('warning') && !session()->has('info')
+        ) {
+            session()->forget('cart');
+            session()->forget('last_transaction_id');
+        }
+
         $search = $request->get('search');
 
         $query = CashierItem::select('id', 'code', 'name', 'stock', 'selling_price', 'discount')
             ->where('stock', '>', 0)
+            ->where(function ($q) {
+                // Non-consignment items: always show
+                $q->where(function ($sub) {
+                    $sub->where('is_consignment', false)->orWhereNull('is_consignment');
+                })
+                    // Consignment items: only show today's
+                    ->orWhere(function ($sub) {
+                        $sub->where('is_consignment', true)->whereDate('created_at', today());
+                    });
+            })
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'ilike', '%' . $search . '%')
@@ -50,12 +70,25 @@ class TransactionController extends Controller
 
         $item = CashierItem::find($validated['item_id']);
 
-        if ($item->stock < $validated['qty']) {
-            return redirect()->route('transactions.index')->with('error', 'Stok tidak cukup');
+        if (!$item) {
+            return redirect()->back()->with('error', 'Item tidak ditemukan.');
+        }
+
+        if ($item->is_consignment && !$item->created_at->isToday()) {
+            $route = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
+            return redirect()->route($route)->with('error', 'Item titipan kadaluarsa.');
         }
 
         $cart = session()->get('cart', []);
         $itemId = $validated['item_id'];
+
+        $currentQty = isset($cart[$itemId]) ? $cart[$itemId]['qty'] : 0;
+        $newQty = $validated['qty'];
+
+        if ($item->stock < ($currentQty + $newQty)) {
+            $route = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
+            return redirect()->route($route)->with('error', "Stok tidak cukup. Sisa stok: {$item->stock}. Di keranjang: {$currentQty}");
+        }
 
         if (isset($cart[$itemId])) {
             $cart[$itemId]['qty'] += $validated['qty'];
@@ -75,7 +108,8 @@ class TransactionController extends Controller
 
         session()->put('cart', $cart);
 
-        return redirect()->route('transactions.index')->with('success', 'Item ditambahkan ke keranjang');
+        $route = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
+        return redirect()->route($route)->with('success', 'Item ditambahkan ke keranjang');
     }
 
     /**
@@ -125,15 +159,17 @@ class TransactionController extends Controller
 
         session()->put('cart', $cart);
 
+        $route = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
+
         // Build response message
         if ($addedCount > 0 && empty($errors)) {
             $message = "{$addedCount} item berhasil ditambahkan ke keranjang";
-            return redirect()->route('transactions.index')->with('success', $message);
+            return redirect()->route($route)->with('success', $message);
         } elseif ($addedCount > 0 && !empty($errors)) {
             $message = "{$addedCount} item berhasil ditambahkan, tapi beberapa item gagal: " . implode('; ', $errors);
-            return redirect()->route('transactions.index')->with('warning', $message);
+            return redirect()->route($route)->with('warning', $message);
         } else {
-            return redirect()->route('transactions.index')->with('error', 'Tidak ada item yang ditambahkan. ' . implode('; ', $errors));
+            return redirect()->route($route)->with('error', 'Tidak ada item yang ditambahkan. ' . implode('; ', $errors));
         }
     }
 
@@ -146,7 +182,8 @@ class TransactionController extends Controller
             session()->put('cart', $cart);
         }
 
-        return redirect()->route('transactions.index')->with('success', 'Item dihapus dari keranjang');
+        $route = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
+        return redirect()->route($route)->with('success', 'Item dihapus dari keranjang');
     }
 
     public function checkout(Request $request): RedirectResponse
@@ -160,8 +197,10 @@ class TransactionController extends Controller
 
         $cart = session()->get('cart', []);
 
+        $routeIndex = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
+
         if (empty($cart)) {
-            return redirect()->route('transactions.index')->with('error', 'Keranjang kosong');
+            return redirect()->route($routeIndex)->with('error', 'Keranjang kosong');
         }
 
         $grossTotal = $this->calculateTotal($cart);
@@ -183,13 +222,13 @@ class TransactionController extends Controller
         }
 
         if (!empty($stockErrors)) {
-            return redirect()->route('transactions.index')
+            return redirect()->route($routeIndex)
                 ->with('error', implode(', ', $stockErrors));
         }
 
         // Validasi pembayaran
         if ($paidAmount < $netTotal) {
-            return redirect()->route('transactions.index')
+            return redirect()->route($routeIndex)
                 ->with('error', 'Uang pembayaran kurang! Total: Rp ' . number_format($netTotal, 0, ',', '.') . ', Dibayar: Rp ' . number_format($paidAmount, 0, ',', '.'));
         }
 
@@ -222,6 +261,17 @@ class TransactionController extends Controller
                 $transactionId = $transaction->id;
 
                 foreach ($cart as $itemId => $item) {
+                    // Lock row for update to prevent race conditions
+                    $product = CashierItem::where('id', $itemId)->lockForUpdate()->first();
+
+                    if (!$product) {
+                        throw new \Exception("Item ID {$itemId} tidak ditemukan.");
+                    }
+
+                    if ($product->stock < $item['qty']) {
+                        throw new \Exception("Stok {$product->name} tidak cukup saat pemrosesan akhir. Sisa: {$product->stock}");
+                    }
+
                     TransactionDetail::create([
                         'transaction_id' => $transaction->id,
                         'item_id' => $item['item_id'],
@@ -232,7 +282,7 @@ class TransactionController extends Controller
                         'subtotal' => $item['price'] * $item['qty']
                     ]);
 
-                    CashierItem::find($itemId)->decrement('stock', $item['qty']);
+                    $product->decrement('stock', $item['qty']);
                 }
 
                 session()->forget('cart');
@@ -240,9 +290,10 @@ class TransactionController extends Controller
 
             session()->put('last_transaction_id', $transactionId);
 
-            return redirect()->route('transactions.receipt')->with('success', 'Transaksi berhasil disimpan');
+            $routeReceipt = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.receipt' : 'transactions.receipt';
+            return redirect()->route($routeReceipt)->with('success', 'Transaksi berhasil disimpan');
         } catch (\Exception $e) {
-            return redirect()->route('transactions.index')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return redirect()->route($routeIndex)->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
@@ -257,7 +308,8 @@ class TransactionController extends Controller
         }
 
         if (!$lastTransaction) {
-            return redirect()->route('transactions.index')->with('error', 'Tidak ada transaksi');
+            $routeIndex = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
+            return redirect()->route($routeIndex)->with('error', 'Tidak ada transaksi');
         }
 
         $details = TransactionDetail::where('transaction_id', $lastTransaction->id)->with('item')->get();
@@ -270,7 +322,8 @@ class TransactionController extends Controller
         $transaction = Transaction::find($id);
 
         if (!$transaction) {
-            return redirect()->route('transactions.index')->with('error', 'Transaksi tidak ditemukan');
+            $routeIndex = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.transactions.index' : 'transactions.index';
+            return redirect()->route($routeIndex)->with('error', 'Transaksi tidak ditemukan');
         }
 
         $details = TransactionDetail::where('transaction_id', $transaction->id)->with('item')->get();
