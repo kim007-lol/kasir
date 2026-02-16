@@ -90,13 +90,12 @@ class TransactionController extends Controller
                 if (isset($cart[$itemId])) {
                     $cart[$itemId]['qty'] += 1;
                 } else {
-                    $originalPrice = $exactItem->selling_price + $exactItem->discount;
                     $cart[$itemId] = [
                         'item_id' => $exactItem->id,
                         'code' => $exactItem->code,
                         'name' => $exactItem->name,
-                        'price' => $exactItem->selling_price,
-                        'original_price' => $originalPrice,
+                        'price' => $exactItem->final_price,
+                        'original_price' => $exactItem->selling_price,
                         'discount' => $exactItem->discount,
                         'qty' => 1
                     ];
@@ -185,14 +184,12 @@ class TransactionController extends Controller
         if (isset($cart[$itemId])) {
             $cart[$itemId]['qty'] += $validated['qty'];
         } else {
-            $originalPrice = $item->selling_price + $item->discount;
-
             $cart[$itemId] = [
                 'item_id' => $item->id,
                 'code' => $item->code,
                 'name' => $item->name,
-                'price' => $item->selling_price, // Final price after discount
-                'original_price' => $originalPrice,
+                'price' => $item->final_price, // Final price after discount
+                'original_price' => $item->selling_price,
                 'discount' => $item->discount,
                 'qty' => $validated['qty']
             ];
@@ -240,14 +237,12 @@ class TransactionController extends Controller
             if (isset($cart[$itemId])) {
                 $cart[$itemId]['qty'] += $qty;
             } else {
-                $originalPrice = $item->selling_price + $item->discount;
-
                 $cart[$itemId] = [
                     'item_id' => $item->id,
                     'code' => $item->code,
                     'name' => $item->name,
-                    'price' => $item->selling_price, // Final price after discount
-                    'original_price' => $originalPrice,
+                    'price' => $item->final_price, // Final price after discount
+                    'original_price' => $item->selling_price,
                     'discount' => $item->discount,
                     'qty' => $qty
                 ];
@@ -289,6 +284,12 @@ class TransactionController extends Controller
         return redirect()->route($this->routeIndex())->with('success', 'Item dihapus dari keranjang');
     }
 
+    public function clearCart(): RedirectResponse
+    {
+        session()->forget('cart');
+        return redirect()->route($this->routeIndex())->with('success', 'Keranjang berhasil dibersihkan');
+    }
+
     public function checkout(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -296,7 +297,7 @@ class TransactionController extends Controller
             'paid_amount' => 'required|numeric|min:0',
             'payment_method' => 'required|in:cash,qris',
             'discount_amount' => 'nullable|numeric|min:0',
-            'cashier_name' => 'required|string|max:255', // C5 Revert: Manual Cashier Name Input
+            'cashier_name' => 'required|string|max:255|exists:users,name', // Validasi nama kasir harus sesuai user yang terdaftar
             '_checkout_token' => 'required|string', // M3: Idempotency token
         ]);
 
@@ -333,7 +334,7 @@ class TransactionController extends Controller
                 $stockErrors[] = "{$product->name}: harga jual tidak valid (Rp 0). Hubungi admin.";
                 continue;
             }
-            $grossTotal += $product->selling_price * $item['qty'];
+            $grossTotal += $product->final_price * $item['qty'];
         }
 
         if (!empty($stockErrors)) {
@@ -409,9 +410,9 @@ class TransactionController extends Controller
                     }
 
                     // C3 Fix: Gunakan harga terkini dari database, bukan dari session
-                    $currentPrice = $product->selling_price;
+                    $currentPrice = $product->final_price;
+                    $currentOriginalPrice = $product->selling_price;
                     $currentDiscount = $product->discount;
-                    $currentOriginalPrice = $currentPrice + $currentDiscount;
 
                     $purchasePrice = 0;
                     if ($product->is_consignment) {
