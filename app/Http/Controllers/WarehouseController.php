@@ -16,28 +16,35 @@ class WarehouseController extends Controller
     public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
         $search = $request->get('search');
+        $categoryId = $request->get('category_id');
 
         $query = WarehouseItem::select('id', 'code', 'name', 'category_id', 'supplier_id', 'purchase_price', 'selling_price', 'discount', 'stock', 'exp_date')
             ->with(['category:id,name', 'supplier:id,name'])
             ->when($search, function ($query) use ($search) {
                 $searchLower = '%' . mb_strtolower($search) . '%';
-                $query->whereRaw('LOWER(name) LIKE ?', [$searchLower])
-                    ->orWhereRaw('LOWER(code) LIKE ?', [$searchLower])
-                    ->orWhereHas('supplier', function ($q) use ($searchLower) {
-                        $q->whereRaw('LOWER(name) LIKE ?', [$searchLower]);
-                    });
+                $query->where(function ($q) use ($searchLower) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$searchLower])
+                        ->orWhereRaw('LOWER(code) LIKE ?', [$searchLower])
+                        ->orWhereHas('supplier', function ($sub) use ($searchLower) {
+                            $sub->whereRaw('LOWER(name) LIKE ?', [$searchLower]);
+                        });
+                });
+            })
+            ->when($categoryId, function ($query) use ($categoryId) {
+                $query->where('category_id', $categoryId);
             })
             ->orderBy('code', 'asc');
 
         $warehouseItems = $query->paginate(15);
+        $categories = Category::orderBy('name')->get();
 
         if ($request->ajax()) {
             /** @var \Illuminate\View\View $view */
-            $view = view('warehouse.index', compact('warehouseItems', 'search'));
+            $view = view('warehouse.index', compact('warehouseItems', 'search', 'categories', 'categoryId'));
             return $view->fragment('data-container');
         }
 
-        return view('warehouse.index', compact('warehouseItems', 'search'));
+        return view('warehouse.index', compact('warehouseItems', 'search', 'categories', 'categoryId'));
     }
 
     public function create(): View
@@ -55,7 +62,6 @@ class WarehouseController extends Controller
             'code' => 'required|string|max:50|unique:warehouse_items,code',
             'name' => 'required|string|max:150',
             'purchase_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
             // 'discount' => 'nullable|numeric|min:0', // Disabled 
             'stock' => 'required|integer|min:0',
@@ -96,7 +102,6 @@ class WarehouseController extends Controller
             'code' => 'required|string|max:50|unique:warehouse_items,code,' . $warehouse->id,
             'name' => 'required|string|max:150',
             'purchase_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
             // 'discount' => 'nullable|numeric|min:0', // Disabled
             'stock' => 'required|integer|min:0',
