@@ -13,7 +13,8 @@ class UserController extends Controller
     public function index(Request $request): View|string
     {
         $search = $request->get('search');
-        $query = User::select('id', 'name', 'username', 'email', 'role', 'created_at')
+        $query = User::select('id', 'name', 'username', 'email', 'role', 'created_at', 'deleted_at')
+            ->withTrashed()
             ->when($search, function ($query) use ($search) {
                 $searchLower = '%' . mb_strtolower($search) . '%';
                 $query->where(function ($q) use ($searchLower) {
@@ -123,13 +124,16 @@ class UserController extends Controller
             return redirect()->route('users.index')->with('error', 'Anda tidak bisa menghapus akun sendiri.');
         }
 
-        // Cek apakah user memiliki transaksi terkait
-        if (\App\Models\Transaction::where('user_id', $user->id)->exists()) {
-            return redirect()->route('users.index')->with('error', 'User tidak bisa dihapus karena masih memiliki riwayat transaksi.');
-        }
-
         $user->delete();
 
-        return redirect()->route('users.index')->with('success', 'User berhasil dihapus');
+        return redirect()->route('users.index')->with('success', 'User berhasil dihapus (Nonaktif)');
+    }
+
+    public function restore($id): RedirectResponse
+    {
+        $user = User::withTrashed()->findOrFail($id);
+        $user->restore();
+
+        return redirect()->route('users.index')->with('success', 'User berhasil dipulihkan (Aktif)');
     }
 }

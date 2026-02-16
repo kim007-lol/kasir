@@ -178,7 +178,7 @@
             </div>
             <div class="info-row">
                 <span>Kasir:</span>
-                <span>{{ $lastTransaction->cashier_name ?? auth()->user()->name }}</span>
+                <span>{{ $lastTransaction->cashier_name ?? (auth()->user()->name ?? 'System') }}</span>
             </div>
 
             <div class="dashed-line"></div>
@@ -188,7 +188,14 @@
             <div class="item-row">
                 <span class="item-name">{{ $detail->item->name }}</span>
                 <div class="item-details">
-                    <span>{{ $detail->qty }} x {{ number_format($detail->price, 0, ',', '.') }}</span>
+                    <span>
+                        {{ $detail->qty }} x {{ number_format($detail->price, 0, ',', '.') }}
+                        @if($detail->discount > 0)
+                        <small class="text-muted" style="text-decoration: line-through; font-size: 0.8em; opacity: 0.8;">
+                            ({{ number_format($detail->original_price, 0, ',', '.') }})
+                        </small>
+                        @endif
+                    </span>
                     <span>{{ number_format($detail->subtotal, 0, ',', '.') }}</span>
                 </div>
                 @if($detail->discount > 0)

@@ -49,6 +49,7 @@
                             <th class="d-none d-lg-table-cell">Alamat</th>
                             <th class="d-none d-md-table-cell">Bergabung</th>
                             <th class="d-none d-sm-table-cell">Total Transaksi</th>
+                            <th class="d-none d-md-table-cell">Status</th>
                             <th style="width: 150px;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -71,18 +72,34 @@
                             <td class="d-none d-sm-table-cell">
                                 <strong class="text-primary">Rp. {{ number_format($member->transactions_sum_total ?? 0, 0, ',', '.') }}</strong>
                             </td>
+                            <td class="d-none d-md-table-cell">
+                                @if($member->deleted_at)
+                                <span class="badge bg-danger">Nonaktif</span>
+                                @else
+                                <span class="badge bg-success">Aktif</span>
+                                @endif
+                            </td>
                             <td>
                                 <div class="d-flex gap-1 justify-content-center" role="group">
+                                    @if($member->deleted_at)
+                                    <form action="{{ route('members.restore', $member->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success btn-sm text-white" title="Restore (Aktifkan Kembali)">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Pulihkan
+                                        </button>
+                                    </form>
+                                    @else
                                     <a href="{{ route('members.edit', $member) }}" class="btn btn-warning btn-sm text-white" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form action="{{ route('members.destroy', $member) }}" method="POST" style="display: inline;" onsubmit="confirmDelete(event, 'Data member ini akan dihapus!')">
+                                    <form action="{{ route('members.destroy', $member) }}" method="POST" style="display: inline;" onsubmit="confirmDelete(event, 'Data member ini akan dinonaktifkan!')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm text-white" title="Hapus">
+                                        <button type="submit" class="btn btn-danger btn-sm text-white" title="Nonaktifkan">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

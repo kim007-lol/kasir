@@ -2,220 +2,274 @@
 
 @section('title', 'Detail Transaksi')
 
-@php
-$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
-@endphp
-
 @section('content')
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="{{ url()->previous() }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Kembali
-            </a>
-            <div class="d-flex gap-2">
-                <a href="{{ route($routePrefix . 'transactions.downloadReceipt', $transaction->id) }}" target="_blank" class="btn btn-info">
-                    <i class="bi bi-printer"></i> Print Struk
-                </a>
-            </div>
-        </div>
-
-        <div class="card shadow-sm border-0" id="receiptCard">
-            <div class="card-body p-4">
-                <div class="text-center mb-4">
-                    <h4 class="fw-bold mb-1">STRUK PEMBELIAN</h4>
-                    <p class="text-muted mb-0">SMEGABIZ</p>
-                </div>
-
-                <hr class="my-3">
-
-                <div class="row">
-                    <div class="col-6">
-                        <p class="mb-1"><strong>Invoice:</strong></p>
-                        <p class="text-muted mb-2">{{ $transaction->invoice }}</p>
-
-                        <p class="mb-1"><strong>Metode Pembayaran:</strong></p>
-                        <p class="text-muted">
-                            <span class="badge {{ $transaction->payment_method == 'qris' ? 'bg-info' : 'bg-success' }}">
-                                {{ strtoupper($transaction->payment_method) }}
-                            </span>
-                        </p>
-                    </div>
-                    <div class="col-6 text-end">
-                        <p class="mb-1"><strong>Tanggal:</strong></p>
-                        <p class="text-muted">{{ $transaction->created_at->isoFormat('dddd, D MMMM Y H:mm:ss') }}</p>
-                    </div>
-                </div>
-
-                @if ($transaction->customer_name)
-                <div class="row">
-                    <div class="col-12">
-                        <p class="mb-1"><strong>Nama Pembeli:</strong></p>
-                        <p class="text-muted">{{ $transaction->customer_name }}</p>
-                    </div>
-                </div>
-                @endif
-
-                <hr class="my-3">
-
-                <table class="table table-sm table-borderless mb-0">
-                    <thead class="border-bottom">
-                        <tr>
-                            <th class="text-start">No</th>
-                            <th class="text-start">Produk</th>
-                            <th class="text-center" style="width: 50px;">Qty</th>
-                            <th class="text-end" style="width: 100px;">Harga</th>
-                            <th class="text-end" style="width: 120px;">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($details as $index => $detail)
-                        <tr class="border-bottom">
-                            <td class="text-start">{{ $index + 1 }}</td>
-                            <td class="text-start">
-                                {{ $detail->item->name }}
-                                @if(isset($detail->item->code))
-                                <br><small class="text-muted">{{ $detail->item->code }}</small>
-                                @endif
-                                @if($detail->discount > 0)
-                                <br><small class="text-warning">(Potongan: Rp {{ number_format($detail->discount, 0, ',', '.') }})</small>
-                                @endif
-                            </td>
-                            <td class="text-center">{{ $detail->qty }}</td>
-                            <td class="text-end">
-                                @if($detail->discount > 0)
-                                <small class="text-muted" style="text-decoration: line-through;">
-                                    Rp. {{ number_format($detail->original_price, 0, ',', '.') }}
-                                </small><br>
-                                @endif
-                                Rp. {{ number_format($detail->price, 0, ',', '.') }}
-                            </td>
-                            <td class="text-end">Rp. {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">Tidak ada data</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-
-                <hr class="my-3">
-
-                <div class="row">
-                    <div class="col-12 text-end">
-                        <h5 class="mb-1">Total Pembayaran:</h5>
-                        <h3 class="fw-bold text-primary">Rp. {{ number_format($transaction->total, 0, ',', '.') }}</h3>
-                    </div>
-                </div>
-
-                <hr class="my-3">
-
-                <div class="text-center mt-4">
-                    <p class="mb-4 text-muted">Terima kasih telah berbelanja</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
-    @media print {
-        @page {
-            margin: 0.5cm;
-            size: 80mm auto;
-        }
+    /* General Styles for Receipt */
+    .receipt-container {
+        font-family: 'Courier New', Courier, monospace;
+        width: 100%;
+        max-width: 350px;
+        /* Standard thermal width approx 80mm */
+        margin: 0 auto;
+        background: white;
+        padding: 15px;
+        color: #000;
+        font-size: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
 
+    .shop-name {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    .shop-address,
+    .shop-phone {
+        font-size: 10px;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+
+    .receipt-title {
+        font-size: 14px;
+        font-weight: bold;
+        text-align: center;
+        margin: 10px 0;
+        text-transform: uppercase;
+    }
+
+    .dashed-line {
+        border-top: 1px dashed #000;
+        margin: 5px 0;
+        display: block;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2px;
+    }
+
+    .item-row {
+        margin-bottom: 5px;
+    }
+
+    .item-name {
+        font-weight: bold;
+        display: block;
+    }
+
+    .item-details {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2px;
+    }
+
+    .big-total {
+        font-size: 18px;
+        font-weight: bold;
+        text-align: right;
+        margin-top: 5px;
+    }
+
+    .footer {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 10px;
+    }
+
+    .barcode-box {
+        height: 40px;
+        width: 90%;
+        margin: 10px auto;
+        background: repeating-linear-gradient(90deg,
+                #000 0px,
+                #000 2px,
+                transparent 2px,
+                transparent 5px,
+                #000 5px,
+                #000 7px,
+                transparent 7px,
+                transparent 9px);
+    }
+
+    .action-buttons {
+        margin-top: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    /* Print Specific Styles */
+    @media print {
         body {
             background: white !important;
+            margin: 0;
+            padding: 0;
         }
 
+        @page {
+            margin: 0;
+            size: auto;
+            /* Allow printer to determine size, or use 80mm if needed */
+        }
+
+        .receipt-container {
+            width: 100%;
+            max-width: 100%;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+        }
+
+        /* Hide everything else */
         .sidebar,
         .navbar,
         .btn,
-        .d-flex.justify-content-between,
-        .alert {
+        .action-buttons,
+        .alert,
+        footer,
+        header,
+        .no-print {
             display: none !important;
         }
 
-        .main-content {
-            margin-left: 0 !important;
-            width: 100% !important;
-        }
-
-        .content {
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-
-        .row {
-            margin: 0 !important;
-        }
-
-        .col-md-8 {
-            max-width: 100% !important;
-            flex: 0 0 100% !important;
-        }
-
-        .card {
-            box-shadow: none !important;
-            border: none !important;
-        }
-
-        .card-body {
-            padding: 10px !important;
-        }
-
-        .table {
-            font-size: 12px;
-        }
-
-        .table-sm td,
-        .table-sm th {
-            padding: 4px 8px !important;
-        }
-
-        hr {
-            margin: 8px 0 !important;
-        }
-
-        .border-bottom {
-            border-bottom: 1px solid #ddd !important;
-        }
-
-        h4 {
-            font-size: 16px;
-            margin-bottom: 5px !important;
-        }
-
-        h3 {
-            font-size: 20px;
-        }
-
-        h5 {
-            font-size: 14px;
-        }
-
-        small {
-            font-size: 10px;
-        }
-
-        .text-muted {
-            color: #666 !important;
+        /* Ensure texts are black */
+        * {
+            color: #000 !important;
         }
     }
 
-    .card {
-        border-radius: 12px;
-    }
-
-    .table-borderless td,
-    .table-borderless th {
-        border: none;
-    }
-
-    .border-bottom {
-        border-bottom: 1px solid #e9ecef !important;
+    .text-green {
+        color: green !important;
+        font-weight: bold;
     }
 </style>
+
+<div class="row justify-content-center">
+    <div class="col-md-12">
+        {{-- Buttons (Screen Only) --}}
+        <div class="action-buttons no-print">
+            <a href="{{ url()->previous() }}" class="btn btn-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Kembali
+            </a>
+            <button onclick="window.print()" class="btn btn-primary btn-sm">
+                <i class="bi bi-printer"></i> Print
+            </button>
+        </div>
+
+        <div class="receipt-container">
+
+            {{-- Header --}}
+            <div class="shop-name">SMEGABIZ</div>
+            <div class="shop-address">Surabaya</div>
+
+            <div class="receipt-title">STRUK PEMBELIAN</div>
+            <div class="text-center" style="font-size: 10px; margin-bottom: 5px;">SMEGABIZ</div>
+
+            <div class="dashed-line"></div>
+
+            {{-- Info Transaksi --}}
+            <div class="info-row">
+                <span>No. Trans:</span>
+                <span>{{ $transaction->invoice }}</span>
+            </div>
+            <div class="info-row">
+                <span>Tgl:</span>
+                <span>{{ $transaction->created_at->isoFormat('dddd, D MMMM Y HH:mm') }}</span>
+            </div>
+            <div class="info-row">
+                <span>Customer:</span>
+                <span>{{ $transaction->customer_name ?? 'Non Member' }}</span>
+            </div>
+            <div class="info-row">
+                <span>Kasir:</span>
+                <span>{{ $transaction->cashier_name ?? ($transaction->user->name ?? 'System') }}</span>
+            </div>
+
+            <div class="dashed-line"></div>
+
+            {{-- Item List --}}
+            @foreach ($details as $detail)
+            <div class="item-row">
+                <span class="item-name">{{ $detail->item->name }}</span>
+                <div class="item-details">
+                    <span>
+                        {{ $detail->qty }} x {{ number_format($detail->price, 0, ',', '.') }}
+                        @if($detail->discount > 0)
+                        <small class="text-muted" style="text-decoration: line-through; font-size: 0.8em; opacity: 0.8;">
+                            ({{ number_format($detail->original_price, 0, ',', '.') }})
+                        </small>
+                        @endif
+                    </span>
+                    <span>{{ number_format($detail->subtotal, 0, ',', '.') }}</span>
+                </div>
+                @if($detail->discount > 0)
+                <div class="item-details">
+                    <span style="font-style: italic;">(Disc)</span>
+                    <span>-{{ number_format($detail->discount, 0, ',', '.') }}</span>
+                </div>
+                @endif
+            </div>
+            @endforeach
+
+            <div class="dashed-line"></div>
+
+            {{-- Totals --}}
+            <div class="total-row">
+                <span>Total Belanja</span>
+                <span>{{ number_format($transaction->total + ($transaction->discount_amount ?? 0), 0, ',', '.') }}</span>
+            </div>
+
+            @if(($transaction->discount_amount ?? 0) > 0)
+            <div class="total-row">
+                <span>Potongan Struk</span>
+                <span>-{{ number_format($transaction->discount_amount, 0, ',', '.') }}</span>
+            </div>
+            @endif
+
+            <div class="total-row">
+                <span>Metode Bayar</span>
+                <span>{{ strtoupper($transaction->payment_method) }}</span>
+            </div>
+            <div class="total-row">
+                <span>Tunai</span>
+                <span>{{ number_format($transaction->paid_amount, 0, ',', '.') }}</span>
+            </div>
+            <div class="total-row" style="font-weight: bold; color: #000;">
+                <span class="{{ $transaction->change_amount > 0 ? 'text-green' : '' }}">Kembalian</span>
+                <span class="{{ $transaction->change_amount > 0 ? 'text-green' : '' }}">{{ number_format($transaction->change_amount, 0, ',', '.') }}</span>
+            </div>
+
+            <div class="dashed-line"></div>
+            <div class="dashed-line"></div>
+
+            {{-- Big Grand Total --}}
+            <div class="text-end">
+                <small style="font-size: 10px;">{{ strtoupper($transaction->payment_method) }}</small>
+                <div class="big-total">Rp {{ number_format($transaction->total, 0, ',', '.') }}</div>
+            </div>
+
+            {{-- Barcode --}}
+            <div class="barcode-box"></div>
+            <div class="text-center" style="font-size: 10px;">{{ $transaction->invoice }}</div>
+
+            <div class="dashed-line" style="margin-top: 10px;"></div>
+
+            {{-- Footer --}}
+            <div class="footer">
+                <div>*** TERIMA KASIH ***</div>
+                <div style="margin-top: 5px;">{{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y HH:mm:ss') }}</div>
+            </div>
+
+        </div>
+    </div>
+</div>
 @endsection

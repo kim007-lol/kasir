@@ -28,10 +28,19 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                         <h6 class="mb-0 fw-bold">
                             <i class="bi bi-check-square"></i> Pilih Produk
                         </h6>
-                        <button type="button" class="btn btn-success fw-bold" id="addSelectedBtn">
-                            <i class="bi bi-cart-plus"></i> Tambah Terpilih
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-danger fw-bold" id="resetCartBtn">
+                                <i class="bi bi-trash"></i> Reset
+                            </button>
+                            <button type="button" class="btn btn-success fw-bold" id="addSelectedBtn">
+                                <i class="bi bi-cart-plus"></i> Tambah Terpilih
+                            </button>
+                        </div>
                     </div>
+
+                    <form id="resetCartForm" action="{{ route($routePrefix . 'transactions.clearCart') }}" method="POST" style="display: none;">
+                        @csrf
+                    </form>
 
                     {{-- Search Box with Server-Side Search --}}
                     <div class="mb-3">
@@ -73,7 +82,14 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                                             </td>
                                             <td><small>{{ $item->code }}</small></td>
                                             <td>{{ $item->name }}</td>
-                                            <td>Rp. {{ number_format($item->selling_price, 0, ',', '.') }}</td>
+                                            <td>
+                                                @if($item->discount > 0)
+                                                <small class="text-muted text-decoration-line-through">
+                                                    Rp. {{ number_format($item->selling_price, 0, ',', '.') }}
+                                                </small><br>
+                                                @endif
+                                                <span class="fw-bold">Rp. {{ number_format($item->final_price, 0, ',', '.') }}</span>
+                                            </td>
                                             <td>
                                                 @php
                                                 $stockClass = 'bg-success';
@@ -173,9 +189,16 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
             </div>
             <div class="card-body border-top">
                 {{-- Total Section --}}
-                <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="text-muted small">Total Belanja</span>
-                    <h4 class="mb-0 fw-bold" style="color: #667eea;">
+                    <span class="fw-bold">
+                        Rp. {{ number_format($total, 0, ',', '.') }}
+                    </span>
+                </div>
+
+                <div id="netTotalRow" class="d-flex justify-content-between align-items-center mb-2" style="display: none !important;">
+                    <span class="text-primary small fw-bold">Total Setelah Potongan</span>
+                    <h4 class="mb-0 fw-bold text-primary" id="netTotalDisplay">
                         Rp. {{ number_format($total, 0, ',', '.') }}
                     </h4>
                 </div>
@@ -192,17 +215,19 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                     </div>
 
                     <div class="mb-2">
-                        <label for="member_id" class="form-label small fw-bold">Pilih Member</label>
+                        <label for="member_id" class="form-label small fw-bold mb-1">Pilih Member</label>
                         <select
                             name="member_id"
                             id="member_id"
-                            class="form-select form-select-sm">
+                            class="form-select form-select-sm select2-basic">
                             <option value="">-- Non Member --</option>
                             @foreach ($members as $member)
                             <option value="{{ $member->id }}">{{ $member->name }}</option>
                             @endforeach
                         </select>
                     </div>
+
+
 
                     {{-- Payment Method --}}
                     <div class="mb-2">
@@ -333,6 +358,47 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
     document.addEventListener('DOMContentLoaded', function() {
         const bladeData = document.getElementById('blade-data');
         const totalAmount = JSON.parse(bladeData.dataset.total);
+
+        // Initialize Select2
+        function initSelect2() {
+            if (typeof $.fn.select2 !== 'undefined') {
+                $('.select2-basic').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: '-- Pilih Member --',
+                    allowClear: true
+                });
+            }
+        }
+        initSelect2();
+
+        // Reset Cart Handler
+        const resetCartBtn = document.getElementById('resetCartBtn');
+        if (resetCartBtn) {
+            resetCartBtn.addEventListener('click', function() {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Reset Keranjang?',
+                        text: "Semua item di keranjang akan dihapus!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Ya, Reset!',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('resetCartForm').submit();
+                        }
+                    });
+                } else {
+                    if (confirm('Apakah Anda yakin ingin mengosongkan keranjang?')) {
+                        document.getElementById('resetCartForm').submit();
+                    }
+                }
+            });
+        }
 
         // --- GLOBAL STATE FOR SELECTION (Fixes "Search gabisa di choose") ---
         // Map<itemId, {qty: number, stock: number}>
@@ -593,15 +659,30 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
         const paymentError = document.getElementById('paymentError');
         const paymentErrorText = document.getElementById('paymentErrorText');
 
+        const discountAmountInput = document.getElementById('discount_amount');
+        const netTotalDisplay = document.getElementById('netTotalDisplay');
+        const netTotalRow = document.getElementById('netTotalRow');
+
         function calculateChange() {
+            const discountAmount = discountAmountInput ? (parseFloat(discountAmountInput.value) || 0) : 0;
+            const netTotal = Math.max(0, totalAmount - discountAmount);
+
+            // Update Net Total UI
+            if (discountAmount > 0) {
+                netTotalRow.setAttribute('style', 'display: flex !important;');
+                netTotalDisplay.textContent = 'Rp. ' + netTotal.toLocaleString('id-ID');
+            } else {
+                netTotalRow.setAttribute('style', 'display: none !important;');
+            }
+
             const paidAmount = parseFloat(paidAmountInput.value) || 0;
-            const change = paidAmount - totalAmount;
+            const change = paidAmount - netTotal;
 
             if (paidAmount > 0) {
-                if (paidAmount < totalAmount) {
+                if (paidAmount < netTotal) {
                     changeDisplay.style.display = 'none';
                     paymentError.style.display = 'block';
-                    paymentErrorText.textContent = 'Kurang: Rp ' + (totalAmount - paidAmount).toLocaleString('id-ID');
+                    paymentErrorText.textContent = 'Kurang: Rp ' + (netTotal - paidAmount).toLocaleString('id-ID');
                     payButton.disabled = true;
                 } else {
                     paymentError.style.display = 'none';
@@ -617,6 +698,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
         }
 
         if (paidAmountInput) paidAmountInput.addEventListener('input', calculateChange);
+        if (discountAmountInput) discountAmountInput.addEventListener('input', calculateChange);
 
         document.querySelectorAll('.quick-pay-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -628,7 +710,9 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
         const pasBtn = document.getElementById('pasBtn');
         if (pasBtn) {
             pasBtn.addEventListener('click', function() {
-                paidAmountInput.value = Math.ceil(totalAmount / 1000) * 1000;
+                const discountAmount = discountAmountInput ? (parseFloat(discountAmountInput.value) || 0) : 0;
+                const netTotal = Math.max(0, totalAmount - discountAmount);
+                paidAmountInput.value = Math.ceil(netTotal / 1000) * 1000;
                 calculateChange();
             });
         }

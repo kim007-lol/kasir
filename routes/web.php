@@ -58,6 +58,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::patch('/categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
     Route::resource('members', MemberController::class);
+    Route::post('/members/{id}/restore', [MemberController::class, 'restore'])->name('members.restore');
 
     Route::resource('suppliers', SupplierController::class);
     Route::patch('/suppliers/{id}/restore', [SupplierController::class, 'restore'])->name('suppliers.restore');
@@ -88,6 +89,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/reports/stock-entries', [ReportController::class, 'stockEntriesHistory'])->name('reports.stockEntries');
     Route::get('/reports/transfer-history', [ReportController::class, 'transferHistory'])->name('reports.transferHistory');
     Route::resource('users', UserController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    Route::post('/users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
     Route::get('/about', [BusinessProfileController::class, 'index'])->name('about');
 });
 

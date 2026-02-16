@@ -33,7 +33,7 @@
 
                         <div class="mb-3">
                             <label for="category_id" class="form-label">Kategori *</label>
-                            <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
+                            <select name="category_id" id="category_id" class="form-select select2-basic @error('category_id') is-invalid @enderror" required>
                                 <option value="">-- Pilih Kategori --</option>
                                 @foreach ($categories as $category)
                                 <option value="{{ $category->id }}" @if(old('category_id')==$category->id) selected @endif>{{ $category->name }}</option>
@@ -46,7 +46,7 @@
 
                         <div class="mb-3">
                             <label for="supplier_id" class="form-label">Supplier *</label>
-                            <select name="supplier_id" id="supplier_id" class="form-select @error('supplier_id') is-invalid @enderror" required>
+                            <select name="supplier_id" id="supplier_id" class="form-select select2-basic @error('supplier_id') is-invalid @enderror" required>
                                 <option value="">-- Pilih Supplier --</option>
                                 @foreach ($suppliers as $supplier)
                                 <option value="{{ $supplier->id }}" @if(old('supplier_id')==$supplier->id) selected @endif>{{ $supplier->name }}</option>
@@ -123,7 +123,15 @@
     </div>
 </div>
 
+@push('scripts')
 <script>
+    $(document).ready(function() {
+        $('.select2-basic').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+    });
+
     // Auto-calculate final price
     function calculateFinalPrice() {
         const sellingPrice = parseFloat(document.getElementById('selling_price').value) || 0;
@@ -143,4 +151,5 @@
     // Calculate on page load
     calculateFinalPrice();
 </script>
+@endpush
 @endsection

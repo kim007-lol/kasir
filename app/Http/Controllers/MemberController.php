@@ -15,12 +15,15 @@ class MemberController extends Controller
     public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
         $search = $request->get('search');
-        $query = Member::select('id', 'name', 'phone', 'address', 'created_at')
+        $query = Member::select('id', 'name', 'phone', 'address', 'created_at', 'deleted_at')
+            ->withTrashed()
             ->withSum('transactions', 'total')
             ->when($search, function ($query) use ($search) {
                 $searchLower = '%' . mb_strtolower($search) . '%';
-                $query->whereRaw('LOWER(name) LIKE ?', [$searchLower])
-                    ->orWhereRaw('LOWER(phone) LIKE ?', [$searchLower]);
+                $query->where(function ($q) use ($searchLower) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$searchLower])
+                        ->orWhereRaw('LOWER(phone) LIKE ?', [$searchLower]);
+                });
             })
             ->orderByRaw('transactions_sum_total DESC NULLS LAST')
             ->orderBy('name', 'asc');
@@ -96,13 +99,16 @@ class MemberController extends Controller
      */
     public function destroy(Member $member): RedirectResponse
     {
-        // Cek apakah member memiliki transaksi terkait
-        if ($member->transactions()->exists()) {
-            return redirect()->route('members.index')->with('error', 'Member tidak bisa dihapus karena masih memiliki riwayat transaksi.');
-        }
-
         $member->delete();
 
-        return redirect()->route('members.index')->with('success', 'Member berhasil dihapus');
+        return redirect()->route('members.index')->with('success', 'Member berhasil dihapus (Nonaktif)');
+    }
+
+    public function restore($id): RedirectResponse
+    {
+        $member = Member::withTrashed()->findOrFail($id);
+        $member->restore();
+
+        return redirect()->route('members.index')->with('success', 'Member berhasil dipulihkan (Aktif)');
     }
 }

@@ -19,7 +19,7 @@
                 @csrf
                 <div class="mb-3">
                     <label for="warehouse_item_id" class="form-label">Pilih Barang dari Gudang *</label>
-                    <select name="warehouse_item_id" id="warehouse_item_id" class="form-select @error('warehouse_item_id') is-invalid @enderror" required>
+                    <select name="warehouse_item_id" id="warehouse_item_id" class="form-select select2-basic @error('warehouse_item_id') is-invalid @enderror" required>
                         <option value="">-- Pilih Barang --</option>
                         @foreach ($warehouseItems as $item)
                         <option value="{{ $item->id }}"
@@ -94,59 +94,71 @@
     </div>
 </div>
 
+@push('scripts')
 <script>
-    const warehouseSelect = document.getElementById('warehouse_item_id');
-    const quantityInput = document.getElementById('quantity');
-    const itemInfo = document.getElementById('itemInfo');
-    const submitBtn = document.getElementById('submitBtn');
-    const stockWarning = document.getElementById('stockWarning');
+    $(document).ready(function() {
+        $('.select2-basic').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '-- Pilih Barang --',
+            allowClear: true
+        });
 
-    let currentStock = 0;
+        const warehouseSelect = document.getElementById('warehouse_item_id');
+        const quantityInput = document.getElementById('quantity');
+        const itemInfo = document.getElementById('itemInfo');
+        const submitBtn = document.getElementById('submitBtn');
+        const stockWarning = document.getElementById('stockWarning');
 
-    warehouseSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
+        let currentStock = 0;
 
-        if (this.value) {
-            // Show item info
-            document.getElementById('info-code').textContent = selectedOption.dataset.code;
-            document.getElementById('info-name').textContent = selectedOption.dataset.name;
-            document.getElementById('info-category').textContent = selectedOption.dataset.category;
-            document.getElementById('info-supplier').textContent = selectedOption.dataset.supplier;
-            document.getElementById('info-price').textContent = 'Rp. ' + parseFloat(selectedOption.dataset.price).toLocaleString('id-ID');
-            document.getElementById('info-stock').textContent = selectedOption.dataset.stock;
+        // Use jQuery change event for Select2 compatibility
+        $('#warehouse_item_id').on('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
 
-            currentStock = parseInt(selectedOption.dataset.stock);
-            itemInfo.style.display = 'block';
+            if (this.value) {
+                // Show item info
+                document.getElementById('info-code').textContent = selectedOption.dataset.code;
+                document.getElementById('info-name').textContent = selectedOption.dataset.name;
+                document.getElementById('info-category').textContent = selectedOption.dataset.category;
+                document.getElementById('info-supplier').textContent = selectedOption.dataset.supplier;
+                document.getElementById('info-price').textContent = 'Rp. ' + parseFloat(selectedOption.dataset.price).toLocaleString('id-ID');
+                document.getElementById('info-stock').textContent = selectedOption.dataset.stock;
 
-            // Set max quantity
-            quantityInput.max = currentStock;
-            validateQuantity();
-        } else {
-            itemInfo.style.display = 'none';
-            currentStock = 0;
+                currentStock = parseInt(selectedOption.dataset.stock);
+                itemInfo.style.display = 'block';
+
+                // Set max quantity
+                quantityInput.max = currentStock;
+                validateQuantity();
+            } else {
+                itemInfo.style.display = 'none';
+                currentStock = 0;
+            }
+        });
+
+        quantityInput.addEventListener('input', validateQuantity);
+
+        function validateQuantity() {
+            const qty = parseInt(quantityInput.value) || 0;
+
+            if (qty > currentStock) {
+                stockWarning.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle"></i> Jumlah melebihi stok gudang!</span>';
+                submitBtn.disabled = true;
+            } else if (qty > 0) {
+                stockWarning.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Stok gudang akan berkurang ' + qty + ', stok kasir akan bertambah ' + qty + '</span>';
+                submitBtn.disabled = false;
+            } else {
+                stockWarning.textContent = '';
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Trigger change on page load if there's old input
+        if (warehouseSelect.value) {
+            $(warehouseSelect).trigger('change');
         }
     });
-
-    quantityInput.addEventListener('input', validateQuantity);
-
-    function validateQuantity() {
-        const qty = parseInt(quantityInput.value) || 0;
-
-        if (qty > currentStock) {
-            stockWarning.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle"></i> Jumlah melebihi stok gudang!</span>';
-            submitBtn.disabled = true;
-        } else if (qty > 0) {
-            stockWarning.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Stok gudang akan berkurang ' + qty + ', stok kasir akan bertambah ' + qty + '</span>';
-            submitBtn.disabled = false;
-        } else {
-            stockWarning.textContent = '';
-            submitBtn.disabled = false;
-        }
-    }
-
-    // Trigger change on page load if there's old input
-    if (warehouseSelect.value) {
-        warehouseSelect.dispatchEvent(new Event('change'));
-    }
 </script>
+@endpush
 @endsection

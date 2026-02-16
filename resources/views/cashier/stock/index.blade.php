@@ -19,12 +19,33 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('cashier.stock.index') }}">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0">
-                        <i class="bi bi-search text-muted"></i>
-                    </span>
-                    <input type="text" class="form-control border-start-0 ps-0" name="search" value="{{ $search ?? '' }}" placeholder="Cari Kode atau Nama Barang...">
-                    <button class="btn btn-primary" type="submit">Cari</button>
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0 ps-0" name="search" value="{{ $search ?? '' }}" placeholder="Cari Kode atau Nama Barang...">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select name="category_id" class="form-select select2-basic">
+                            <option value="">-- Semua Kategori --</option>
+                            @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ (isset($categoryId) && $categoryId == $cat->id) ? 'selected' : '' }}>
+                                {{ $cat->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary w-100" type="submit">Cari</button>
+                            @if((isset($search) && $search) || (isset($categoryId) && $categoryId))
+                            <a href="{{ route('cashier.stock.index') }}" class="btn btn-outline-secondary">Reset</a>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
@@ -66,7 +87,14 @@
                                 {{ $item->category->name ?? '-' }}
                                 @endif
                             </td>
-                            <td>Rp {{ number_format($item->selling_price, 0, ',', '.') }}</td>
+                            <td>
+                                @if($item->discount > 0)
+                                <small class="text-muted text-decoration-line-through">
+                                    Rp {{ number_format($item->selling_price, 0, ',', '.') }}
+                                </small><br>
+                                @endif
+                                <strong>Rp {{ number_format($item->final_price, 0, ',', '.') }}</strong>
+                            </td>
                             <td class="text-center">
                                 @php
                                 $bgClass = 'bg-success';
@@ -115,7 +143,7 @@
                     @csrf
                     <div class="mb-3">
                         <label class="form-label">Pilih Barang dari Gudang</label>
-                        <select class="form-select" name="warehouse_item_id" id="warehouse_item_select" required>
+                        <select class="form-select select2-basic" name="warehouse_item_id" id="warehouse_item_select" required>
                             <option value="">-- Pilih Barang --</option>
                             @foreach($warehouseItems as $wItem)
                             <option value="{{ $wItem->id }}"
@@ -153,6 +181,25 @@
 
 @push('scripts')
 <script>
+    $(document).ready(function() {
+        // Generic initialization for static filters
+        $('.select2-basic:not(#warehouse_item_select)').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '-- Pilih Kategori --',
+            allowClear: true
+        });
+
+        // Specific initialization for Modal item selection to fix search focus
+        $('#warehouse_item_select').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '-- Pilih Barang --',
+            allowClear: true,
+            dropdownParent: $('#warehouseStockModal')
+        });
+    });
+
     // Warehouse Stock Modal Logic
     document.getElementById('warehouse_item_select').addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];

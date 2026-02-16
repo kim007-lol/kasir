@@ -297,7 +297,7 @@ class TransactionController extends Controller
             'paid_amount' => 'required|numeric|min:0',
             'payment_method' => 'required|in:cash,qris',
             'discount_amount' => 'nullable|numeric|min:0',
-            'cashier_name' => 'required|string|max:255|exists:users,name', // Validasi nama kasir harus sesuai user yang terdaftar
+            'cashier_name' => 'required|string|max:255', // C5 Revert: Manual Cashier Name Input (User Request)
             '_checkout_token' => 'required|string', // M3: Idempotency token
         ]);
 

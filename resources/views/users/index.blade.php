@@ -55,6 +55,7 @@
                             <th>Username</th>
                             <th class="d-none d-md-table-cell">Email</th>
                             <th>Role</th>
+                            <th>Status</th>
                             <th class="d-none d-md-table-cell">Terdaftar</th>
                             <th style="width: 120px;">Aksi</th>
                         </tr>
@@ -81,22 +82,38 @@
                                 <span class="badge bg-secondary">{{ $user->role ?? 'N/A' }}</span>
                                 @endif
                             </td>
+                            <td>
+                                @if($user->deleted_at)
+                                <span class="badge bg-danger">Nonaktif</span>
+                                @else
+                                <span class="badge bg-success">Aktif</span>
+                                @endif
+                            </td>
                             <td class="d-none d-md-table-cell">
                                 {{ $user->created_at->format('d/m/Y H:i') }}
                             </td>
                             <td>
                                 <div class="d-flex gap-1">
+                                    @if($user->deleted_at)
+                                    <form action="{{ route('users.restore', $user->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success" title="Restore (Aktifkan Kembali)">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Pulihkan
+                                        </button>
+                                    </form>
+                                    @else
                                     <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-warning" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     @if($user->id !== auth()->id())
-                                    <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus user {{ $user->name }}?')">
+                                    <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Yakin ingin menonaktifkan user {{ $user->name }}?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Nonaktifkan">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
+                                    @endif
                                     @endif
                                 </div>
                             </td>

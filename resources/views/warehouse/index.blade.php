@@ -17,16 +17,27 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('warehouse.index') }}" class="row g-3 align-items-end">
-                <div class="col-md-8">
+                <div class="col-md-5">
                     <label for="search" class="form-label fw-semibold">Cari Barang Gudang</label>
                     <input type="text" class="form-control" id="search" name="search" value="{{ $search ?? '' }}" placeholder="Cari berdasarkan nama atau kode barang...">
+                </div>
+                <div class="col-md-3">
+                    <label for="category_id" class="form-label fw-semibold">Kategori</label>
+                    <select name="category_id" id="category_id" class="form-select select2-basic">
+                        <option value="">-- Semua Kategori --</option>
+                        @foreach($categories as $cat)
+                        <option value="{{ $cat->id }}" {{ (isset($categoryId) && $categoryId == $cat->id) ? 'selected' : '' }}>
+                            {{ $cat->name }}
+                        </option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="col-md-4">
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-search"></i> Cari
                         </button>
-                        @if(isset($search) && $search)
+                        @if((isset($search) && $search) || (isset($categoryId) && $categoryId))
                         <a href="{{ route('warehouse.index') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-x-circle"></i> Reset
                         </a>
@@ -178,7 +189,17 @@
     </style>
     </style>
 
+    @push('scripts')
     <script>
+        $(document).ready(function() {
+            $('.select2-basic').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: '-- Pilih Kategori --',
+                allowClear: true
+            });
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             function pollWarehouseStock() {
                 fetch("{{ route('warehouse.status') }}")
@@ -206,4 +227,5 @@
             setInterval(pollWarehouseStock, 5000);
         });
     </script>
+    @endpush
     @endsection
