@@ -34,7 +34,7 @@ class TransactionController extends Controller
         return $this->getRoutePrefix() . 'transactions.receipt';
     }
 
-    public function index(Request $request): View|\Illuminate\Support\HtmlString|string
+    public function index(Request $request): View|\Illuminate\Support\HtmlString|string|RedirectResponse|\Illuminate\Http\JsonResponse
     {
         // Clear cart ONLY if it's a clean entry from another page (Referer is different)
         // and there are no flash messages or active search/page queries.
