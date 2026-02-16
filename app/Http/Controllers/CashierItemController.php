@@ -391,10 +391,12 @@ class CashierItemController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:150',
-            'selling_price' => 'required|numeric|min:0',
+            'selling_price' => 'required|numeric|min:0|gte:cost_price',
             'cost_price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:1',
             'consignment_source' => 'required|string|max:150',
+        ], [
+            'selling_price.gte' => 'Harga jual tidak boleh lebih rendah dari harga modal.',
         ]);
 
         do {
@@ -478,10 +480,12 @@ class CashierItemController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:150',
-            'selling_price' => 'required|numeric|min:0',
+            'selling_price' => 'required|numeric|min:0|gte:cost_price',
             'cost_price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'consignment_source' => 'required|string|max:150',
+        ], [
+            'selling_price.gte' => 'Harga jual tidak boleh lebih rendah dari harga modal.',
         ]);
 
         $cashierItem->update($validated);
