@@ -20,10 +20,11 @@ class WarehouseController extends Controller
         $query = WarehouseItem::select('id', 'code', 'name', 'category_id', 'supplier_id', 'purchase_price', 'selling_price', 'discount', 'stock', 'exp_date')
             ->with(['category:id,name', 'supplier:id,name'])
             ->when($search, function ($query) use ($search) {
-                $query->where('name', 'ilike', '%' . $search . '%')
-                    ->orWhere('code', 'ilike', '%' . $search . '%')
-                    ->orWhereHas('supplier', function ($q) use ($search) {
-                        $q->where('name', 'ilike', '%' . $search . '%');
+                $searchLower = '%' . mb_strtolower($search) . '%';
+                $query->whereRaw('LOWER(name) LIKE ?', [$searchLower])
+                    ->orWhereRaw('LOWER(code) LIKE ?', [$searchLower])
+                    ->orWhereHas('supplier', function ($q) use ($searchLower) {
+                        $q->whereRaw('LOWER(name) LIKE ?', [$searchLower]);
                     });
             })
             ->orderBy('code', 'asc');
@@ -55,12 +56,13 @@ class WarehouseController extends Controller
             'name' => 'required|string|max:150',
             'purchase_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
-            'discount' => 'nullable|numeric|min:0',
+            'selling_price' => 'required|numeric|min:0',
+            // 'discount' => 'nullable|numeric|min:0', // Disabled 
             'stock' => 'required|integer|min:0',
             'exp_date' => 'nullable|date'
         ]);
 
-        $validated['discount'] = $validated['discount'] ?? 0;
+        $validated['discount'] = 0; // Force discount to 0
 
         DB::transaction(function () use ($validated) {
             $warehouseItem = WarehouseItem::create($validated);
@@ -95,12 +97,13 @@ class WarehouseController extends Controller
             'name' => 'required|string|max:150',
             'purchase_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
-            'discount' => 'nullable|numeric|min:0',
+            'selling_price' => 'required|numeric|min:0',
+            // 'discount' => 'nullable|numeric|min:0', // Disabled
             'stock' => 'required|integer|min:0',
             'exp_date' => 'nullable|date'
         ]);
 
-        $validated['discount'] = $validated['discount'] ?? 0;
+        $validated['discount'] = 0; // Force discount to 0
 
         DB::transaction(function () use ($validated, $warehouse) {
             $oldStock = $warehouse->stock;

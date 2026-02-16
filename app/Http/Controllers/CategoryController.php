@@ -15,7 +15,8 @@ class CategoryController extends Controller
         $query = Category::select('id', 'name', 'deleted_at')
             ->withTrashed()
             ->when($search, function ($query) use ($search) {
-                $query->where('name', 'ilike', '%' . $search . '%');
+                $searchLower = '%' . mb_strtolower($search) . '%';
+                $query->whereRaw('LOWER(name) LIKE ?', [$searchLower]);
             })
             ->orderBy('name', 'asc');
 
@@ -37,7 +38,7 @@ class CategoryController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:categories,name'
+            'name' => ['required', 'string', 'max:100', \Illuminate\Validation\Rule::unique('categories', 'name')->withoutTrashed()]
         ]);
 
         Category::create($validated);
@@ -53,7 +54,7 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:categories,name,' . $category->id
+            'name' => ['required', 'string', 'max:100', \Illuminate\Validation\Rule::unique('categories', 'name')->withoutTrashed()->ignore($category->id)]
         ]);
 
         $category->update($validated);

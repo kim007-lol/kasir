@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Struk {{ $transaction->invoice }}</title>
     <style>
+        /* General Styles for Receipt */
         * {
             margin: 0;
             padding: 0;
@@ -15,58 +16,48 @@
         body {
             font-family: 'Courier New', Courier, monospace;
             font-size: 12px;
-            line-height: 1.4;
-            color: #333;
-            background: white;
+            background: #f5f5f5;
+            /* Light gray background for screen */
+            padding: 20px;
         }
 
-        .receipt {
-            max-width: 80mm;
+        .receipt-container {
+            width: 100%;
+            max-width: 350px;
+            /* Standard thermal width approx 80mm */
             margin: 0 auto;
-            padding: 10px;
+            background: white;
+            padding: 15px;
+            color: #000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 2px dashed #333;
-        }
-
-        .header h2 {
+        .shop-name {
             font-size: 16px;
             font-weight: bold;
-            margin-bottom: 3px;
+            text-align: center;
             text-transform: uppercase;
         }
 
-        .header p {
+        .shop-address,
+        .shop-phone {
             font-size: 10px;
-            color: #666;
-            margin-bottom: 0;
-        }
-
-        .store-info {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
-        .store-info h3 {
+        .receipt-title {
             font-size: 14px;
             font-weight: bold;
-            margin-bottom: 2px;
+            text-align: center;
+            margin: 10px 0;
+            text-transform: uppercase;
         }
 
-        .store-info p {
-            font-size: 9px;
-            color: #888;
-            margin: 0;
-        }
-
-        .info {
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 1px dashed #ccc;
+        .dashed-line {
+            border-top: 1px dashed #000;
+            margin: 5px 0;
+            display: block;
         }
 
         .info-row {
@@ -75,297 +66,247 @@
             margin-bottom: 2px;
         }
 
-        .info-label {
-            font-weight: 500;
-        }
-
-        .info-value {
-            text-align: right;
-        }
-
-        .items {
-            margin-bottom: 10px;
-        }
-
-        .item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 6px 0;
-            border-bottom: 1px dotted #ddd;
-        }
-
-        .item:last-child {
-            border-bottom: none;
+        .item-row {
+            margin-bottom: 5px;
         }
 
         .item-name {
-            font-weight: 500;
-            font-size: 11px;
+            font-weight: bold;
+            display: block;
         }
 
         .item-details {
-            font-size: 10px;
-            color: #666;
-        }
-
-        .item-subtotal {
-            font-weight: 600;
-            text-align: right;
-        }
-
-        .divider {
-            border: none;
-            border-top: 2px dashed #333;
-            margin: 8px 0;
-        }
-
-        .payment-section {
-            margin-bottom: 10px;
-            padding-top: 8px;
-        }
-
-        .payment-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 3px;
-        }
-
-        .payment-label {
             font-size: 11px;
         }
 
-        .payment-value {
-            font-size: 11px;
-            text-align: right;
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2px;
         }
 
-        .change-row {
-            font-weight: bold;
-            color: #28a745;
-        }
-
-        .total-section {
-            text-align: right;
-            margin: 10px 0;
-            padding-top: 8px;
-            border-top: 2px dashed #333;
-        }
-
-        .total-label {
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .total-amount {
+        .big-total {
             font-size: 18px;
             font-weight: bold;
+            text-align: right;
+            margin-top: 5px;
         }
 
         .footer {
             text-align: center;
             margin-top: 15px;
-            padding-top: 10px;
-            border-top: 1px dashed #ccc;
-        }
-
-        .footer p {
             font-size: 10px;
-            color: #666;
-            margin: 2px 0;
         }
 
-        .barcode-area {
-            text-align: center;
-            margin: 15px 0;
-        }
-
-        .barcode-line {
-            height: 30px;
+        .barcode-box {
+            height: 40px;
+            width: 90%;
+            margin: 10px auto;
             background: repeating-linear-gradient(90deg,
                     #000 0px,
                     #000 2px,
                     transparent 2px,
-                    transparent 4px);
-            margin-bottom: 5px;
+                    transparent 5px,
+                    #000 5px,
+                    #000 7px,
+                    transparent 7px,
+                    transparent 9px);
         }
 
-        .print-btn {
-            display: none;
+        .text-green {
+            color: green;
+            font-weight: bold;
         }
 
+        .action-buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+            display: inline-block;
+            font-family: sans-serif;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        /* Print Specific Styles */
         @media print {
+            body {
+                background: white !important;
+                margin: 0;
+                padding: 0;
+            }
+
             @page {
                 margin: 0;
-                size: 80mm auto;
+                size: auto;
+                /* Allow printer to determine size, or use 80mm if needed */
             }
 
-            body {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+            .receipt-container {
+                width: 100%;
+                max-width: 100%;
+                padding: 0;
+                border: none;
+                box-shadow: none;
+                margin: 0;
             }
 
-            .print-btn {
+            /* Hide everything else */
+            .action-buttons {
                 display: none !important;
             }
-        }
 
-        @media screen {
-            body {
-                background: #f5f5f5;
-                padding: 20px;
+            /* Ensure texts are black */
+            * {
+                color: #000 !important;
             }
 
-            .receipt {
-                background: white;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            }
-
-            .print-btn {
-                display: block;
-                text-align: center;
-                margin-top: 20px;
-            }
-
-            .print-btn button,
-            .print-btn a {
-                padding: 12px 24px;
-                margin: 5px;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 14px;
-                text-decoration: none;
-                display: inline-block;
-            }
-
-            .btn-print {
-                background: #5b9dd9;
-                color: white;
-            }
-
-            .btn-new {
-                background: #48bb78;
-                color: white;
-            }
-
-            .btn-back {
-                background: #6c757d;
-                color: white;
+            .text-green {
+                color: #000 !important;
+                /* Force black for thermal printing */
             }
         }
     </style>
+    <!-- Bootstrap Icons for buttons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 
 <body>
-    <div class="receipt">
-        <div class="store-info">
-            <h3>SMEGABIZ</h3>
-            <p>Surabaya</p>
+    <div class="receipt-container">
+
+        {{-- Header --}}
+        <div class="shop-name">SMEGABIZ</div>
+        <div class="shop-address">Surabaya</div>
+
+        <div class="receipt-title">STRUK PEMBELIAN</div>
+        <div class="text-center" style="font-size: 10px; margin-bottom: 5px; text-align: center;">SMEGABIZ</div>
+
+        <div class="dashed-line"></div>
+
+        {{-- Info Transaksi --}}
+        <div class="info-row">
+            <span>No. Trans:</span>
+            <span>{{ $transaction->invoice }}</span>
+        </div>
+        <div class="info-row">
+            <span>Tgl:</span>
+            <span>{{ $transaction->created_at->isoFormat('dddd, D MMMM Y HH:mm') }}</span>
+        </div>
+        <div class="info-row">
+            <span>Customer:</span>
+            <span>{{ $transaction->customer_name }}</span>
+        </div>
+        <div class="info-row">
+            <span>Kasir:</span>
+            {{-- Priority: Manual Input Name > User Name > Admin --}}
+            <span>{{ $transaction->cashier_name ?? $transaction->user->name ?? 'Admin' }}</span>
         </div>
 
-        <div class="header">
-            <h2>STRUK PEMBELIAN</h2>
-            <p>SMEGABIZ</p>
-        </div>
+        <div class="dashed-line"></div>
 
-        <div class="info">
-            <div class="info-row">
-                <span class="info-label">No. Trans:</span>
-                <span class="info-value">{{ $transaction->invoice }}</span>
+        {{-- Item List --}}
+        @foreach ($details as $detail)
+        <div class="item-row">
+            <span class="item-name">{{ $detail->item->name }}</span>
+            <div class="item-details">
+                <span>{{ $detail->qty }} x {{ number_format($detail->price, 0, ',', '.') }}</span>
+                <span>{{ number_format($detail->subtotal, 0, ',', '.') }}</span>
             </div>
-            <div class="info-row">
-                <span class="info-label">Tgl:</span>
-                <span class="info-value">{{ $transaction->created_at->isoFormat('dddd, D MMMM Y HH:mm') }}</span>
-            </div>
-            @if ($transaction->customer_name)
-            <div class="info-row">
-                <span class="info-label">Customer:</span>
-                <span class="info-value">{{ $transaction->customer_name }}</span>
+            @if($detail->discount > 0)
+            <div class="item-details">
+                <span style="font-style: italic;">(Disc)</span>
+                <span>-{{ number_format($detail->discount, 0, ',', '.') }}</span>
             </div>
             @endif
-            <div class="info-row">
-                <span class="info-label">Kasir:</span>
-                <span class="info-value">{{ auth()->user()->name ?? 'Admin' }}</span>
-            </div>
+        </div>
+        @endforeach
+
+        <div class="dashed-line"></div>
+
+        {{-- Totals --}}
+        <div class="total-row">
+            <span>Total Belanja</span>
+            <span>{{ number_format($transaction->total + ($transaction->discount_amount ?? 0), 0, ',', '.') }}</span>
         </div>
 
-        <hr class="divider">
+        @if(($transaction->discount_amount ?? 0) > 0)
+        <div class="total-row">
+            <span>Potongan Struk</span>
+            <span>-{{ number_format($transaction->discount_amount, 0, ',', '.') }}</span>
+        </div>
+        @endif
 
-        <div class="items">
-            @foreach ($details as $detail)
-            <div class="item">
-                <div>
-                    <div class="item-name">{{ $detail->item->name }}</div>
-                    <div class="item-details">
-                        {{ $detail->qty }} x {{ number_format($detail->price, 0, ',', '.') }}
-                    </div>
-                </div>
-                <div class="item-subtotal">
-                    {{ number_format($detail->subtotal, 0, ',', '.') }}
-                </div>
-            </div>
-            @endforeach
+        <div class="total-row">
+            <span>Metode Bayar</span>
+            <span>{{ strtoupper($transaction->payment_method) }}</span>
+        </div>
+        <div class="total-row">
+            <span>Tunai</span>
+            <span>{{ number_format($transaction->paid_amount, 0, ',', '.') }}</span>
+        </div>
+        <div class="total-row" style="font-weight: bold;">
+            <span class="{{ $transaction->change_amount > 0 ? 'text-green' : '' }}">Kembalian</span>
+            <span class="{{ $transaction->change_amount > 0 ? 'text-green' : '' }}">{{ number_format($transaction->change_amount, 0, ',', '.') }}</span>
         </div>
 
-        <hr class="divider">
+        <div class="dashed-line"></div>
+        <div class="dashed-line"></div>
 
-        {{-- Payment Summary --}}
-        <div class="payment-section">
-            <div class="payment-row">
-                <span class="payment-label">Total Belanja</span>
-                <span class="payment-value">{{ number_format($transaction->total, 0, ',', '.') }}</span>
-            </div>
-            <div class="payment-row">
-                <span class="payment-label">Metode Bayar</span>
-                <span class="payment-value">{{ strtoupper($transaction->payment_method) }}</span>
-            </div>
-            <div class="payment-row">
-                <span class="payment-label">Tunai</span>
-                <span class="payment-value">{{ number_format($transaction->paid_amount, 0, ',', '.') }}</span>
-            </div>
-            <div class="payment-row change-row">
-                <span class="payment-label">Kembalian</span>
-                <span class="payment-value">{{ number_format($transaction->change_amount, 0, ',', '.') }}</span>
-            </div>
+        {{-- Big Grand Total --}}
+        <div style="text-align: right;">
+            <small style="font-size: 10px;">{{ strtoupper($transaction->payment_method) }}</small>
+            <div class="big-total">Rp {{ number_format($transaction->total, 0, ',', '.') }}</div>
         </div>
 
-        <hr class="divider">
+        {{-- Barcode --}}
+        <div class="barcode-box"></div>
+        <div style="text-align: center; font-size: 10px;">{{ $transaction->invoice }}</div>
 
-        <div class="total-section">
-            <div class="total-label">TUNAI</div>
-            <div class="total-amount">Rp {{ number_format($transaction->paid_amount, 0, ',', '.') }}</div>
-        </div>
+        <div class="dashed-line" style="margin-top: 10px;"></div>
 
-        {{-- Barcode Simulation --}}
-        <div class="barcode-area">
-            <div class="barcode-line"></div>
-            <small style="font-size: 9px; color: #666;">{{ $transaction->invoice }}</small>
-        </div>
-
+        {{-- Footer --}}
         <div class="footer">
-            <p>*** TERIMA KASIH ***</p>
-            <p style="margin-top: 8px; font-size: 9px;">{{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y HH:mm:ss') }}</p>
+            <div>*** TERIMA KASIH ***</div>
+            <div style="margin-top: 5px;">{{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y HH:mm:ss') }}</div>
+        </div>
+
+        {{-- Buttons (Screen Only) --}}
+        <div class="action-buttons no-print">
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="bi bi-printer"></i> Print Struk
+            </button>
+            @php
+            $historyRoute = auth()->check() && auth()->user()->role === 'kasir' ? 'cashier.history.index' : 'history.index';
+            @endphp
+            <a href="{{ route($historyRoute) }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Kembali ke History
+            </a>
         </div>
     </div>
-
-    <div class="print-btn">
-        <button onclick="window.print()" class="btn-print">
-            <i class="bi bi-printer"></i> Print Struk
-        </button>
-        @php
-        $transactionRoute = auth()->check() && auth()->user()->role === 'kasir' ? 'cashier.transactions.index' : 'transactions.index';
-        $historyRoute = auth()->check() && auth()->user()->role === 'kasir' ? 'cashier.history.index' : 'history.index';
-        @endphp
-        <a href="{{ route($transactionRoute) }}" class="btn-new">
-            <i class="bi bi-plus-circle"></i> Transaksi Baru
-        </a>
-        <a href="{{ route($historyRoute) }}" class="btn-back">
-            <i class="bi bi-arrow-left"></i> Kembali
-        </a>
-    </div>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </body>
 
 </html>

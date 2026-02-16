@@ -16,10 +16,11 @@ class SupplierController extends Controller
         $query = Supplier::select('id', 'name', 'phone', 'email', 'address', 'contract_date', 'deleted_at')
             ->withTrashed()
             ->when($search, function ($query) use ($search) {
-                $query->where('name', 'ilike', '%' . $search . '%')
-                    ->orWhere('phone', 'ilike', '%' . $search . '%')
-                    ->orWhere('email', 'ilike', '%' . $search . '%')
-                    ->orWhere('address', 'ilike', '%' . $search . '%');
+                $searchLower = '%' . mb_strtolower($search) . '%';
+                $query->whereRaw('LOWER(name) LIKE ?', [$searchLower])
+                    ->orWhereRaw('LOWER(phone) LIKE ?', [$searchLower])
+                    ->orWhereRaw('LOWER(email) LIKE ?', [$searchLower])
+                    ->orWhereRaw('LOWER(address) LIKE ?', [$searchLower]);
             })
             ->orderBy('contract_date', 'asc');
 
@@ -46,12 +47,12 @@ class SupplierController extends Controller
                 'required',
                 'string',
                 'max:150',
-                Rule::unique('suppliers')->where(function ($query) use ($request) {
+                Rule::unique('suppliers')->withoutTrashed()->where(function ($query) use ($request) {
                     return $query->where('address', $request->address);
                 })
             ],
             'phone' => 'required|string|max:20',
-            'email' => 'required|email|max:100|unique:suppliers,email',
+            'email' => ['required', 'email', 'max:100', Rule::unique('suppliers', 'email')->withoutTrashed()],
             'address' => 'required|string',
             'contract_date' => 'required|date'
         ], [

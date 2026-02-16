@@ -57,11 +57,21 @@
                     @error('stock')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
+
                     @if($cashierItem->warehouse_item_id && !$cashierItem->is_consignment)
                     <small class="text-muted">Menambah stok = diambil dari gudang. Mengurangi stok = dikembalikan ke gudang.</small>
                     @else
                     <small class="text-muted">Item ini tidak terhubung ke gudang (titipan/manual).</small>
                     @endif
+                </div>
+
+                <div class="mb-3">
+                    <label for="discount" class="form-label">Potongan (Rp)</label>
+                    <input type="number" min="0" class="form-control @error('discount') is-invalid @enderror" id="discount" name="discount" value="{{ old('discount', $cashierItem->discount ?? 0) }}">
+                    @error('discount')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="text-muted">Potongan khusus kasir (tidak mengubah data gudang).</small>
                 </div>
 
                 <div class="d-flex gap-2">

@@ -21,7 +21,8 @@ class Transaction extends Model
         'payment_method',
         'member_id',
         'discount_percent',
-        'discount_amount'
+        'discount_amount',
+        'cashier_name'
     ];
 
     public function details(): HasMany

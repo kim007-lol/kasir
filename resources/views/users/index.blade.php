@@ -37,6 +37,13 @@
     </div>
     @endif
 
+    @if (session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
     <div id="data-container">
         <div class="card shadow-sm border-0">
             <div class="table-responsive">
@@ -49,6 +56,7 @@
                             <th class="d-none d-md-table-cell">Email</th>
                             <th>Role</th>
                             <th class="d-none d-md-table-cell">Terdaftar</th>
+                            <th style="width: 120px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,10 +84,26 @@
                             <td class="d-none d-md-table-cell">
                                 {{ $user->created_at->format('d/m/Y H:i') }}
                             </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-warning" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    @if($user->id !== auth()->id())
+                                    <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus user {{ $user->name }}?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    @endif
+                                </div>
+                            </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">
+                            <td colspan="7" class="text-center py-4 text-muted">
                                 <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                                 <p>Belum ada user</p>
                             </td>

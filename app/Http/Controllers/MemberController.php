@@ -18,8 +18,9 @@ class MemberController extends Controller
         $query = Member::select('id', 'name', 'phone', 'address', 'created_at')
             ->withSum('transactions', 'total')
             ->when($search, function ($query) use ($search) {
-                $query->where('name', 'ilike', '%' . $search . '%')
-                    ->orWhere('phone', 'ilike', '%' . $search . '%');
+                $searchLower = '%' . mb_strtolower($search) . '%';
+                $query->whereRaw('LOWER(name) LIKE ?', [$searchLower])
+                    ->orWhereRaw('LOWER(phone) LIKE ?', [$searchLower]);
             })
             ->orderByRaw('transactions_sum_total DESC NULLS LAST')
             ->orderBy('name', 'asc');

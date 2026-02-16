@@ -75,18 +75,15 @@
                             @enderror
                         </div>
 
-                        <div class="mb-3">
+                        {{-- Discount disabled in Warehouse --}}
+                        {{-- <div class="mb-3">
                             <label for="discount" class="form-label">Potongan (Rp)</label>
-                            <input type="number" step="1" min="0" class="form-control @error('discount') is-invalid @enderror" id="discount" name="discount" value="{{ old('discount', 0) }}">
-                            @error('discount')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                            <input type="number" step="1" min="0" class="form-control" id="discount" name="discount" value="0" readonly>
+                        </div> --}}
 
                         <div class="mb-3">
-                            <label for="final_price_display" class="form-label">Harga Akhir (Otomatis)</label>
+                            <label for="final_price_display" class="form-label">Harga Akhir (Estimasi)</label>
                             <input type="text" class="form-control bg-light" id="final_price_display" readonly value="Rp. 0">
-                            <small class="text-muted">Harga jual - Potongan Rp</small>
                         </div>
                     </div>
                 </div>
@@ -130,7 +127,8 @@
     // Auto-calculate final price
     function calculateFinalPrice() {
         const sellingPrice = parseFloat(document.getElementById('selling_price').value) || 0;
-        const discount = parseFloat(document.getElementById('discount').value) || 0;
+        // Discount is always 0
+        const discount = 0;
 
         const finalPrice = sellingPrice - discount;
 
@@ -141,7 +139,6 @@
     }
 
     document.getElementById('selling_price').addEventListener('input', calculateFinalPrice);
-    document.getElementById('discount').addEventListener('input', calculateFinalPrice);
 
     // Calculate on page load
     calculateFinalPrice();

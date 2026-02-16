@@ -55,17 +55,10 @@ class ReportController extends Controller
         // Total Pendapatan
         $totalRevenueValue = $totalRevenue;
 
-        // Efficient Total Cost Calculation (HPP)
+        // H4 Fix: Efficient Total Cost Calculation (HPP) — menggunakan raw query agar tidak load semua record ke memory
         $totalCost = TransactionDetail::whereIn('transaction_id', $transactionIds)
-            ->with('item.warehouseItem') // Eager load for fallback
-            ->get()
-            ->sum(function ($detail) {
-                // Use historical purchase price if available (> 0), otherwise fallback (for older records)
-                $purchasePrice = $detail->purchase_price > 0
-                    ? $detail->purchase_price
-                    : ($detail->item?->warehouseItem?->purchase_price ?? 0);
-                return $detail->qty * $purchasePrice;
-            });
+            ->selectRaw('SUM(qty * CASE WHEN purchase_price > 0 THEN purchase_price ELSE 0 END) as total')
+            ->value('total') ?? 0;
 
         $netProfit = $totalRevenueValue - $totalCost;
 

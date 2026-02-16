@@ -10,12 +10,15 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+use App\Models\User;
 
 class TransactionController extends Controller
 {
-    /**
-     * Helper: mendapatkan route name berdasarkan role user
-     */
+    // ... existing code ...
+
+    // ... existing code ...
     private function getRoutePrefix(): string
     {
         return (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
@@ -127,25 +130,29 @@ class TransactionController extends Controller
                     });
             })
             ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'ilike', '%' . $search . '%')
-                        ->orWhere('code', 'ilike', '%' . $search . '%');
+                $searchLower = '%' . mb_strtolower($search) . '%';
+                $query->where(function ($q) use ($searchLower) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$searchLower])
+                        ->orWhereRaw('LOWER(code) LIKE ?', [$searchLower]);
                 });
             })
             ->orderBy('code', 'asc');
 
         $items = $query->paginate(15);
         $members = Member::select('id', 'name')->orderBy('name')->get();
+        // C5 Feature: Manual Cashier Selection
+        $cashiers = User::whereIn('role', ['admin', 'kasir'])->orderBy('name')->get();
+
         $cart = session()->get('cart', []);
         $total = $this->calculateTotal($cart);
 
         if ($request->ajax()) {
             /** @var \Illuminate\View\View $view */
-            $view = view('transactions.index', compact('items', 'members', 'cart', 'total', 'search'));
+            $view = view('transactions.index', compact('items', 'members', 'cashiers', 'cart', 'total', 'search'));
             return $view->fragment('product-list');
         }
 
-        return view('transactions.index', compact('items', 'members', 'cart', 'total', 'search'));
+        return view('transactions.index', compact('items', 'members', 'cashiers', 'cart', 'total', 'search'));
     }
 
     public function addToCart(Request $request): RedirectResponse
@@ -266,6 +273,12 @@ class TransactionController extends Controller
 
     public function removeFromCart($itemId): RedirectResponse
     {
+        // M2 Fix: Validasi itemId sebagai integer
+        if (!is_numeric($itemId) || (int) $itemId <= 0) {
+            return redirect()->route($this->routeIndex())->with('error', 'Item ID tidak valid.');
+        }
+
+        $itemId = (int) $itemId;
         $cart = session()->get('cart', []);
 
         if (isset($cart[$itemId])) {
@@ -282,18 +295,51 @@ class TransactionController extends Controller
             'member_id' => 'nullable|exists:members,id',
             'paid_amount' => 'required|numeric|min:0',
             'payment_method' => 'required|in:cash,qris',
-            'discount_amount' => 'nullable|numeric|min:0', // Optional global discount in Rupiah
+            'discount_amount' => 'nullable|numeric|min:0',
+            'cashier_name' => 'required|string|max:255', // C5 Revert: Manual Cashier Name Input
+            '_checkout_token' => 'required|string', // M3: Idempotency token
         ]);
 
-        $cart = session()->get('cart', []);
-
         $routeIndex = $this->routeIndex();
+
+        // M3 Fix: Cegah double-submit checkout
+        $checkoutToken = $validated['_checkout_token'];
+        $sessionTokenKey = 'checkout_token';
+        if (session()->get($sessionTokenKey) === $checkoutToken) {
+            return redirect()->route($routeIndex)->with('error', 'Transaksi sudah diproses. Silakan buat transaksi baru.');
+        }
+
+        $cart = session()->get('cart', []);
 
         if (empty($cart)) {
             return redirect()->route($routeIndex)->with('error', 'Keranjang kosong');
         }
 
-        $grossTotal = $this->calculateTotal($cart);
+        // M1 Fix: Hitung grossTotal dari harga database, bukan session
+        $grossTotal = 0;
+        $stockErrors = [];
+        foreach ($cart as $itemId => $item) {
+            $product = CashierItem::find($itemId);
+            if (!$product) {
+                $stockErrors[] = 'Unknown Item: item tidak ditemukan';
+                continue;
+            }
+            if ($product->stock < $item['qty']) {
+                $stockErrors[] = "{$product->name}: stok tidak cukup (tersedia: {$product->stock})";
+                continue;
+            }
+            // C4 Fix: Validasi harga jual > 0
+            if ($product->selling_price <= 0) {
+                $stockErrors[] = "{$product->name}: harga jual tidak valid (Rp 0). Hubungi admin.";
+                continue;
+            }
+            $grossTotal += $product->selling_price * $item['qty'];
+        }
+
+        if (!empty($stockErrors)) {
+            return redirect()->route($routeIndex)
+                ->with('error', implode(', ', $stockErrors));
+        }
 
         // Calculate Discount
         $discountAmount = (float) ($validated['discount_amount'] ?? 0);
@@ -314,20 +360,6 @@ class TransactionController extends Controller
         $paidAmount = (float) $validated['paid_amount'];
         $changeAmount = $paidAmount - $netTotal;
 
-        // Validasi stok sebelum memulai transaksi database
-        $stockErrors = [];
-        foreach ($cart as $itemId => $item) {
-            $product = CashierItem::find($itemId);
-            if (!$product || $product->stock < $item['qty']) {
-                $stockErrors[] = ($product ? $product->name : 'Unknown Item') . ': stok tidak cukup (tersedia: ' . ($product ? $product->stock : 0) . ')';
-            }
-        }
-
-        if (!empty($stockErrors)) {
-            return redirect()->route($routeIndex)
-                ->with('error', implode(', ', $stockErrors));
-        }
-
         // Validasi pembayaran
         if ($paidAmount < $netTotal) {
             return redirect()->route($routeIndex)
@@ -340,7 +372,7 @@ class TransactionController extends Controller
 
             $transactionId = null;
 
-            DB::transaction(function () use ($cart, $validated, $invoice, $grossTotal, $netTotal, $discountAmount, $paidAmount, $changeAmount, &$transactionId) {
+            DB::transaction(function () use ($cart, $validated, $invoice, $grossTotal, $netTotal, $discountAmount, $paidAmount, $changeAmount, &$transactionId, $sessionTokenKey, $checkoutToken) {
                 // Determine customer name based on member_id
                 $customerName = 'Non Member';
                 if (!empty($validated['member_id'])) {
@@ -358,7 +390,8 @@ class TransactionController extends Controller
                     'payment_method' => $validated['payment_method'],
                     'discount_percent' => 0,
                     'discount_amount' => $discountAmount,
-                    'user_id' => auth()->id()
+                    'user_id' => auth()->id(), // System Operator
+                    'cashier_name' => $validated['cashier_name'] // Manual Input Name
                 ]);
 
                 $transactionId = $transaction->id;
@@ -402,6 +435,9 @@ class TransactionController extends Controller
                 }
 
                 session()->forget('cart');
+
+                // M3 Fix: Simpan token untuk mencegah double-submit
+                session()->put($sessionTokenKey, $checkoutToken);
             });
 
             session()->put('last_transaction_id', $transactionId);
@@ -424,6 +460,11 @@ class TransactionController extends Controller
 
         if (!$lastTransaction) {
             return redirect()->route($this->routeIndex())->with('error', 'Tidak ada transaksi');
+        }
+
+        // H1 Fix: Ownership check — kasir hanya bisa lihat transaksi sendiri
+        if (auth()->user()->role !== 'admin' && $lastTransaction->user_id !== auth()->id()) {
+            return redirect()->route($this->routeIndex())->with('error', 'Anda tidak memiliki akses untuk melihat struk ini.');
         }
 
         $details = TransactionDetail::where('transaction_id', $lastTransaction->id)->with('item')->get();

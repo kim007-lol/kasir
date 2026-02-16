@@ -21,8 +21,9 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
             </div>
             <div class="card-body">
                 <hr class="my-4">
-                <form action="{{ route($routePrefix . 'transactions.addMultipleToCart') }}" method="POST" id="multiCartForm">
-                    @csrf
+                {{-- Form Start Moved Down --}}
+                <div id="multiCartFormContainer">
+
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="mb-0 fw-bold">
                             <i class="bi bi-check-square"></i> Pilih Produk
@@ -46,68 +47,71 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                         </div>
                     </div>
 
-                    <div id="product-list">
-                        @fragment('product-list')
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover mb-0">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th style="width: 50px;">
-                                            <input type="checkbox" id="selectAll">
-                                        </th>
-                                        <th>Kode</th>
-                                        <th>Nama Produk</th>
-                                        <th>Harga</th>
-                                        <th>Stok</th>
-                                        <th style="width: 100px;">Jumlah</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse ($items as $item)
-                                    <tr>
-                                        <td>
-                                            <input type="checkbox" class="item-checkbox" data-stock="{{ $item->stock }}" data-item-id="{{ $item->id }}">
-                                        </td>
-                                        <td><small>{{ $item->code }}</small></td>
-                                        <td>{{ $item->name }}</td>
-                                        <td>Rp. {{ number_format($item->selling_price, 0, ',', '.') }}</td>
-                                        <td>
-                                            @php
-                                            $stockClass = 'bg-success';
-                                            if ($item->stock < 10) {
-                                                $stockClass='bg-danger' ;
-                                                } elseif ($item->stock <= 20) {
-                                                    $stockClass='bg-warning' ;
-                                                    }
-                                                    @endphp
-                                                    <span class="badge {{ $stockClass }}" id="stock-badge-{{ $item->id }}">{{ $item->stock }}</span>
-                                        </td>
-                                        <td>
-                                            <input type="number" class="form-control form-control-sm qty-input"
-                                                value="1"
-                                                min="1"
-                                                max="{{ $item->stock }}"
-                                                data-item-id="{{ $item->id }}"
-                                                disabled>
-                                        </td>
-                                    </tr>
-                                    @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">
-                                            <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
-                                            <p class="mt-2 mb-0">Tidak ada produk ditemukan</p>
-                                        </td>
-                                    </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
+                    <form action="{{ route($routePrefix . 'transactions.addMultipleToCart') }}" method="POST" id="multiCartForm" onsubmit="return false;">
+                        @csrf
+                        <div id="product-list">
+                            @fragment('product-list')
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover mb-0">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th style="width: 50px;">
+                                                <input type="checkbox" id="selectAll">
+                                            </th>
+                                            <th>Kode</th>
+                                            <th>Nama Produk</th>
+                                            <th>Harga</th>
+                                            <th>Stok</th>
+                                            <th style="width: 100px;">Jumlah</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($items as $item)
+                                        <tr>
+                                            <td>
+                                                <input type="checkbox" class="item-checkbox" data-stock="{{ $item->stock }}" data-item-id="{{ $item->id }}">
+                                            </td>
+                                            <td><small>{{ $item->code }}</small></td>
+                                            <td>{{ $item->name }}</td>
+                                            <td>Rp. {{ number_format($item->selling_price, 0, ',', '.') }}</td>
+                                            <td>
+                                                @php
+                                                $stockClass = 'bg-success';
+                                                if ($item->stock < 10) {
+                                                    $stockClass='bg-danger' ;
+                                                    } elseif ($item->stock <= 20) {
+                                                        $stockClass='bg-warning' ;
+                                                        }
+                                                        @endphp
+                                                        <span class="badge {{ $stockClass }}" id="stock-badge-{{ $item->id }}">{{ $item->stock }}</span>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control form-control-sm qty-input"
+                                                    value="1"
+                                                    min="1"
+                                                    max="{{ $item->stock }}"
+                                                    data-item-id="{{ $item->id }}"
+                                                    disabled>
+                                            </td>
+                                        </tr>
+                                        @empty
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-4">
+                                                <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
+                                                <p class="mt-2 mb-0">Tidak ada produk ditemukan</p>
+                                            </td>
+                                        </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-3">
+                                {{ $items->withQueryString()->links() }}
+                            </div>
+                            @endfragment
                         </div>
-                        <div class="mt-3">
-                            {{ $items->withQueryString()->links() }}
-                        </div>
-                        @endfragment
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -177,8 +181,16 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                 </div>
 
                 {{-- Payment Form --}}
-                <form action="{{ route($routePrefix . 'transactions.checkout') }}" method="POST" id="paymentForm">
+                <form action="{{ route($routePrefix . 'transactions.checkout') }}" method="POST" id="paymentForm" onsubmit="return handleCheckoutSubmit(this);">
                     @csrf
+                    <input type="hidden" name="_checkout_token" value="{{ \Illuminate\Support\Str::uuid() }}">
+
+                    {{-- Cashier Selection --}}
+                    <div class="mb-2">
+                        <label for="cashier_name" class="form-label small fw-bold text-primary">Nama Kasir (Yang Melayani)</label>
+                        <input type="text" name="cashier_name" id="cashier_name" class="form-control form-control-sm" required placeholder="Ketik nama kasir..." value="">
+                    </div>
+
                     <div class="mb-2">
                         <label for="member_id" class="form-label small fw-bold">Pilih Member</label>
                         <select
@@ -308,21 +320,95 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
     style="display: none;"></div>
 
 <script>
+    // M3 Fix: Prevent double-submit on checkout
+    function handleCheckoutSubmit(form) {
+        const btn = form.querySelector('#payButton');
+        if (btn.dataset.submitting === 'true') return false;
+        btn.dataset.submitting = 'true';
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Memproses...';
+        return true;
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const bladeData = document.getElementById('blade-data');
         const totalAmount = JSON.parse(bladeData.dataset.total);
 
-        // --- Event Delegation for Dynamic Elements (Checkboxes & Inputs) ---
+        // --- GLOBAL STATE FOR SELECTION (Fixes "Search gabisa di choose") ---
+        // Map<itemId, {qty: number, stock: number}>
+        const selectedItems = new Map();
+
+        function updateSelectionState(itemId, isSelected, qty, stock) {
+            if (isSelected) {
+                selectedItems.set(String(itemId), {
+                    qty: parseInt(qty) || 1,
+                    stock: parseInt(stock) || 0
+                });
+            } else {
+                selectedItems.delete(String(itemId));
+            }
+            updateSelectAllState();
+        }
+
+        function restoreSelectionState() {
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            let allChecked = true;
+            let hasVisibleItems = checkboxes.length > 0;
+
+            checkboxes.forEach(cb => {
+                const itemId = String(cb.dataset.itemId);
+                const row = cb.closest('tr');
+                const qtyInput = row.querySelector('.qty-input');
+
+                if (selectedItems.has(itemId)) {
+                    cb.checked = true;
+                    if (qtyInput) {
+                        qtyInput.disabled = false;
+                        qtyInput.value = selectedItems.get(itemId).qty;
+                    }
+                } else {
+                    cb.checked = false;
+                    allChecked = false;
+                    if (qtyInput) qtyInput.disabled = true;
+                }
+            });
+
+            const selectAll = document.getElementById('selectAll');
+            if (selectAll) {
+                selectAll.checked = hasVisibleItems && allChecked;
+            }
+        }
+
+        function updateSelectAllState() {
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            if (checkboxes.length === 0) return;
+
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            const selectAll = document.getElementById('selectAll');
+            if (selectAll) selectAll.checked = allChecked;
+        }
+
+        // --- Event Delegation for Dynamic Elements ---
         const productList = document.getElementById('product-list');
 
         // Handle "Select All" click
         document.body.addEventListener('change', function(e) {
             if (e.target.id === 'selectAll') {
                 const checkboxes = document.querySelectorAll('.item-checkbox');
-                const qtyInputs = document.querySelectorAll('.qty-input');
-                checkboxes.forEach((cb, index) => {
-                    cb.checked = e.target.checked;
-                    if (qtyInputs[index]) qtyInputs[index].disabled = !e.target.checked;
+                const isChecked = e.target.checked;
+
+                checkboxes.forEach(cb => {
+                    cb.checked = isChecked;
+                    const row = cb.closest('tr');
+                    const qtyInput = row.querySelector('.qty-input');
+                    const itemId = cb.dataset.itemId;
+                    const stock = cb.dataset.stock;
+
+                    if (qtyInput) {
+                        qtyInput.disabled = !isChecked;
+                        // Update global state
+                        updateSelectionState(itemId, isChecked, qtyInput.value, stock);
+                    }
                 });
             }
         });
@@ -332,9 +418,28 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
             if (e.target.classList.contains('item-checkbox')) {
                 const row = e.target.closest('tr');
                 const qtyInput = row.querySelector('.qty-input');
+                const itemId = e.target.dataset.itemId;
+                const stock = e.target.dataset.stock;
+
                 if (qtyInput) {
                     qtyInput.disabled = !e.target.checked;
                     if (e.target.checked) qtyInput.focus();
+
+                    // Update global state
+                    updateSelectionState(itemId, e.target.checked, qtyInput.value, stock);
+                }
+            }
+        });
+
+        // Handle Quantity Input Change
+        document.body.addEventListener('input', function(e) {
+            if (e.target.classList.contains('qty-input')) {
+                const row = e.target.closest('tr');
+                const checkbox = row.querySelector('.item-checkbox');
+                if (checkbox && checkbox.checked) {
+                    const itemId = checkbox.dataset.itemId;
+                    const stock = checkbox.dataset.stock;
+                    updateSelectionState(itemId, true, e.target.value, stock);
                 }
             }
         });
@@ -342,53 +447,63 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
         // --- Search ---
         const searchInput = document.getElementById('searchItem');
         const searchBtn = document.getElementById('searchBtn');
+        let currentController = null; // For aborting previous fetches
 
         function performSearch() {
             const query = searchInput.value.trim();
-            if (!query) return;
+            // Allow empty query to reset
+
+            if (currentController) currentController.abort();
+            currentController = new AbortController();
 
             const url = new URL("{{ route($routePrefix . 'transactions.index') }}");
-            url.searchParams.set('search', query);
+            if (query) url.searchParams.set('search', query);
 
-            // Show loading
             if (productList) {
                 productList.style.opacity = '0.5';
-                productList.style.pointerEvents = 'none';
+                // Don't disable pointer events strictly, allow typing
             }
 
             fetch(url, {
+                    signal: currentController.signal,
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
                 .then(async res => {
-                    const contentType = res.headers.get("content-type");
-                    if (contentType && contentType.includes("application/json")) {
-                        const data = await res.json();
+                    const text = await res.text();
+
+                    // Try parsing JSON first, regardless of Content-Type
+                    try {
+                        const data = JSON.parse(text);
                         if (data.auto_added) {
                             searchInput.value = '';
                             window.location.href = data.redirect_url;
                             return;
                         }
-                    }
-
-                    const html = await res.text();
-                    // Crucial: check if html starts with headers/garbage (the bug seen in screenshot)
-                    if (html.includes('HTTP/1.0 200 OK') || html.includes('{"auto_added":true')) {
-                        // This means the server-side JSON response was sent but caught as text
-                        // We can try to parse it manually if it contains the signal
-                        if (html.includes('"auto_added":true')) {
-                            const match = html.match(/"redirect_url":"([^"]+)"/);
-                            if (match) {
-                                window.location.href = match[1].replace(/\\\//g, '/');
-                                return;
-                            }
+                    } catch (e) {
+                        // Regex fallback for JSON (if headers are present in body)
+                        const jsonMatch = text.match(/\{.*"auto_added":true.*\}/);
+                        if (jsonMatch) {
+                            try {
+                                const data = JSON.parse(jsonMatch[0]);
+                                if (data.auto_added) {
+                                    searchInput.value = '';
+                                    window.location.href = data.redirect_url;
+                                    return;
+                                }
+                            } catch (err) {}
                         }
                     }
 
                     if (productList) {
-                        productList.innerHTML = html;
+                        productList.innerHTML = text;
+                        // IMPORTANT: Restore selection state after DOM update
+                        restoreSelectionState();
                     }
+                })
+                .catch(err => {
+                    if (err.name !== 'AbortError') console.error(err);
                 })
                 .finally(() => {
                     if (productList) productList.style.opacity = '1';
@@ -396,18 +511,25 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
         }
 
         if (searchBtn) searchBtn.addEventListener('click', performSearch);
-        if (searchInput) searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                performSearch();
-            }
-        });
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                // Debounce or just search on enter? Original used Enter.
+                // Let's stick to Enter for specific matches or scan, but user might expect type-to-search.
+                // Keeping original behavior: keypress Enter.
+            });
+
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performSearch();
+                }
+            });
+        }
 
         // Ensure search input stays focused for continuous scanning
         if (searchInput) {
             searchInput.focus();
             document.addEventListener('click', function(e) {
-                // Don't steal focus if clicking on other inputs, buttons, or specifically the payment section
                 const isFormElement = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName);
                 const isWithinPaymentForm = e.target.closest('#paymentForm');
 
@@ -419,50 +541,45 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
             });
         }
 
-
         // --- Add Selected to Cart ---
         const addSelectedBtn = document.getElementById('addSelectedBtn');
         if (addSelectedBtn) {
             addSelectedBtn.addEventListener('click', function() {
-                const selectedItems = [];
-                document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
-                    const row = cb.closest('tr');
-                    const qtyInput = row.querySelector('.qty-input');
-                    const qty = parseInt(qtyInput.value) || 1;
-                    const stock = parseInt(cb.dataset.stock);
-                    const itemId = cb.dataset.itemId;
-
-                    if (qty > 0 && qty <= stock) {
-                        selectedItems.push({
-                            item_id: itemId,
-                            qty: qty
-                        });
-                    }
-                });
-
-                if (selectedItems.length === 0) {
+                if (selectedItems.size === 0) {
                     toastr.error('Pilih minimal satu item!');
                     return;
                 }
 
                 // Create hidden inputs and submit
                 const form = document.getElementById('multiCartForm');
-                // Clean info
+                // Clean old hidden inputs
                 form.querySelectorAll('input[type="hidden"][name^="items"]').forEach(el => el.remove());
 
-                selectedItems.forEach((item, index) => {
-                    const idInput = document.createElement('input');
-                    idInput.type = 'hidden';
-                    idInput.name = `items[${index}][item_id]`;
-                    idInput.value = item.item_id;
-                    form.appendChild(idInput);
+                let index = 0;
+                selectedItems.forEach((data, itemId) => {
+                    const qty = parseInt(data.qty);
+                    const stock = parseInt(data.stock);
 
-                    const qtyInput = document.createElement('input');
-                    qtyInput.type = 'hidden';
-                    qtyInput.name = `items[${index}][qty]`;
-                    qtyInput.value = item.qty;
-                    form.appendChild(qtyInput);
+                    if (qty > 0 && qty <= stock) {
+                        const idInput = document.createElement('input');
+                        idInput.type = 'hidden';
+                        idInput.name = `items[${index}][item_id]`;
+                        idInput.value = itemId;
+                        form.appendChild(idInput);
+
+                        const qtyInput = document.createElement('input');
+                        qtyInput.type = 'hidden';
+                        qtyInput.name = `items[${index}][qty]`;
+                        qtyInput.value = qty;
+                        form.appendChild(qtyInput);
+                        index++;
+                    }
                 });
+
+                if (index === 0) {
+                    toastr.error('Item terpilih tidak valid (stok habis atau qty 0)');
+                    return;
+                }
 
                 form.submit();
             });
@@ -508,39 +625,12 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
             });
         });
 
+        const pasBtn = document.getElementById('pasBtn');
         if (pasBtn) {
             pasBtn.addEventListener('click', function() {
-                paidAmountInput.value = Math.ceil(totalAmount / 1000) * 1000; // Round up to nearest 1000
+                paidAmountInput.value = Math.ceil(totalAmount / 1000) * 1000;
                 calculateChange();
             });
-        }
-
-        // --- Helper Function for Auto-Add ---
-        function addToCart(itemId, qty) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = "{{ route($routePrefix . 'transactions.addToCart') }}";
-
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = '_token';
-            csrfInput.value = "{{ csrf_token() }}";
-            form.appendChild(csrfInput);
-
-            const idInput = document.createElement('input');
-            idInput.type = 'hidden';
-            idInput.name = 'item_id';
-            idInput.value = itemId;
-            form.appendChild(idInput);
-
-            const qtyInput = document.createElement('input');
-            qtyInput.type = 'hidden';
-            qtyInput.name = 'qty';
-            qtyInput.value = qty;
-            form.appendChild(qtyInput);
-
-            document.body.appendChild(form);
-            form.submit();
         }
 
         // --- Real-time Stock Polling ---
@@ -549,44 +639,47 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                 .then(res => res.json())
                 .then(data => {
                     data.forEach(item => {
-                        // Update Badge Text
+                        // Badge updates...
                         const badge = document.getElementById(`stock-badge-${item.id}`);
                         if (badge) {
                             badge.textContent = item.stock;
-
-                            // Update Badge Color
                             badge.classList.remove('bg-success', 'bg-warning', 'bg-danger');
-                            if (item.stock < 10) {
-                                badge.classList.add('bg-danger');
-                            } else if (item.stock <= 20) {
-                                badge.classList.add('bg-warning');
-                            } else {
-                                badge.classList.add('bg-success');
-                            }
+                            if (item.stock < 10) badge.classList.add('bg-danger');
+                            else if (item.stock <= 20) badge.classList.add('bg-warning');
+                            else badge.classList.add('bg-success');
                         }
 
-                        // Update Checkbox Data Attribute (for validation)
+                        // Update checkbox data (even if not checked, for future selection)
                         const checkbox = document.querySelector(`.item-checkbox[data-item-id="${item.id}"]`);
                         if (checkbox) {
                             checkbox.dataset.stock = item.stock;
                         }
 
-                        // Update Quantity Input Max (if exists)
+                        // Update GLOBAL STATE if item is selected
+                        if (selectedItems.has(String(item.id))) {
+                            const currentData = selectedItems.get(String(item.id));
+                            // Update stock in global state
+                            currentData.stock = item.stock;
+                            selectedItems.set(String(item.id), currentData);
+                        }
+
+                        // Update Inputs
                         const qtyInput = document.querySelector(`.qty-input[data-item-id="${item.id}"]`);
                         if (qtyInput) {
                             qtyInput.max = item.stock;
-                            // If current value > new stock, adjust it? 
-                            // Only if active? Maybe just cap it.
                             if (parseInt(qtyInput.value) > item.stock) {
                                 qtyInput.value = item.stock;
+                                // also update global
+                                if (selectedItems.has(String(item.id))) {
+                                    updateSelectionState(item.id, true, item.stock, item.stock);
+                                }
                             }
                         }
                     });
                 })
-                .catch(err => console.error('Stock poll failed', err));
+                .catch(console.error);
         }
 
-        // Poll every 5 seconds
         setInterval(pollStockStatus, 5000);
     });
 </script>

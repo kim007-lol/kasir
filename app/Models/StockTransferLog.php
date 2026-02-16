@@ -6,6 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockTransferLog extends Model
 {
+    // L2 Fix: Valid transfer types
+    public const VALID_TYPES = [
+        'warehouse_to_cashier',
+        'cashier_to_warehouse',
+        'adjustment',
+    ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (StockTransferLog $log) {
+            if (!in_array($log->type, self::VALID_TYPES)) {
+                throw new \InvalidArgumentException("Invalid transfer type: {$log->type}. Valid types: " . implode(', ', self::VALID_TYPES));
+            }
+        });
+    }
+
     protected $fillable = [
         'warehouse_item_id',
         'cashier_item_id',

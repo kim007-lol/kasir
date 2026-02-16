@@ -54,8 +54,18 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                     <input type="date" class="form-control" id="end_date" name="end_date" value="{{ $endDate ?? '' }}">
                 </div>
 
+                <!-- Payment Method Filter -->
+                <div class="col-md-4">
+                    <label for="payment_method" class="form-label fw-semibold">Metode Pembayaran</label>
+                    <select class="form-select" id="payment_method" name="payment_method">
+                        <option value="" {{ empty($paymentMethod) ? 'selected' : '' }}>Semua Metode</option>
+                        <option value="cash" {{ ($paymentMethod ?? '') == 'cash' ? 'selected' : '' }}>Tunai (CASH)</option>
+                        <option value="qris" {{ ($paymentMethod ?? '') == 'qris' ? 'selected' : '' }}>QRIS</option>
+                    </select>
+                </div>
+
                 <!-- Search -->
-                <div class="col-md-6">
+                <div class="col-md-8">
                     <label for="search" class="form-label fw-semibold">Cari Invoice / Nama Pembeli</label>
                     <input type="text" class="form-control" id="search" name="search" value="{{ $search ?? '' }}" placeholder="Ketik invoice atau nama pembeli...">
                 </div>
@@ -102,6 +112,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                             <th class="d-none d-md-table-cell">Pembeli</th>
                             <th>Total</th>
                             <th>Metode</th>
+                            <th>Kasir</th>
                             <th class="d-none d-lg-table-cell">Tanggal</th>
                             <th style="width: 110px;">Aksi</th>
                         </tr>
@@ -127,6 +138,9 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                                 <span class="badge {{ $transaction->payment_method == 'qris' ? 'bg-info' : 'bg-success' }}">
                                     {{ strtoupper($transaction->payment_method) }}
                                 </span>
+                            </td>
+                            <td>
+                                <small>{{ $transaction->cashier_name ?? $transaction->user->name ?? 'System' }}</small>
                             </td>
                             <td class="d-none d-lg-table-cell">
                                 <small>{{ $transaction->created_at->isoFormat('dddd, D MMMM Y HH:mm') }}</small>

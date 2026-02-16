@@ -10,6 +10,7 @@ use App\Models\WarehouseItem;
 use App\Models\CashierItem;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
+use App\Models\StockTransferLog;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
@@ -119,6 +120,9 @@ class DummyDataSeeder extends Seeder
                 ]
             );
 
+            // M5 Fix: Transfer stok dari gudang ke kasir, bukan copy
+            $transferQty = min($whItem->stock, $faker->numberBetween(20, 80));
+
             CashierItem::updateOrCreate(
                 ['warehouse_item_id' => $whItem->id],
                 [
@@ -127,12 +131,25 @@ class DummyDataSeeder extends Seeder
                     'code' => $whItem->code,
                     'name' => $whItem->name,
                     'selling_price' => $whItem->selling_price,
-                    'stock' => $whItem->stock,
+                    'stock' => $transferQty,
                     'is_consignment' => false,
                     'cost_price' => $whItem->purchase_price,
                     'discount' => 0,
                 ]
             );
+
+            // Kurangi stok gudang sesuai jumlah transfer
+            $whItem->decrement('stock', $transferQty);
+
+            // Buat log transfer stok
+            StockTransferLog::create([
+                'warehouse_item_id' => $whItem->id,
+                'cashier_item_id' => CashierItem::where('warehouse_item_id', $whItem->id)->first()->id,
+                'type' => 'warehouse_to_cashier',
+                'quantity' => $transferQty,
+                'user_id' => User::first()->id,
+                'notes' => 'Seeder: Transfer awal ke kasir',
+            ]);
         }
         $items = CashierItem::all();
 
@@ -149,7 +166,7 @@ class DummyDataSeeder extends Seeder
                 'user_id' => $user->id,
                 'member_id' => $faker->boolean(40) ? $members->random()->id : null,
                 'customer_name' => $faker->name,
-                'payment_method' => $faker->randomElement(['cash', 'transfer', 'qris']),
+                'payment_method' => $faker->randomElement(['cash', 'qris']),
                 'discount_percent' => 0,
                 'discount_amount' => 0,
                 'total' => 0,

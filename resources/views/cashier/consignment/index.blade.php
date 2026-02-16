@@ -111,6 +111,9 @@
                             <strong>{{ $item->name }}</strong>
                             <br><small class="text-muted">{{ $item->code }}</small>
                             <br><small class="text-muted">{{ $item->created_at->isoFormat('dddd, D MMMM Y HH:mm') }}</small>
+                            @if($item->updated_at != $item->created_at)
+                            <br><small class="text-info"><i class="bi bi-clock-history"></i> Last update: {{ $item->updated_at->format('H:i') }}</small>
+                            @endif
                         </td>
                         <td>
                             <span class="badge bg-info">{{ $item->consignment_source ?? '-' }}</span>

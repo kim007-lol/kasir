@@ -27,9 +27,10 @@ class CashierItemController extends Controller
                     });
             })
             ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'ilike', '%' . $search . '%')
-                        ->orWhere('code', 'ilike', '%' . $search . '%');
+                $searchLower = '%' . mb_strtolower($search) . '%';
+                $query->where(function ($q) use ($searchLower) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$searchLower])
+                        ->orWhereRaw('LOWER(code) LIKE ?', [$searchLower]);
                 });
             })
             ->orderBy('code', 'asc');
@@ -86,7 +87,7 @@ class CashierItemController extends Controller
                         'selling_price' => $warehouse->final_price,
                         'name' => $warehouse->name,
                         'code' => $warehouse->code,
-                        'discount' => $warehouse->discount,
+                        // 'discount' => $warehouse->discount, // Disabled sync
                     ]);
 
                     // Log Transfer In
@@ -109,7 +110,7 @@ class CashierItemController extends Controller
                         'code' => $warehouse->code,
                         'name' => $warehouse->name,
                         'selling_price' => $warehouse->final_price,
-                        'discount' => $warehouse->discount,
+                        'discount' => 0, // Default 0
                         'stock' => $validated['quantity']
                     ]);
 
@@ -141,26 +142,34 @@ class CashierItemController extends Controller
     public function update(Request $request, CashierItem $cashierItem): RedirectResponse
     {
         $validated = $request->validate([
-            'stock' => 'required|integer|min:0'
+            'stock' => 'required|integer|min:0',
+            'discount' => 'nullable|numeric|min:0'
         ]);
 
         $newStock = (int) $validated['stock'];
         $currentStock = (int) $cashierItem->stock;
         $difference = $newStock - $currentStock;
 
-        // No change
+        // Default to current discount if not provided, or update if provided
+        $newDiscount = isset($validated['discount']) ? (float)$validated['discount'] : $cashierItem->discount;
+
+        // If only discount changed (no stock change)
         if ($difference === 0) {
-            return redirect()->route('cashier-items.index')->with('info', 'Tidak ada perubahan stok.');
+            $cashierItem->update(['discount' => $newDiscount]);
+            return redirect()->route('cashier-items.index')->with('success', 'Data item kasir berhasil diperbarui.');
         }
 
-        // Skip warehouse sync for consignment items
+        // If consignment or no warehouse link, just update
         if ($cashierItem->is_consignment || !$cashierItem->warehouse_item_id) {
-            $cashierItem->update(['stock' => $newStock]);
+            $cashierItem->update([
+                'stock' => $newStock,
+                'discount' => $newDiscount
+            ]);
             return redirect()->route('cashier-items.index')->with('success', 'Stok kasir berhasil diperbarui.');
         }
 
         try {
-            DB::transaction(function () use ($cashierItem, $newStock, $difference) {
+            DB::transaction(function () use ($cashierItem, $newStock, $difference, $newDiscount) {
                 $warehouse = WarehouseItem::where('id', $cashierItem->warehouse_item_id)
                     ->lockForUpdate()
                     ->first();
@@ -207,7 +216,10 @@ class CashierItemController extends Controller
                     ]);
                 }
 
-                $cashierItem->update(['stock' => $newStock]);
+                $cashierItem->update([
+                    'stock' => $newStock,
+                    'discount' => $newDiscount
+                ]);
             });
 
             return redirect()->route('cashier-items.index')->with('success', 'Stok kasir berhasil diperbarui dan disinkronkan dengan gudang.');
@@ -259,9 +271,10 @@ class CashierItemController extends Controller
                     });
             })
             ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'ilike', '%' . $search . '%')
-                        ->orWhere('code', 'ilike', '%' . $search . '%');
+                $searchLower = '%' . mb_strtolower($search) . '%';
+                $query->where(function ($q) use ($searchLower) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$searchLower])
+                        ->orWhereRaw('LOWER(code) LIKE ?', [$searchLower]);
                 });
             })
             ->orderByRaw('created_at DESC');
@@ -315,7 +328,7 @@ class CashierItemController extends Controller
                         'selling_price' => $warehouse->final_price,
                         'name' => $warehouse->name,
                         'code' => $warehouse->code,
-                        'discount' => $warehouse->discount,
+                        // 'discount' => $warehouse->discount, // Disabled sync
                     ]);
 
                     // Log Transfer In
@@ -338,7 +351,7 @@ class CashierItemController extends Controller
                         'code' => $warehouse->code,
                         'name' => $warehouse->name,
                         'selling_price' => $warehouse->final_price,
-                        'discount' => $warehouse->discount,
+                        'discount' => 0, // Default 0
                         'stock' => $validated['quantity']
                     ]);
 
@@ -414,7 +427,7 @@ class CashierItemController extends Controller
             $query->whereDate('created_at', $filterDate);
         }
 
-        $consignmentItems = $query->orderByDesc('created_at')->paginate(15);
+        $consignmentItems = $query->orderBy('created_at', 'asc')->paginate(15);
 
         return view('cashier.consignment.index', compact('consignmentItems', 'filterDate', 'startDate', 'endDate'));
     }
