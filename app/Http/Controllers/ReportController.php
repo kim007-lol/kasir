@@ -27,7 +27,8 @@ class ReportController extends Controller
         if ($filter == 'today') {
             $transactionQuery->whereDate('created_at', $date);
         } elseif ($filter == 'week') {
-            $transactionQuery->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+            $now = now();
+            $transactionQuery->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
         } elseif ($filter == 'month') {
             $transactionQuery->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
         } elseif ($filter == 'custom' && $startDate && $endDate) {
@@ -78,7 +79,8 @@ class ReportController extends Controller
         if ($filter == 'today' || !$filter) {
             $stockEntriesQuery->whereDate('entry_date', $date);
         } elseif ($filter == 'week') {
-            $stockEntriesQuery->whereBetween('entry_date', [now()->startOfWeek(), now()->endOfWeek()]);
+            $nowStock = now();
+            $stockEntriesQuery->whereBetween('entry_date', [$nowStock->copy()->startOfWeek(), $nowStock->copy()->endOfWeek()]);
         } elseif ($filter == 'month') {
             $stockEntriesQuery->whereMonth('entry_date', now()->month);
         } elseif ($filter == 'custom' && $startDate && $endDate) {
@@ -220,7 +222,8 @@ class ReportController extends Controller
         if ($filter == 'today' || !$filter) {
             $transactionQuery->whereDate('created_at', $date);
         } elseif ($filter == 'week') {
-            $transactionQuery->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+            $nowExcel = now();
+            $transactionQuery->whereBetween('created_at', [$nowExcel->copy()->startOfWeek(), $nowExcel->copy()->endOfWeek()]);
         } elseif ($filter == 'month') {
             $transactionQuery->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
         } elseif ($filter == 'custom' && $startDate && $endDate) {

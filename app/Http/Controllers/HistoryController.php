@@ -24,7 +24,10 @@ class HistoryController extends Controller
                 $q->where('user_id', auth()->id());
             })
             ->when($filter == 'today', fn($q) => $q->whereDate('created_at', today()))
-            ->when($filter == 'week', fn($q) => $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]))
+            ->when($filter == 'week', function ($q) {
+                $now = now();
+                $q->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+            })
             ->when($filter == 'month', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
             ->when($filter == 'custom' && $startDate && $endDate, fn($q) => $q->whereBetween('created_at', [\Carbon\Carbon::parse($startDate)->startOfDay(), \Carbon\Carbon::parse($endDate)->endOfDay()]))
             ->when($paymentMethod, fn($q) => $q->where('payment_method', $paymentMethod))
