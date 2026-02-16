@@ -32,6 +32,13 @@ class CashierItem extends Model
         'discount' => 'decimal:2',
     ];
 
+    protected $appends = ['final_price'];
+
+    public function getFinalPriceAttribute()
+    {
+        return max(0, round($this->selling_price - $this->discount, 2));
+    }
+
     public function warehouseItem(): BelongsTo
     {
         return $this->belongsTo(WarehouseItem::class)->withTrashed();

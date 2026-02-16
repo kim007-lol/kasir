@@ -36,7 +36,7 @@ class WarehouseItem extends Model
 
     public function getFinalPriceAttribute()
     {
-        return round($this->selling_price - $this->discount, 2);
+        return max(0, round($this->selling_price - $this->discount, 2));
     }
 
     public function category(): BelongsTo
