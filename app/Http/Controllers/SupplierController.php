@@ -77,7 +77,7 @@ class SupplierController extends Controller
                 'required',
                 'string',
                 'max:150',
-                Rule::unique('suppliers')->where(function ($query) use ($request) {
+                Rule::unique('suppliers')->withoutTrashed()->where(function ($query) use ($request) {
                     return $query->where('address', $request->address);
                 })->ignore($supplier->id)
             ],
