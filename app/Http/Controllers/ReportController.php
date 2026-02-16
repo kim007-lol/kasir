@@ -145,8 +145,7 @@ class ReportController extends Controller
 
         if ($request->ajax()) {
             /** @var \Illuminate\View\View $view */
-            $view->fragment('data-container');
-            return $view;
+            return $view->fragment('data-container');
         }
 
         return $view;
@@ -231,8 +230,7 @@ class ReportController extends Controller
         if ($request->ajax()) {
             /** @var \Illuminate\View\View $entriesView */
             $entriesView = view('reports.stock-entries', compact('entries', 'startDate', 'endDate'));
-            $entriesView->fragment('data-container');
-            return $entriesView;
+            return $entriesView->fragment('data-container');
         }
 
         return view('reports.stock-entries', compact('entries', 'startDate', 'endDate'));
