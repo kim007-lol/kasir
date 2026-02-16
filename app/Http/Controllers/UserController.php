@@ -123,6 +123,11 @@ class UserController extends Controller
             return redirect()->route('users.index')->with('error', 'Anda tidak bisa menghapus akun sendiri.');
         }
 
+        // Cek apakah user memiliki transaksi terkait
+        if (\App\Models\Transaction::where('user_id', $user->id)->exists()) {
+            return redirect()->route('users.index')->with('error', 'User tidak bisa dihapus karena masih memiliki riwayat transaksi.');
+        }
+
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'User berhasil dihapus');
