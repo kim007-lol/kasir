@@ -11,6 +11,11 @@ class StockTransferLog extends Model
         'warehouse_to_cashier',
         'cashier_to_warehouse',
         'adjustment',
+        'transfer_in',
+        'transfer_out',
+        'edit_increase',
+        'edit_decrease',
+        'delete_return',
     ];
 
     protected static function booted(): void
@@ -35,12 +40,12 @@ class StockTransferLog extends Model
 
     public function warehouseItem()
     {
-        return $this->belongsTo(WarehouseItem::class);
+        return $this->belongsTo(WarehouseItem::class)->withTrashed();
     }
 
     public function cashierItem()
     {
-        return $this->belongsTo(CashierItem::class);
+        return $this->belongsTo(CashierItem::class)->withTrashed();
     }
 
     public function user()
