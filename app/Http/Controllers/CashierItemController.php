@@ -14,6 +14,8 @@ class CashierItemController extends Controller
     public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
         $search = $request->get('search');
+        $categoryId = $request->get('category_id');
+
         $query = CashierItem::select('id', 'code', 'name', 'stock', 'selling_price', 'discount', 'category_id', 'warehouse_item_id', 'is_consignment')
             ->with(['category:id,name', 'warehouseItem:id,stock'])
             ->where(function ($q) {
@@ -33,17 +35,21 @@ class CashierItemController extends Controller
                         ->orWhereRaw('LOWER(code) LIKE ?', [$searchLower]);
                 });
             })
+            ->when($categoryId, function ($query) use ($categoryId) {
+                $query->where('category_id', $categoryId);
+            })
             ->orderBy('code', 'asc');
 
         $cashierItems = $query->paginate(15);
+        $categories = \App\Models\Category::orderBy('name')->get();
 
         if ($request->ajax()) {
             /** @var \Illuminate\View\View $view */
-            $view = view('cashier-items.index', compact('cashierItems', 'search'));
+            $view = view('cashier-items.index', compact('cashierItems', 'search', 'categories', 'categoryId'));
             return $view->fragment('data-container');
         }
 
-        return view('cashier-items.index', compact('cashierItems', 'search'));
+        return view('cashier-items.index', compact('cashierItems', 'search', 'categories', 'categoryId'));
     }
 
     public function create(): View
@@ -258,6 +264,8 @@ class CashierItemController extends Controller
     public function cashierIndex(Request $request): View|\Illuminate\Support\HtmlString|string
     {
         $search = $request->get('search');
+        $categoryId = $request->get('category_id');
+
         $query = CashierItem::select('id', 'code', 'name', 'stock', 'selling_price', 'discount', 'category_id', 'warehouse_item_id', 'is_consignment', 'consignment_source')
             ->with(['category:id,name', 'warehouseItem:id,stock'])
             ->where(function ($q) {
@@ -277,9 +285,13 @@ class CashierItemController extends Controller
                         ->orWhereRaw('LOWER(code) LIKE ?', [$searchLower]);
                 });
             })
+            ->when($categoryId, function ($query) use ($categoryId) {
+                $query->where('category_id', $categoryId);
+            })
             ->orderByRaw('created_at DESC');
 
         $cashierItems = $query->paginate(15);
+        $categories = \App\Models\Category::orderBy('name')->get();
 
         // Get warehouse items with stock > 0 for adding to cashier stock
         $warehouseItems = WarehouseItem::with(['category', 'supplier'])
@@ -289,11 +301,11 @@ class CashierItemController extends Controller
 
         if ($request->ajax()) {
             /** @var \Illuminate\View\View $view */
-            $view = view('cashier.stock.index', compact('cashierItems', 'search', 'warehouseItems'));
+            $view = view('cashier.stock.index', compact('cashierItems', 'search', 'warehouseItems', 'categories', 'categoryId'));
             return $view->fragment('data-container');
         }
 
-        return view('cashier.stock.index', compact('cashierItems', 'search', 'warehouseItems'));
+        return view('cashier.stock.index', compact('cashierItems', 'search', 'warehouseItems', 'categories', 'categoryId'));
     }
 
     public function storeFromWarehouse(Request $request): RedirectResponse
@@ -407,7 +419,16 @@ class CashierItemController extends Controller
     }
     public function getStockStatus(): \Illuminate\Http\JsonResponse
     {
-        $stocks = CashierItem::select('id', 'stock')->get();
+        $stocks = CashierItem::select('id', 'stock')
+            ->where(function ($q) {
+                $q->where(function ($sub) {
+                    $sub->where('is_consignment', false)->orWhereNull('is_consignment');
+                })
+                    ->orWhere(function ($sub) {
+                        $sub->where('is_consignment', true)->whereDate('created_at', today());
+                    });
+            })
+            ->get();
         return response()->json($stocks);
     }
 
