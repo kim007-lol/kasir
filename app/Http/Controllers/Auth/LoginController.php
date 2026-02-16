@@ -24,7 +24,7 @@ class LoginController extends Controller
     {
         $credentials = $request->validate([
             'login' => 'required',
-            'password' => 'required|min:6'
+            'password' => 'required|min:8'
         ], [
             'login.required' => 'Username atau Email harus diisi',
             'password.required' => 'Password harus diisi',
