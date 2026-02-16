@@ -108,6 +108,7 @@ Route::middleware(['auth', 'role:kasir'])->prefix('cashier')->name('cashier.')->
     Route::post('/transaksi/bayar', [TransactionController::class, 'checkout'])->name('transactions.checkout');
     Route::get('/transaksi/struk', [TransactionController::class, 'receipt'])->name('transactions.receipt');
     Route::get('/transaksi/download/{id}', [TransactionController::class, 'downloadReceipt'])->name('transactions.downloadReceipt');
+    Route::post('/transaksi/reset', [TransactionController::class, 'clearCart'])->name('transactions.clearCart');
 
     // Stok Item Kasir
     // Using a separate method/view for Cashier's stock management to handle consignment
