@@ -154,23 +154,39 @@ class ReportController extends Controller
     public function exportPdf(Request $request)
     {
         $date = $request->get('date', now()->toDateString());
+        $filter = $request->get('filter', 'today');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
 
-        $transactions = Transaction::whereDate('created_at', $date)
+        // Build query berdasarkan filter (sama seperti exportExcel)
+        $transactionQuery = Transaction::query();
+
+        if ($filter == 'today' || !$filter) {
+            $transactionQuery->whereDate('created_at', $date);
+        } elseif ($filter == 'week') {
+            $now = now();
+            $transactionQuery->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+        } elseif ($filter == 'month') {
+            $transactionQuery->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
+        } elseif ($filter == 'custom' && $startDate && $endDate) {
+            $transactionQuery->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate);
+        }
+
+        // BUG-05 Fix: Eager load details untuk menghindari N+1 query saat menghitung net_profit
+        $transactions = $transactionQuery
             ->with(['details.item.warehouseItem', 'member'])
             ->latest()
             ->get();
 
+        $transactionIds = $transactions->pluck('id');
+
         $totalTransactions = $transactions->count();
         $totalRevenue = $transactions->sum('total');
         $totalNetProfit = $transactions->sum('net_profit');
-        $totalItemsSold = TransactionDetail::whereHas('transaction', function ($query) use ($date) {
-            $query->whereDate('created_at', $date);
-        })->sum('qty');
+        $totalItemsSold = TransactionDetail::whereIn('transaction_id', $transactionIds)->sum('qty');
 
         $topSellingItems = TransactionDetail::selectRaw('item_id, SUM(qty) as total_qty')
-            ->whereHas('transaction', function ($query) use ($date) {
-                $query->whereDate('created_at', $date);
-            })
+            ->whereIn('transaction_id', $transactionIds)
             ->with('item')
             ->groupBy('item_id')
             ->orderBy('total_qty', 'desc')
