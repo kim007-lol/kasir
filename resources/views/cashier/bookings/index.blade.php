@@ -1,0 +1,356 @@
+@extends('layouts.cashier')
+
+@section('title', 'Pesanan Online')
+
+@section('content')
+<div class="mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-bag-check"></i> Pesanan Online
+            @if($pendingCount > 0)
+            <span class="badge bg-danger" id="header-pending-badge">{{ $pendingCount }}</span>
+            @endif
+        </h2>
+    </div>
+
+    <!-- Status Tabs -->
+    <ul class="nav nav-pills mb-4" id="status-tabs">
+        <li class="nav-item">
+            <a class="nav-link {{ $status == 'pending' ? 'active' : '' }}" href="?status=pending">
+                <i class="bi bi-clock"></i> Menunggu
+                @if($statusCounts['pending'] > 0)
+                <span class="badge bg-warning text-dark">{{ $statusCounts['pending'] }}</span>
+                @endif
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ $status == 'confirmed' ? 'active' : '' }}" href="?status=confirmed">
+                <i class="bi bi-check-circle"></i> Dikonfirmasi
+                @if($statusCounts['confirmed'] > 0)
+                <span class="badge bg-info">{{ $statusCounts['confirmed'] }}</span>
+                @endif
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ $status == 'processing' ? 'active' : '' }}" href="?status=processing">
+                <i class="bi bi-fire"></i> Diproses
+                @if($statusCounts['processing'] > 0)
+                <span class="badge bg-primary">{{ $statusCounts['processing'] }}</span>
+                @endif
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ $status == 'ready' ? 'active' : '' }}" href="?status=ready">
+                <i class="bi bi-check2-all"></i> Siap
+                @if($statusCounts['ready'] > 0)
+                <span class="badge bg-success">{{ $statusCounts['ready'] }}</span>
+                @endif
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ $status == 'all' ? 'active' : '' }}" href="?status=all">
+                <i class="bi bi-grid"></i> Semua
+            </a>
+        </li>
+    </ul>
+
+    <!-- Booking Cards -->
+    <div class="row g-3" id="bookings-list">
+        @forelse($bookings as $booking)
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #fff5f5;">
+                    <div>
+                        <span class="badge bg-secondary">{{ $booking->booking_code }}</span>
+                        <span class="badge bg-{{ $booking->status_badge }}">{{ $booking->status_label }}</span>
+                    </div>
+                    <small class="text-muted">{{ $booking->created_at->diffForHumans() }}</small>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <strong><i class="bi bi-person"></i> {{ $booking->customer_name }}</strong>
+                        @if($booking->customer_phone)
+                        <br><small class="text-muted"><i class="bi bi-telephone"></i> {{ $booking->customer_phone }}</small>
+                        @endif
+                    </div>
+                    <div class="mb-2">
+                        <span class="badge {{ $booking->delivery_type == 'delivery' ? 'bg-info' : 'bg-secondary' }}">
+                            <i class="bi {{ $booking->delivery_type == 'delivery' ? 'bi-truck' : 'bi-shop' }}"></i>
+                            {{ $booking->delivery_type == 'delivery' ? 'Delivery' : 'Pickup' }}
+                        </span>
+                    </div>
+
+                    <!-- Items Summary -->
+                    <div class="border rounded p-2 mb-2" style="background: #f8f9fa; font-size: 0.85rem;">
+                        @foreach($booking->items->take(3) as $item)
+                        <div class="d-flex justify-content-between">
+                            <span>{{ $item->name }} × {{ $item->qty }}</span>
+                            <span>Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                        </div>
+                        @endforeach
+                        @if($booking->items->count() > 3)
+                        <div class="text-muted text-center small">+{{ $booking->items->count() - 3 }} item lainnya</div>
+                        @endif
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center fw-bold">
+                        <span>Total</span>
+                        <span style="color: var(--primary-dark);">Rp {{ number_format($booking->total, 0, ',', '.') }}</span>
+                    </div>
+
+                    @if($booking->notes)
+                    <div class="mt-2">
+                        <small class="text-muted"><i class="bi bi-chat-dots"></i> {{ $booking->notes }}</small>
+                    </div>
+                    @endif
+
+                    @if($booking->cancel_reason)
+                    <div class="mt-2 alert alert-danger py-1 px-2 mb-0" style="font-size: 0.8rem;">
+                        <strong>Alasan ditolak:</strong> {{ $booking->cancel_reason }}
+                    </div>
+                    @endif
+                </div>
+                <div class="card-footer bg-white border-0 pt-0">
+                    <div class="d-flex gap-2 flex-wrap">
+                        {{-- PENDING: Accept or Reject --}}
+                        @if($booking->status === 'pending')
+                        <form action="{{ route('cashier.bookings.accept', $booking) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-success btn-sm"
+                                onclick="return confirm('Terima pesanan ini? Stok akan dikurangi.')">
+                                <i class="bi bi-check-lg"></i> Terima
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#rejectModal{{ $booking->id }}">
+                            <i class="bi bi-x-lg"></i> Tolak
+                        </button>
+                        @endif
+
+                        {{-- CONFIRMED: Process --}}
+                        @if($booking->status === 'confirmed')
+                        <form action="{{ route('cashier.bookings.process', $booking) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-fire"></i> Proses
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#rejectModal{{ $booking->id }}">
+                            <i class="bi bi-x-lg"></i> Batalkan
+                        </button>
+                        @endif
+
+                        {{-- PROCESSING: Ready --}}
+                        @if($booking->status === 'processing')
+                        <form action="{{ route('cashier.bookings.ready', $booking) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="bi bi-check2-all"></i> Siap!
+                            </button>
+                        </form>
+                        @endif
+
+                        {{-- READY: Complete --}}
+                        @if($booking->status === 'ready')
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#completeModal{{ $booking->id }}">
+                            <i class="bi bi-bag-check"></i> Selesaikan
+                        </button>
+                        @endif
+
+                        <a href="{{ route('cashier.bookings.show', $booking) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-eye"></i> Detail
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Reject Modal --}}
+        @if($booking->canBeCancelled())
+        <div class="modal fade" id="rejectModal{{ $booking->id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="{{ route('cashier.bookings.reject', $booking) }}" method="POST">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title">Tolak Pesanan {{ $booking->booking_code }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="cancel_reason" class="form-label fw-semibold">Alasan Penolakan *</label>
+                                <textarea name="cancel_reason" class="form-control" rows="3" required
+                                    placeholder="Contoh: Stok habis, toko tutup lebih awal"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-x-lg"></i> Tolak Pesanan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        {{-- Complete Modal --}}
+        @if($booking->canBeCompleted())
+        <div class="modal fade" id="completeModal{{ $booking->id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="{{ route('cashier.bookings.complete', $booking) }}" method="POST">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title">Selesaikan Pesanan {{ $booking->booking_code }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Total pesanan: <strong>Rp {{ number_format($booking->total, 0, ',', '.') }}</strong></p>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Metode Pembayaran *</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="payment_method"
+                                            id="cash{{ $booking->id }}" value="cash" checked>
+                                        <label class="form-check-label" for="cash{{ $booking->id }}">
+                                            <i class="bi bi-cash"></i> Cash
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="payment_method"
+                                            id="qris{{ $booking->id }}" value="qris">
+                                        <label class="form-check-label" for="qris{{ $booking->id }}">
+                                            <i class="bi bi-qr-code"></i> QRIS
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert alert-info py-2 mb-0" style="font-size: 0.85rem;">
+                                <i class="bi bi-info-circle"></i>
+                                Menyelesaikan pesanan akan otomatis membuat transaksi di sistem.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-bag-check"></i> Selesaikan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @empty
+        <div class="col-12">
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                <p class="mt-2">Tidak ada pesanan {{ $status !== 'all' ? 'dengan status ini' : '' }}</p>
+            </div>
+        </div>
+        @endforelse
+    </div>
+
+    <div class="mt-3">
+        {{ $bookings->withQueryString()->links() }}
+    </div>
+</div>
+
+<!-- Notification sound element -->
+<audio id="notification-sound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbsGczHjqMw9zQe0smMHm50+K1ZzUlXKXN3rmGSTc0bqzP4byNUj46d7PP5b2MUUA=" type="audio/wav">
+</audio>
+@endsection
+
+@push('scripts')
+<script>
+    let lastPendingCount = {
+        {
+            $pendingCount
+        }
+    };
+
+    // Poll for new bookings every 5 seconds
+    function pollBookings() {
+        fetch('{{ route("cashier.bookings.pendingCount") }}')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('header-pending-badge');
+                const navBadge = document.getElementById('nav-booking-badge');
+
+                // Update badges
+                if (data.pending_count > 0) {
+                    if (badge) {
+                        badge.textContent = data.pending_count;
+                        badge.style.display = '';
+                    }
+                    if (navBadge) {
+                        navBadge.textContent = data.pending_count;
+                        navBadge.style.display = '';
+                    }
+                } else {
+                    if (badge) badge.style.display = 'none';
+                    if (navBadge) navBadge.style.display = 'none';
+                }
+
+                // Play sound if new orders came in
+                if (data.pending_count > lastPendingCount) {
+                    try {
+                        const sound = document.getElementById('notification-sound');
+                        if (sound) sound.play();
+                    } catch (e) {}
+
+                    // Show toast notification
+                    if (typeof toastr !== 'undefined') {
+                        toastr.info('Ada pesanan baru masuk! 🔔');
+                    }
+                }
+
+                lastPendingCount = data.pending_count;
+            })
+            .catch(err => console.log('Polling error:', err));
+    }
+
+    // Start polling
+    setInterval(pollBookings, 5000);
+</script>
+@endpush
+
+<style>
+    .nav-pills .nav-link {
+        color: #6c757d;
+        font-weight: 500;
+        border-radius: 0.75rem;
+        margin-right: 0.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: #ff6b6b;
+        color: white;
+    }
+
+    .nav-pills .nav-link:hover:not(.active) {
+        background-color: #fff0f0;
+        color: #ee5253;
+    }
+
+    .card {
+        border-radius: 0.75rem;
+        transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-sm {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+    }
+</style>

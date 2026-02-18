@@ -111,6 +111,17 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('cashier.history.index') ? 'active' : '' }}" href="{{ route('cashier.history.index') }}">HISTORI TRANSAKSI</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('cashier.bookings.index', 'cashier.bookings.show') ? 'active' : '' }}" href="{{ route('cashier.bookings.index') }}">
+                            PESANAN ONLINE
+                            <span class="badge bg-danger ms-1" id="nav-booking-badge" style="{{ \App\Models\Booking::pending()->count() > 0 ? '' : 'display:none' }}">
+                                {{ \App\Models\Booking::pending()->count() ?: '' }}
+                            </span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('cashier.bookings.history') ? 'active' : '' }}" href="{{ route('cashier.bookings.history') }}">HISTORI BOOKING</a>
+                    </li>
                 </ul>
                 <div class="d-flex align-items-center text-white">
                     <span class="me-3 d-none d-lg-block">{{ auth()->user()->name }}</span>

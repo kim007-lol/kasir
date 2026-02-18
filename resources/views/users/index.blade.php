@@ -78,6 +78,8 @@
                                 <span class="badge bg-danger">Admin</span>
                                 @elseif($user->role === 'kasir')
                                 <span class="badge bg-primary">Kasir</span>
+                                @elseif($user->role === 'pelanggan')
+                                <span class="badge bg-success">Pelanggan</span>
                                 @else
                                 <span class="badge bg-secondary">{{ $user->role ?? 'N/A' }}</span>
                                 @endif

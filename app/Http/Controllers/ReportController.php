@@ -20,9 +20,19 @@ class ReportController extends Controller
         $date = $request->get('date', now()->toDateString());
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
+        $source = $request->get('source', 'all'); // all, pos, online
 
         // Build query berdasarkan filter
         $transactionQuery = Transaction::query();
+
+        // Filter berdasarkan sumber transaksi
+        if ($source === 'pos') {
+            $transactionQuery->where(function ($q) {
+                $q->where('source', 'pos')->orWhereNull('source');
+            });
+        } elseif ($source === 'online') {
+            $transactionQuery->where('source', 'online');
+        }
 
         if ($filter == 'today') {
             $transactionQuery->whereDate('created_at', $date);
@@ -44,7 +54,7 @@ class ReportController extends Controller
         $totalTransactions = $transactionIds->count();
         $totalRevenue = $transactionQuery->sum('total');
 
-        $transactions = $transactionQuery->with(['details.item', 'member'])
+        $transactions = $transactionQuery->with(['details.item', 'member', 'booking'])
             ->latest()
             ->paginate(10);
         /** @var \Illuminate\Pagination\LengthAwarePaginator $transactions */
@@ -131,6 +141,12 @@ class ReportController extends Controller
             ->take(5)
             ->get();
 
+        // Count per source for summary
+        $posCount = (clone $transactionQuery)->where(function ($q) {
+            $q->where('source', 'pos')->orWhereNull('source');
+        })->count();
+        $onlineCount = (clone $transactionQuery)->where('source', 'online')->count();
+
         $view = view('reports.index', compact(
             'transactions',
             'totalTransactions',
@@ -142,7 +158,10 @@ class ReportController extends Controller
             'filter',
             'date',
             'startDate',
-            'endDate'
+            'endDate',
+            'source',
+            'posCount',
+            'onlineCount'
         ));
 
         if ($request->ajax()) {
@@ -159,9 +178,19 @@ class ReportController extends Controller
         $filter = $request->get('filter', 'today');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
+        $source = $request->get('source', 'all');
 
         // Build query berdasarkan filter (sama seperti exportExcel)
         $transactionQuery = Transaction::query();
+
+        // Filter sumber
+        if ($source === 'pos') {
+            $transactionQuery->where(function ($q) {
+                $q->where('source', 'pos')->orWhereNull('source');
+            });
+        } elseif ($source === 'online') {
+            $transactionQuery->where('source', 'online');
+        }
 
         if ($filter == 'today' || !$filter) {
             $transactionQuery->whereDate('created_at', $date);
@@ -214,10 +243,19 @@ class ReportController extends Controller
         $filter = $request->get('filter', 'today');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
+        $source = $request->get('source', 'all');
 
-        // Build query based on filter (reuse logic or refactor)
-        // For simplicity, reusing the logic here
+        // Build query based on filter
         $transactionQuery = Transaction::query();
+
+        // Filter sumber
+        if ($source === 'pos') {
+            $transactionQuery->where(function ($q) {
+                $q->where('source', 'pos')->orWhereNull('source');
+            });
+        } elseif ($source === 'online') {
+            $transactionQuery->where('source', 'online');
+        }
 
         if ($filter == 'today' || !$filter) {
             $transactionQuery->whereDate('created_at', $date);
@@ -235,7 +273,7 @@ class ReportController extends Controller
         return Excel::download(new ReportsExport($transactions, $date), 'laporan-transaksi-' . $date . '.xlsx');
     }
 
-    public function stockEntriesHistory(Request $request): View
+    public function stockEntriesHistory(Request $request): View|\Illuminate\Support\HtmlString|string
     {
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');

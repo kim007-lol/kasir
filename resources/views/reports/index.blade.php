@@ -40,6 +40,29 @@
                     </div>
                 </div>
 
+                <!-- Source Filter -->
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Sumber Transaksi:</label>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="source" id="source-all" value="all" {{ ($source ?? 'all') == 'all' ? 'checked' : '' }}>
+                        <label class="btn btn-outline-secondary" for="source-all">
+                            <i class="bi bi-grid"></i> Semua
+                        </label>
+
+                        <input type="radio" class="btn-check" name="source" id="source-pos" value="pos" {{ ($source ?? '') == 'pos' ? 'checked' : '' }}>
+                        <label class="btn btn-outline-success" for="source-pos">
+                            <i class="bi bi-shop"></i> POS
+                            @if(isset($posCount))<span class="badge bg-success ms-1">{{ $posCount }}</span>@endif
+                        </label>
+
+                        <input type="radio" class="btn-check" name="source" id="source-online" value="online" {{ ($source ?? '') == 'online' ? 'checked' : '' }}>
+                        <label class="btn btn-outline-info" for="source-online">
+                            <i class="bi bi-globe"></i> Online
+                            @if(isset($onlineCount))<span class="badge bg-info ms-1">{{ $onlineCount }}</span>@endif
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Custom Date Range -->
                 <div class="col-md-4 {{ ($filter ?? '') == 'custom' ? '' : 'd-none' }}" id="custom-dates">
                     <label for="start_date" class="form-label fw-semibold">Tanggal Mulai</label>
@@ -268,6 +291,7 @@
                                 <th>Pembeli</th>
                                 <th>Total</th>
                                 <th>Metode</th>
+                                <th>Sumber</th>
                                 <th>Waktu</th>
                                 <th style="width: 100px;">Aksi</th>
                             </tr>
@@ -291,6 +315,16 @@
                                     </span>
                                 </td>
                                 <td>
+                                    @if($transaction->source === 'online')
+                                    <span class="badge bg-info"><i class="bi bi-globe"></i> Online</span>
+                                    @if($transaction->booking)
+                                    <br><small class="text-muted">{{ $transaction->booking->booking_code }}</small>
+                                    @endif
+                                    @else
+                                    <span class="badge bg-success"><i class="bi bi-shop"></i> POS</span>
+                                    @endif
+                                </td>
+                                <td>
                                     <small>{{ $transaction->created_at->format('d/m/Y H:i') }}</small>
                                 </td>
                                 <td>
@@ -301,7 +335,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">
+                                <td colspan="8" class="text-center py-4 text-muted">
                                     <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                                     <p>Tidak ada transaksi pada tanggal {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</p>
                                 </td>

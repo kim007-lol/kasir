@@ -18,7 +18,7 @@ class HistoryController extends Controller
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
 
-        $query = Transaction::with(['details.item.warehouseItem', 'user', 'member'])
+        $query = Transaction::with(['details.item.warehouseItem', 'user', 'member', 'booking'])
             ->when(auth()->user()->role === 'kasir', function ($q) {
                 // Security: Cashier can only see their own transactions
                 $q->where('user_id', auth()->id());

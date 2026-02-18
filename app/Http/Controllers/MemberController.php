@@ -15,8 +15,9 @@ class MemberController extends Controller
     public function index(Request $request): View|\Illuminate\Support\HtmlString|string
     {
         $search = $request->get('search');
-        $query = Member::select('id', 'name', 'phone', 'address', 'created_at', 'deleted_at')
+        $query = Member::select('id', 'name', 'phone', 'address', 'user_id', 'created_at', 'deleted_at')
             ->withTrashed()
+            ->with('user:id,username')
             ->withSum('transactions', 'total')
             ->when($search, function ($query) use ($search) {
                 $searchLower = '%' . mb_strtolower($search) . '%';

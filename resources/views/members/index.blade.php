@@ -49,6 +49,7 @@
                             <th class="d-none d-lg-table-cell">Alamat</th>
                             <th class="d-none d-md-table-cell">Bergabung</th>
                             <th class="d-none d-sm-table-cell">Total Transaksi</th>
+                            <th class="d-none d-lg-table-cell">Akun Login</th>
                             <th class="d-none d-md-table-cell">Status</th>
                             <th style="width: 150px;" class="text-center">Aksi</th>
                         </tr>
@@ -71,6 +72,14 @@
                             </td>
                             <td class="d-none d-sm-table-cell">
                                 <strong class="text-primary">Rp. {{ number_format($member->transactions_sum_total ?? 0, 0, ',', '.') }}</strong>
+                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                @if($member->hasLoginAccount())
+                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Ada</span>
+                                <br><small class="text-muted">{{ $member->user->username ?? '' }}</small>
+                                @else
+                                <span class="badge bg-secondary">Tidak Ada</span>
+                                @endif
                             </td>
                             <td class="d-none d-md-table-cell">
                                 @if($member->deleted_at)
@@ -105,7 +114,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
+                            <td colspan="8" class="text-center py-4 text-muted">
                                 <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                                 <p>Belum ada member</p>
                             </td>

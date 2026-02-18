@@ -22,7 +22,9 @@ class Transaction extends Model
         'member_id',
         'discount_percent',
         'discount_amount',
-        'cashier_name'
+        'cashier_name',
+        'source',
+        'booking_id',
     ];
 
     public function details(): HasMany
@@ -38,6 +40,11 @@ class Transaction extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function booking(): BelongsTo
+    {
+        return $this->belongsTo(Booking::class);
     }
 
     /**

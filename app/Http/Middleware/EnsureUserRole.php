@@ -11,17 +11,19 @@ class EnsureUserRole
 {
     /**
      * Handle an incoming request.
+     * Supports multiple roles: role:admin,kasir
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (!Auth::check()) {
             return redirect('/login');
         }
 
         $user = Auth::user();
-        if ($user->role !== $role) {
+
+        if (!in_array($user->role, $roles)) {
             abort(403, 'Unauthorized action.');
         }
 
