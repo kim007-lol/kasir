@@ -269,13 +269,18 @@
 
 @push('scripts')
 <script>
-    let lastPendingCount = {
-        {
-            $pendingCount
-        }
-    };
+    // ===== SMART NOTIFICATION SYSTEM =====
+    // Primary: WebSocket (Reverb) — instant
+    // Fallback: AJAX Polling — 30s (or 10s if WebSocket goes down)
 
-    // Poll for new bookings every 5 seconds
+    let lastPendingCount = {{ $pendingCount }};
+    let wsConnected = false;
+    let pollInterval = null;
+    const POLL_NORMAL = 30000;   // 30s when WebSocket is active
+    const POLL_FALLBACK = 10000; // 10s when WebSocket is down
+    const currentStatus = '{{ $status }}';
+
+    // ===== POLLING (Fallback) =====
     function pollBookings() {
         fetch('{{ route("cashier.bookings.pendingCount") }}')
             .then(response => response.json())
@@ -285,29 +290,24 @@
 
                 // Update badges
                 if (data.pending_count > 0) {
-                    if (badge) {
-                        badge.textContent = data.pending_count;
-                        badge.style.display = '';
-                    }
-                    if (navBadge) {
-                        navBadge.textContent = data.pending_count;
-                        navBadge.style.display = '';
-                    }
+                    if (badge) { badge.textContent = data.pending_count; badge.style.display = ''; }
+                    if (navBadge) { navBadge.textContent = data.pending_count; navBadge.style.display = ''; }
                 } else {
                     if (badge) badge.style.display = 'none';
                     if (navBadge) navBadge.style.display = 'none';
                 }
 
-                // Play sound if new orders came in
+                // New order detected via polling (fallback mode)
                 if (data.pending_count > lastPendingCount) {
-                    try {
-                        const sound = document.getElementById('notification-sound');
-                        if (sound) sound.play();
-                    } catch (e) {}
+                    try { document.getElementById('notification-sound').play(); } catch (e) {}
 
-                    // Show toast notification
                     if (typeof toastr !== 'undefined') {
-                        toastr.info('Ada pesanan baru masuk! 🔔');
+                        toastr.info('Ada pesanan baru masuk!', 'Pesanan Baru (Polling)');
+                    }
+
+                    // Auto reload if on relevant tab and no modal open
+                    if (['pending', 'all'].includes(currentStatus) && !document.querySelector('.modal.show')) {
+                        setTimeout(() => window.location.reload(), 1000);
                     }
                 }
 
@@ -316,8 +316,72 @@
             .catch(err => console.log('Polling error:', err));
     }
 
-    // Start polling
-    setInterval(pollBookings, 5000);
+    // Start polling with adjustable interval
+    function startPolling(interval) {
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(pollBookings, interval);
+        console.log(`📡 Polling started: every ${interval / 1000}s`);
+    }
+
+    // Initial poll + start with normal speed
+    pollBookings();
+    startPolling(POLL_NORMAL);
+
+    // ===== WEBSOCKET (Primary) =====
+    setTimeout(() => {
+        if (window.Echo) {
+            console.log('🔌 Connecting to WebSocket...');
+
+            // Connection established
+            window.Echo.connector.pusher.connection.bind('connected', () => {
+                wsConnected = true;
+                console.log('✅ WebSocket Connected! (Primary mode active)');
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Real-time aktif', 'Online', {timeOut: 2000});
+                }
+                // Slow down polling since WebSocket handles it
+                startPolling(POLL_NORMAL);
+            });
+
+            // Connection lost — switch to fast polling
+            window.Echo.connector.pusher.connection.bind('disconnected', () => {
+                wsConnected = false;
+                console.warn('⚠️ WebSocket Disconnected. Switching to fast polling...');
+                if (typeof toastr !== 'undefined') {
+                    toastr.warning('WebSocket terputus. Beralih ke mode polling.', 'Offline');
+                }
+                startPolling(POLL_FALLBACK);
+            });
+
+            // Connection unavailable
+            window.Echo.connector.pusher.connection.bind('unavailable', () => {
+                wsConnected = false;
+                console.error('❌ WebSocket Unavailable. Using polling fallback.');
+                startPolling(POLL_FALLBACK);
+            });
+
+            // Listen for new bookings via WebSocket
+            window.Echo.channel('bookings')
+                .listen('NewBookingCreated', (e) => {
+                    console.log('⚡ Real-time booking received:', e.booking);
+
+                    try { document.getElementById('notification-sound').play(); } catch (err) {}
+
+                    if (typeof toastr !== 'undefined') {
+                        toastr.info('Pesanan Baru: ' + (e.booking.booking_code || ''), 'Pesanan Masuk!');
+                    }
+
+                    // Reload if on relevant tab and no modal open
+                    if (['pending', 'all'].includes(currentStatus) && !document.querySelector('.modal.show')) {
+                        setTimeout(() => window.location.reload(), 500);
+                    }
+                });
+        } else {
+            // Echo not available at all — use fast polling
+            console.warn('⚠️ Echo not loaded. Using polling fallback only.');
+            startPolling(POLL_FALLBACK);
+        }
+    }, 1000);
 </script>
 @endpush
 
