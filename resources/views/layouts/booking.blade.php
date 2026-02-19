@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Booking Makanan — SMEGABIZ')</title>
+    <title>@yield('title', 'Booking Makanan — SmeGo')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
@@ -95,8 +95,20 @@
     <nav class="booking-nav navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ route('booking.menu') }}">
-                <i class="bi bi-bag-heart-fill me-1"></i> SMEGABIZ
+                <i class="bi bi-bag-heart-fill me-1"></i> SmeGo
             </a>
+            
+            <!-- Mobile Cart Button (Visible on Mobile) -->
+            <a href="{{ route('booking.cart') }}" class="btn btn-outline-light btn-sm position-relative ms-auto me-2 d-lg-none border-0">
+                <i class="bi bi-cart3 fs-5"></i>
+                @php $cartCount = count(session('booking_cart', [])); @endphp
+                @if($cartCount > 0)
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark border border-light" style="font-size: 0.6rem;">
+                    {{ $cartCount }}
+                </span>
+                @endif
+            </a>
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#bookingNavbar">
                 <span class="navbar-toggler-icon"></span>
@@ -150,7 +162,7 @@
     <!-- Footer -->
     <footer class="booking-footer">
         <div class="container">
-            &copy; {{ date('Y') }} SMEGABIZ — Jam Operasional: 07:00 - 15:00 WIB
+            &copy; {{ date('Y') }} SmeGo — Jam Operasional: {{ App\Models\ShopSetting::get('open_hour', '07:00') }} - {{ App\Models\ShopSetting::get('close_hour', '15:00') }} WIB
         </div>
     </footer>
 
