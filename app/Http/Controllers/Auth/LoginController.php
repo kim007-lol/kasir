@@ -49,16 +49,32 @@ class LoginController extends Controller
         ];
 
         if (Auth::attempt($loginCredentials)) {
+            $user = Auth::user();
+
+            // SEC-01: Block soft-deleted users
+            if ($user->trashed()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                return back()->withErrors([
+                    'login' => 'Akun ini sudah dinonaktifkan. Hubungi administrator.',
+                ])->onlyInput('login');
+            }
+
+            // SEC-06: Block pelanggan from staff login
+            if ($user->role === 'pelanggan') {
+                Auth::logout();
+                $request->session()->invalidate();
+                return back()->withErrors([
+                    'login' => 'Akun pelanggan tidak bisa login di sini. Gunakan halaman login pelanggan.',
+                ])->onlyInput('login');
+            }
+
             RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
 
             // Redirect based on role
-            $user = Auth::user();
             if ($user->role === 'kasir') {
                 return redirect()->intended(route('cashier.dashboard'));
-            }
-            if ($user->role === 'pelanggan') {
-                return redirect()->intended(route('booking.menu'));
             }
 
             return redirect()->intended(route('dashboard'));

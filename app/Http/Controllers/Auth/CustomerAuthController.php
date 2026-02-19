@@ -54,6 +54,16 @@ class CustomerAuthController extends Controller
         // Only allow pelanggan role to login here
         if (Auth::attempt(['username' => $credentials['username'], 'password' => $credentials['password']])) {
             $user = Auth::user();
+
+            // SEC-01: Block soft-deleted users
+            if ($user->trashed()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                return back()->withErrors([
+                    'username' => 'Akun ini sudah dinonaktifkan.',
+                ])->onlyInput('username');
+            }
+
             if ($user->role !== 'pelanggan') {
                 Auth::logout();
                 $request->session()->invalidate();
@@ -89,6 +99,16 @@ class CustomerAuthController extends Controller
      */
     public function register(Request $request)
     {
+        // WARN-01: Rate limit registrasi (5 per menit per IP)
+        $throttleKey = 'register|' . $request->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            return back()->withErrors([
+                'username' => "Terlalu banyak percobaan registrasi. Coba lagi dalam {$seconds} detik.",
+            ])->withInput();
+        }
+        RateLimiter::hit($throttleKey, 60);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',

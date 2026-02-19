@@ -22,6 +22,7 @@ class CashierItem extends Model
         'cost_price',
         'discount',
         'stock',
+        'expiry_date',
         'is_consignment',
         'consignment_source'
     ];
@@ -30,6 +31,7 @@ class CashierItem extends Model
         'selling_price' => 'decimal:2',
         'cost_price' => 'decimal:2',
         'discount' => 'decimal:2',
+        'expiry_date' => 'date',
     ];
 
     protected $appends = ['final_price'];

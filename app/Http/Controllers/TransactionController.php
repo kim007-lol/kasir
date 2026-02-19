@@ -358,6 +358,12 @@ class TransactionController extends Controller
 
         $netTotal = $grossTotal - $discountAmount;
 
+        // SEC-07: Kasir tidak bisa memalsukan nama — paksa pakai nama sendiri
+        $cashierName = $validated['cashier_name'];
+        if (auth()->check() && auth()->user()->role === 'kasir') {
+            $cashierName = auth()->user()->name;
+        }
+
         $paidAmount = (float) $validated['paid_amount'];
         $changeAmount = $paidAmount - $netTotal;
 
@@ -373,7 +379,7 @@ class TransactionController extends Controller
 
             $transactionId = null;
 
-            DB::transaction(function () use ($cart, $validated, $invoice, $grossTotal, $netTotal, $discountAmount, $paidAmount, $changeAmount, &$transactionId, $sessionTokenKey, $checkoutToken) {
+            DB::transaction(function () use ($cart, $validated, $invoice, $grossTotal, $netTotal, $discountAmount, $paidAmount, $changeAmount, &$transactionId, $sessionTokenKey, $checkoutToken, $cashierName) {
                 // Determine customer name based on member_id
                 $customerName = 'Non Member';
                 if (!empty($validated['member_id'])) {
@@ -392,7 +398,7 @@ class TransactionController extends Controller
                     'discount_percent' => 0,
                     'discount_amount' => $discountAmount,
                     'user_id' => auth()->id(), // System Operator
-                    'cashier_name' => $validated['cashier_name'] // Manual Input Name
+                    'cashier_name' => $cashierName // SEC-07: Server-validated name
                 ]);
 
                 $transactionId = $transaction->id;
@@ -493,12 +499,19 @@ class TransactionController extends Controller
         return view('transactions.receipt-pdf', compact('transaction', 'details'));
     }
 
-    private function calculateTotal($cart): float
+    private function calculateTotal(&$cart): float
     {
         $total = 0;
-        foreach ($cart as $item) {
-            $total += $item['price'] * $item['qty'];
+        foreach ($cart as &$item) {
+            // BUG-05: Validasi harga dari database untuk konsistensi tampilan
+            $dbItem = \App\Models\CashierItem::find($item['id'] ?? null);
+            if ($dbItem) {
+                $item['price'] = $dbItem->final_price;
+            }
+            $item['subtotal'] = $item['price'] * $item['qty'];
+            $total += $item['subtotal'];
         }
+        unset($item);
         return $total;
     }
 }

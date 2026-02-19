@@ -71,7 +71,9 @@ class ReportController extends Controller
             ->selectRaw('SUM(qty * CASE WHEN purchase_price > 0 THEN purchase_price ELSE 0 END) as total')
             ->value('total') ?? 0;
 
-        $netProfit = $totalRevenueValue - $totalCost;
+        // BUG-07: Kurangi diskon global dari net profit
+        $totalDiscount = Transaction::whereIn('id', $transactionIds)->sum('discount_amount') ?? 0;
+        $netProfit = $totalRevenueValue - $totalCost - $totalDiscount;
 
         // Efficient Stock Entries Retrieval
         // 1. Get all relevant warehouse_item_ids from the sold items
@@ -103,7 +105,7 @@ class ReportController extends Controller
         // Detail barang terjual dengan stok masuk (Memory Mapping)
         $itemDetails = TransactionDetail::selectRaw('item_id, SUM(qty) as total_sold')
             ->whereIn('transaction_id', $transactionIds)
-            ->with(['item.category']) // Eager load category
+            ->with(['item.category', 'item.warehouseItem']) // Eager load category + warehouseItem
             ->groupBy('item_id')
             ->get()
             ->map(function ($detail) use ($stockEntriesMap, $warehouseItemIds) {
@@ -116,6 +118,10 @@ class ReportController extends Controller
                         'total_sold' => $detail->total_sold,
                         'stock_in' => 0,
                         'current_stock' => 0,
+                        'purchase_price' => 0,
+                        'selling_price' => 0,
+                        'revenue' => 0,
+                        'profit' => 0,
                     ];
                 }
 
@@ -123,12 +129,26 @@ class ReportController extends Controller
                 $warehouseItemId = $item->warehouse_item_id;
                 $stockIn = $stockEntriesMap[$warehouseItemId] ?? 0;
 
+                // Harga beli: dari cost_price kasir, atau purchase_price gudang
+                $purchasePrice = $item->cost_price > 0
+                    ? $item->cost_price
+                    : ($item->warehouseItem->purchase_price ?? 0);
+
+                $sellingPrice = $item->final_price;
+                $revenue = $detail->total_sold * $sellingPrice;
+                $cogs = $detail->total_sold * $purchasePrice;
+                $profit = $revenue - $cogs;
+
                 return [
                     'code' => $item->code,
-                    'name' => $item->name, // Ensure relationship is loaded or accessible
+                    'name' => $item->name,
                     'total_sold' => $detail->total_sold,
                     'stock_in' => $stockIn,
                     'current_stock' => $item->stock,
+                    'purchase_price' => $purchasePrice,
+                    'selling_price' => $sellingPrice,
+                    'revenue' => $revenue,
+                    'profit' => $profit,
                 ];
             });
 

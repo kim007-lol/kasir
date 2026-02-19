@@ -112,13 +112,16 @@ class Booking extends Model
             ->first();
 
         if ($lastBooking) {
-            $lastNumber = (int) substr($lastBooking->booking_code, -3);
+            // Ambil 3 digit sebelum suffix random
+            $lastNumber = (int) substr($lastBooking->booking_code, strlen($prefix), 3);
             $nextNumber = $lastNumber + 1;
         } else {
             $nextNumber = 1;
         }
 
-        return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        // BUG-01: Tambah random suffix untuk mencegah collision
+        $randomSuffix = str_pad(random_int(0, 999), 3, '0', STR_PAD_LEFT);
+        return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT) . '-' . $randomSuffix;
     }
 
     /**
@@ -134,7 +137,8 @@ class Booking extends Model
      */
     public function canBeCancelled(): bool
     {
-        return in_array($this->status, ['pending', 'confirmed']);
+        // BUG-02: Include 'processing' agar reject bisa kembalikan stok
+        return in_array($this->status, ['pending', 'confirmed', 'processing']);
     }
 
     /**

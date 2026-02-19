@@ -59,33 +59,10 @@ class CashierBookingController extends Controller
             return back()->with('error', 'Pesanan ini tidak bisa diterima (status: ' . $booking->status_label . ')');
         }
 
-        try {
-            DB::transaction(function () use ($booking) {
-                // Lock and validate stock for each item
-                foreach ($booking->items as $bookingItem) {
-                    $cashierItem = CashierItem::where('id', $bookingItem->cashier_item_id)
-                        ->lockForUpdate()
-                        ->first();
+        // BUG-04: Stok sudah dikurangi saat placeOrder, jadi accept hanya update status
+        $booking->update(['status' => 'confirmed']);
 
-                    if (!$cashierItem || $cashierItem->stock < $bookingItem->qty) {
-                        throw new \Exception(
-                            "Stok {$bookingItem->name} tidak cukup. " .
-                                "Tersedia: " . ($cashierItem->stock ?? 0) . ", " .
-                                "Dibutuhkan: {$bookingItem->qty}"
-                        );
-                    }
-
-                    // Deduct stock
-                    $cashierItem->decrement('stock', $bookingItem->qty);
-                }
-
-                $booking->update(['status' => 'confirmed']);
-            });
-
-            return back()->with('success', "Pesanan {$booking->booking_code} diterima! Stok telah dikurangi.");
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
+        return back()->with('success', "Pesanan {$booking->booking_code} diterima!");
     }
 
     /**
@@ -105,13 +82,11 @@ class CashierBookingController extends Controller
 
         try {
             DB::transaction(function () use ($booking, $request) {
-                // If it was already confirmed, restore stock
-                if ($booking->status === 'confirmed' || $booking->status === 'processing') {
-                    foreach ($booking->items as $bookingItem) {
-                        $cashierItem = CashierItem::find($bookingItem->cashier_item_id);
-                        if ($cashierItem) {
-                            $cashierItem->increment('stock', $bookingItem->qty);
-                        }
+                // BUG-04: Stok dikurangi saat placeOrder, jadi selalu kembalikan saat reject/cancel
+                foreach ($booking->items as $bookingItem) {
+                    $cashierItem = CashierItem::find($bookingItem->cashier_item_id);
+                    if ($cashierItem) {
+                        $cashierItem->increment('stock', $bookingItem->qty);
                     }
                 }
 
@@ -121,7 +96,7 @@ class CashierBookingController extends Controller
                 ]);
             });
 
-            return back()->with('success', "Pesanan {$booking->booking_code} ditolak.");
+            return back()->with('success', "Pesanan {$booking->booking_code} ditolak. Stok telah dikembalikan.");
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

@@ -191,6 +191,10 @@
                                         <th>Kode</th>
                                         <th>Nama Barang</th>
                                         <th class="text-center">Terjual</th>
+                                        <th class="text-end">Harga Beli</th>
+                                        <th class="text-end">Harga Jual</th>
+                                        <th class="text-end">Revenue</th>
+                                        <th class="text-end">Profit</th>
                                         <th class="text-center">Stok Masuk</th>
                                         <th class="text-center">Stok Saat Ini</th>
                                     </tr>
@@ -205,6 +209,12 @@
                                         <td><strong>{{ $item['name'] }}</strong></td>
                                         <td class="text-center">
                                             <span class="badge bg-danger">{{ $item['total_sold'] }}</span>
+                                        </td>
+                                        <td class="text-end small">Rp {{ number_format($item['purchase_price'], 0, ',', '.') }}</td>
+                                        <td class="text-end small">Rp {{ number_format($item['selling_price'], 0, ',', '.') }}</td>
+                                        <td class="text-end small fw-bold">Rp {{ number_format($item['revenue'], 0, ',', '.') }}</td>
+                                        <td class="text-end small fw-bold {{ $item['profit'] >= 0 ? 'text-success' : 'text-danger' }}">
+                                            Rp {{ number_format($item['profit'], 0, ',', '.') }}
                                         </td>
                                         <td class="text-center">
                                             <span class="badge bg-success">{{ $item['stock_in'] }}</span>

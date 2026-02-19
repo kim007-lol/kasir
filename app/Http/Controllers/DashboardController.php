@@ -58,12 +58,19 @@ class DashboardController extends Controller
             ]);
         }
 
+        // Low Stock Alert
+        $lowStockItems = \App\Models\CashierItem::where('stock', '>', 0)
+            ->where('stock', '<', 5)
+            ->orderBy('stock')
+            ->get(['id', 'name', 'stock', 'code']);
+
         return view('dashboard.index', compact(
             'totalItems',
             'totalTransactions',
             'totalProductsSoldToday',
             'totalRevenueToday',
-            'salesChart'
+            'salesChart',
+            'lowStockItems'
         ));
     }
 }

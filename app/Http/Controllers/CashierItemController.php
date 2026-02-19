@@ -149,7 +149,8 @@ class CashierItemController extends Controller
     {
         $validated = $request->validate([
             'stock' => 'required|integer|min:0',
-            'discount' => 'nullable|numeric|min:0'
+            'discount' => 'nullable|numeric|min:0',
+            'expiry_date' => 'nullable|date',
         ]);
 
         $newStock = (int) $validated['stock'];
@@ -158,10 +159,11 @@ class CashierItemController extends Controller
 
         // Default to current discount if not provided, or update if provided
         $newDiscount = isset($validated['discount']) ? (float)$validated['discount'] : $cashierItem->discount;
+        $newExpiryDate = $validated['expiry_date'] ?? null;
 
         // If only discount changed (no stock change)
         if ($difference === 0) {
-            $cashierItem->update(['discount' => $newDiscount]);
+            $cashierItem->update(['discount' => $newDiscount, 'expiry_date' => $newExpiryDate]);
             return redirect()->route('cashier-items.index')->with('success', 'Data item kasir berhasil diperbarui.');
         }
 
@@ -169,13 +171,14 @@ class CashierItemController extends Controller
         if ($cashierItem->is_consignment || !$cashierItem->warehouse_item_id) {
             $cashierItem->update([
                 'stock' => $newStock,
-                'discount' => $newDiscount
+                'discount' => $newDiscount,
+                'expiry_date' => $newExpiryDate
             ]);
             return redirect()->route('cashier-items.index')->with('success', 'Stok kasir berhasil diperbarui.');
         }
 
         try {
-            DB::transaction(function () use ($cashierItem, $newStock, $difference, $newDiscount) {
+            DB::transaction(function () use ($cashierItem, $newStock, $difference, $newDiscount, $newExpiryDate) {
                 $warehouse = WarehouseItem::where('id', $cashierItem->warehouse_item_id)
                     ->lockForUpdate()
                     ->first();
@@ -224,7 +227,8 @@ class CashierItemController extends Controller
 
                 $cashierItem->update([
                     'stock' => $newStock,
-                    'discount' => $newDiscount
+                    'discount' => $newDiscount,
+                    'expiry_date' => $newExpiryDate
                 ]);
             });
 
@@ -266,7 +270,7 @@ class CashierItemController extends Controller
         $search = $request->get('search');
         $categoryId = $request->get('category_id');
 
-        $query = CashierItem::select('id', 'code', 'name', 'stock', 'selling_price', 'discount', 'category_id', 'warehouse_item_id', 'is_consignment', 'consignment_source')
+        $query = CashierItem::select('id', 'code', 'name', 'stock', 'selling_price', 'discount', 'category_id', 'warehouse_item_id', 'expiry_date', 'is_consignment', 'consignment_source')
             ->with(['category:id,name', 'warehouseItem:id,stock'])
             ->where(function ($q) {
                 // Non-consignment items: always show

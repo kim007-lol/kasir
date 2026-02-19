@@ -17,10 +17,13 @@ class SupplierController extends Controller
             ->withTrashed()
             ->when($search, function ($query) use ($search) {
                 $searchLower = '%' . mb_strtolower($search) . '%';
-                $query->whereRaw('LOWER(name) LIKE ?', [$searchLower])
-                    ->orWhereRaw('LOWER(phone) LIKE ?', [$searchLower])
-                    ->orWhereRaw('LOWER(email) LIKE ?', [$searchLower])
-                    ->orWhereRaw('LOWER(address) LIKE ?', [$searchLower]);
+                // BUG-08: Wrap OR conditions agar tidak bypass withTrashed filter
+                $query->where(function ($q) use ($searchLower) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$searchLower])
+                        ->orWhereRaw('LOWER(phone) LIKE ?', [$searchLower])
+                        ->orWhereRaw('LOWER(email) LIKE ?', [$searchLower])
+                        ->orWhereRaw('LOWER(address) LIKE ?', [$searchLower]);
+                });
             })
             ->orderBy('contract_date', 'asc');
 

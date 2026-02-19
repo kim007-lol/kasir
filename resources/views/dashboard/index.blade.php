@@ -92,6 +92,46 @@
         </div>
     </div>
 
+    {{-- Low Stock Alert --}}
+    @if(isset($lowStockItems) && $lowStockItems->count() > 0)
+    <div class="row g-3 mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 border-start border-4 border-danger">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+                        <h5 class="fw-bold mb-0 text-danger">Stok Menipis ({{ $lowStockItems->count() }} item)</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Kode</th>
+                                    <th>Barang</th>
+                                    <th class="text-center">Sisa Stok</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($lowStockItems as $item)
+                                <tr>
+                                    <td><span class="badge bg-light text-dark border">{{ $item->code }}</span></td>
+                                    <td>{{ $item->name }}</td>
+                                    <td class="text-center">
+                                        <span class="badge {{ $item->stock <= 2 ? 'bg-danger' : 'bg-warning text-dark' }}">
+                                            {{ $item->stock }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Sales Chart -->
     <div class="row g-3 mt-4">
         <div class="col-12">

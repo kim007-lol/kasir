@@ -63,6 +63,7 @@
                             <th>Kategori</th>
                             <th>Harga Jual</th>
                             <th class="text-center">Stok</th>
+                            <th class="text-center">Exp Date</th>
                             <th class="text-center">Status</th>
                         </tr>
                     </thead>
@@ -105,6 +106,26 @@
                                         <span class="badge {{ $bgClass }}">{{ $item->stock }}</span>
                             </td>
                             <td class="text-center">
+                                @if($item->expiry_date)
+                                    @php
+                                        $daysUntilExpiry = now()->diffInDays($item->expiry_date, false);
+                                    @endphp
+                                    @if($daysUntilExpiry < 0)
+                                        <span class="badge bg-dark text-white" title="Sudah Kadaluarsa">
+                                            <i class="bi bi-x-circle"></i> EXPIRED
+                                        </span>
+                                    @elseif($daysUntilExpiry <= 30)
+                                        <span class="badge bg-danger blink-badge" title="Hampir Kadaluarsa">
+                                            <i class="bi bi-exclamation-triangle"></i> {{ $item->expiry_date->format('d/m/Y') }}
+                                        </span>
+                                    @else
+                                        <span class="badge bg-light text-dark border">{{ $item->expiry_date->format('d/m/Y') }}</span>
+                                    @endif
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
                                 @if($item->stock > 0)
                                 <i class="bi bi-check-circle-fill text-success" title="Ready"></i>
                                 @else
@@ -114,7 +135,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
+                            <td colspan="8" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox fs-1 opacity-25"></i>
                                 <p class="mt-2">Tidak ada data barang.</p>
                             </td>
@@ -177,6 +198,18 @@
     </div>
 </div>
 
+@endsection
+
+@section('styles')
+<style>
+    .blink-badge {
+        animation: blink-anim 1.2s ease-in-out infinite;
+    }
+    @keyframes blink-anim {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+</style>
 @endsection
 
 @push('scripts')

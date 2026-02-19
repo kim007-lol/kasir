@@ -16,6 +16,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CashierBookingController;
+use App\Http\Controllers\ShopSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -109,7 +110,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 // ===== CASHIER ROUTES =====
 Route::middleware(['auth', 'role:kasir'])->prefix('cashier')->name('cashier.')->group(function () {
     Route::get('/dashboard', function () {
-        return view('cashier.dashboard');
+        $lowStockItems = \App\Models\CashierItem::where('stock', '>', 0)
+            ->where('stock', '<', 5)
+            ->orderBy('stock')
+            ->get(['id', 'name', 'stock']);
+        return view('cashier.dashboard', compact('lowStockItems'));
     })->name('dashboard');
 
     // Transaksi
@@ -151,4 +156,9 @@ Route::middleware(['auth', 'role:kasir'])->prefix('cashier')->name('cashier.')->
     Route::get('/booking-history', [CashierBookingController::class, 'history'])->name('bookings.history');
     // API: pending count for badge polling
     Route::get('/api/bookings/pending-count', [CashierBookingController::class, 'pendingCount'])->name('bookings.pendingCount');
+
+    // === PENGATURAN TOKO ===
+    Route::get('/settings', [ShopSettingController::class, 'edit'])->name('settings');
+    Route::post('/settings/hours', [ShopSettingController::class, 'update'])->name('settings.hours');
+    Route::post('/settings/toggle', [ShopSettingController::class, 'toggleOverride'])->name('settings.toggle');
 });

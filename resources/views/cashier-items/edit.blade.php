@@ -74,6 +74,15 @@
                     <small class="text-muted">Potongan khusus kasir (tidak mengubah data gudang).</small>
                 </div>
 
+                <div class="mb-3">
+                    <label for="expiry_date" class="form-label">Tanggal Kadaluarsa</label>
+                    <input type="date" class="form-control @error('expiry_date') is-invalid @enderror" id="expiry_date" name="expiry_date" value="{{ old('expiry_date', $cashierItem->expiry_date?->format('Y-m-d')) }}">
+                    @error('expiry_date')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="text-muted">Kosongkan jika tidak memiliki tanggal kadaluarsa.</small>
+                </div>
+
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-save"></i> Update
