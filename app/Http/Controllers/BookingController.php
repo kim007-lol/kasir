@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\BookingItem;
 use App\Models\CashierItem;
 use App\Models\Category;
+use App\Models\ShopSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -13,23 +14,11 @@ use Illuminate\Support\Facades\DB;
 class BookingController extends Controller
 {
     /**
-     * Operating hours (hardcoded for now)
-     */
-    private const OPEN_HOUR = 7;   // 07:00
-    private const CLOSE_HOUR = 15; // 15:00
-
-    /**
-     * Check if shop is currently open
+     * Check if shop is currently open (reads from ShopSetting)
      */
     private function isShopOpen(): bool
     {
-        $now = now();
-        $hour = (int) $now->format('H');
-        // Open on weekdays only (Mon-Sat), closed Sunday (0)
-        if ($now->dayOfWeek === 0) {
-            return false;
-        }
-        return $hour >= self::OPEN_HOUR && $hour < self::CLOSE_HOUR;
+        return ShopSetting::isShopOpen();
     }
 
     /**
@@ -42,14 +31,23 @@ class BookingController extends Controller
         $search = $request->get('search');
 
         $query = CashierItem::where('stock', '>', 0)
-            ->with('category');
+            ->with('category')
+            ->where(function ($q) {
+                // Exclude consignment items that are NOT from today
+                $q->where('is_consignment', false)
+                    ->orWhere(function ($q2) {
+                        $q2->where('is_consignment', true)
+                            ->whereDate('created_at', today());
+                    });
+            });
 
         if ($selectedCategory) {
             $query->where('category_id', $selectedCategory);
         }
 
         if ($search) {
-            $query->where('name', 'like', '%' . $search . '%');
+            // BUG-06: Gunakan LOWER() LIKE agar portable (tidak hanya PostgreSQL)
+            $query->whereRaw('LOWER(name) LIKE ?', ['%' . mb_strtolower($search) . '%']);
         }
 
         $items = $query->orderBy('name')->get();
@@ -120,10 +118,19 @@ class BookingController extends Controller
     {
         $cart = session('booking_cart', []);
         $updates = $request->input('cart', []);
+        $errors = [];
 
         foreach ($updates as $index => $data) {
             if (isset($cart[$index])) {
                 $qty = max(1, (int) ($data['qty'] ?? 1));
+
+                // SEC-04: Validasi stok dari database
+                $item = CashierItem::find($cart[$index]['cashier_item_id']);
+                if ($item && $qty > $item->stock) {
+                    $qty = $item->stock; // Clamp ke stok tersedia
+                    $errors[] = "{$cart[$index]['name']}: qty disesuaikan ke stok tersedia ({$item->stock})";
+                }
+
                 $cart[$index]['qty'] = $qty;
                 $cart[$index]['subtotal'] = $qty * $cart[$index]['price'];
                 $cart[$index]['notes'] = $data['notes'] ?? '';
@@ -131,6 +138,10 @@ class BookingController extends Controller
         }
 
         session(['booking_cart' => $cart]);
+
+        if (!empty($errors)) {
+            return back()->with('warning', implode('. ', $errors));
+        }
 
         return back()->with('success', 'Keranjang diperbarui!');
     }
@@ -203,25 +214,57 @@ class BookingController extends Controller
         $request->validate([
             'delivery_type' => 'required|in:pickup,delivery',
             'delivery_address' => 'required_if:delivery_type,delivery|nullable|string|max:500',
+            'pickup_time' => 'required_if:delivery_type,pickup|nullable|date_format:H:i',
             'notes' => 'nullable|string|max:500',
         ], [
             'delivery_type.required' => 'Pilih metode pengambilan',
             'delivery_address.required_if' => 'Alamat pengiriman harus diisi untuk delivery',
+            'pickup_time.required_if' => 'Jam ambil harus diisi',
         ]);
 
         try {
             DB::beginTransaction();
 
             $user = Auth::user();
-            $total = collect($cart)->sum('subtotal');
+            $total = 0;
 
-            // Validate stock availability before creating
+            // SEC-05 + BUG-03: Validasi stok & harga dari DB dengan lock
+            $validatedCart = [];
             foreach ($cart as $cartItem) {
-                $item = CashierItem::find($cartItem['cashier_item_id']);
+                $item = CashierItem::where('id', $cartItem['cashier_item_id'])
+                    ->lockForUpdate()
+                    ->first();
+
                 if (!$item || $item->stock < $cartItem['qty']) {
                     DB::rollBack();
                     return back()->with('error', "Stok {$cartItem['name']} tidak mencukupi. Tersedia: " . ($item->stock ?? 0));
                 }
+
+                // SEC-05: Gunakan harga terkini dari database
+                $currentPrice = $item->final_price;
+                $subtotal = $currentPrice * $cartItem['qty'];
+                $total += $subtotal;
+
+                $validatedCart[] = [
+                    'cashier_item_id' => $item->id,
+                    'name' => $item->name,
+                    'qty' => $cartItem['qty'],
+                    'price' => $currentPrice,
+                    'subtotal' => $subtotal,
+                    'notes' => $cartItem['notes'] ?? null,
+                ];
+
+                // BUG-04: Kurangi stok saat order dibuat
+                $item->decrement('stock', $cartItem['qty']);
+            }
+
+            // Prepare notes with time info
+            $notes = $request->notes;
+            if ($request->delivery_type === 'pickup' && $request->pickup_time) {
+                $notes = trim("{$notes}\n[Jam Ambil: {$request->pickup_time}]");
+            } elseif ($request->delivery_type === 'delivery') {
+                $estimasi = now()->addMinutes(10)->format('H:i') . ' - ' . now()->addMinutes(15)->format('H:i');
+                $notes = trim("{$notes}\n[Estimasi Sampai: {$estimasi}]");
             }
 
             // Create booking
@@ -232,21 +275,21 @@ class BookingController extends Controller
                 'customer_phone' => $user->member?->phone ?? '',
                 'delivery_type' => $request->delivery_type,
                 'delivery_address' => $request->delivery_type === 'delivery' ? $request->delivery_address : null,
-                'notes' => $request->notes,
+                'notes' => $notes,
                 'total' => $total,
                 'status' => 'pending',
             ]);
 
-            // Create booking items
-            foreach ($cart as $cartItem) {
+            // Create booking items with validated data
+            foreach ($validatedCart as $item) {
                 BookingItem::create([
                     'booking_id' => $booking->id,
-                    'cashier_item_id' => $cartItem['cashier_item_id'],
-                    'name' => $cartItem['name'],
-                    'qty' => $cartItem['qty'],
-                    'price' => $cartItem['price'],
-                    'subtotal' => $cartItem['subtotal'],
-                    'notes' => $cartItem['notes'] ?? null,
+                    'cashier_item_id' => $item['cashier_item_id'],
+                    'name' => $item['name'],
+                    'qty' => $item['qty'],
+                    'price' => $item['price'],
+                    'subtotal' => $item['subtotal'],
+                    'notes' => $item['notes'],
                 ]);
             }
 
