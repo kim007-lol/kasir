@@ -173,6 +173,68 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
         padding: 0.2rem 0.4rem;
         font-size: 0.75rem;
     }
+
+    @media (max-width: 768px) {
+        /* Filter quick tabs horizontal scroll */
+        .btn-group.w-100 {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 3px;
+        }
+        .btn-group.w-100 .btn {
+            white-space: nowrap;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+        }
+        .btn-group.w-100::-webkit-scrollbar {
+            height: 3px;
+        }
+        .btn-group.w-100::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+
+        /* Table compact */
+        .table th, .table td {
+            font-size: 0.78rem;
+            padding: 0.35rem 0.3rem;
+        }
+        .table .badge {
+            font-size: 0.68rem;
+        }
+
+        /* Page header */
+        h2.fw-bold {
+            font-size: 1.2rem;
+        }
+
+        /* Cards */
+        .card-body {
+            padding: 0.85rem;
+        }
+        .card-header {
+            padding: 0.6rem 0.85rem;
+        }
+        .card-header h5 {
+            font-size: 0.95rem;
+        }
+
+        /* Filter form */
+        .row.g-3 .form-label {
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .table th, .table td {
+            font-size: 0.72rem;
+            padding: 0.25rem 0.2rem;
+        }
+        h2.fw-bold {
+            font-size: 1.1rem;
+        }
+    }
 </style>
 </div>
 @endsection

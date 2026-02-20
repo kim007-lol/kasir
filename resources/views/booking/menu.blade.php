@@ -125,5 +125,49 @@
         transform: translateY(-3px);
         box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
     }
+
+    @media (max-width: 768px) {
+        .menu-card .card-body {
+            padding: 0.75rem !important;
+        }
+        .menu-card h6 {
+            font-size: 0.88rem;
+        }
+        .menu-card .badge {
+            font-size: 0.6rem !important;
+        }
+        .menu-card .fs-6 {
+            font-size: 0.85rem !important;
+        }
+        /* Category filter scroll */
+        .d-flex.gap-2.overflow-auto .btn {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+        }
+        .d-flex.gap-2.overflow-auto::-webkit-scrollbar {
+            height: 3px;
+        }
+        .d-flex.gap-2.overflow-auto::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .menu-card .card-body {
+            padding: 0.6rem !important;
+        }
+        .menu-card h6 {
+            font-size: 0.82rem;
+        }
+        .menu-card .btn-sm {
+            font-size: 0.72rem;
+            padding: 0.2rem 0.4rem;
+        }
+        .menu-card input[type="number"] {
+            width: 45px !important;
+            font-size: 0.75rem;
+        }
+    }
 </style>
 @endsection

@@ -309,6 +309,22 @@
                 margin-top: 20px;
                 padding: 10px 20px;
             }
+
+            /* Tables */
+            .table th, .table td {
+                font-size: 0.8rem;
+                padding: 0.35rem 0.3rem;
+            }
+
+            /* Cards */
+            .card-body {
+                padding: 0.85rem;
+            }
+
+            /* Page titles */
+            h2.fw-bold, h2 {
+                font-size: 1.3rem;
+            }
         }
 
         @media (max-width: 576px) {
@@ -327,6 +343,66 @@
 
             .sidebar nav a i {
                 margin-right: 8px;
+            }
+
+            /* Tables compact on small phones */
+            .table th, .table td {
+                font-size: 0.72rem;
+                padding: 0.25rem 0.2rem;
+            }
+            .table .badge {
+                font-size: 0.65rem;
+            }
+
+            /* Cards */
+            .card-body {
+                padding: 0.75rem;
+            }
+            .card-header {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.85rem;
+            }
+
+            /* Page titles */
+            h2.fw-bold, h2 {
+                font-size: 1.15rem;
+            }
+            h5.fw-bold, h5 {
+                font-size: 0.95rem;
+            }
+
+            /* Buttons */
+            .btn {
+                font-size: 0.78rem;
+            }
+            .btn-sm {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.35rem;
+            }
+
+            /* Filter button groups: horizontal scroll */
+            .btn-group {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .btn-group .btn {
+                white-space: nowrap;
+            }
+            .btn-group::-webkit-scrollbar {
+                height: 3px;
+            }
+            .btn-group::-webkit-scrollbar-thumb {
+                background: #ccc;
+                border-radius: 10px;
+            }
+
+            /* Form elements */
+            .form-label {
+                font-size: 0.8rem;
+            }
+            .form-control, .form-select {
+                font-size: 0.82rem;
             }
         }
 

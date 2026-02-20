@@ -178,7 +178,7 @@
             </div>
             <div class="info-row">
                 <span>Kasir:</span>
-                <span>{{ $lastTransaction->cashier_name ?? (auth()->user()->name ?? 'System') }}</span>
+                <span>{{ $lastTransaction->cashier_name ?? ($lastTransaction->user->name ?? 'System') }}</span>
             </div>
 
             <div class="dashed-line"></div>

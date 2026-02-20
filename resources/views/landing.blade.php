@@ -300,6 +300,51 @@
             .login-card {
                 padding: 1.75rem;
             }
+
+            .feature-card {
+                padding: 1.25rem;
+            }
+
+            /* About section tabs horizontal scroll */
+            #aboutTabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 5px;
+            }
+            #aboutTabs .nav-link {
+                white-space: nowrap;
+                font-size: 0.8rem;
+                padding: 0.5rem 0.75rem;
+            }
+            #aboutTabs::-webkit-scrollbar {
+                height: 3px;
+            }
+            #aboutTabs::-webkit-scrollbar-thumb {
+                background: #ccc;
+                border-radius: 10px;
+            }
+
+            /* Navbar buttons compact */
+            .landing-nav .btn-sm {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.5rem;
+            }
+
+            /* Feature icon smaller */
+            .feature-icon {
+                width: 55px;
+                height: 55px;
+                font-size: 1.4rem;
+            }
+
+            /* Hours section */
+            .hours-section {
+                padding: 2rem 0;
+            }
+            .hours-card {
+                padding: 1.5rem;
+            }
         }
 
         @media (max-width: 576px) {
@@ -307,8 +352,48 @@
                 font-size: 1.6rem;
             }
 
+            .hero-badge {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.8rem;
+            }
+
             .features .section-title {
                 font-size: 1.5rem;
+            }
+
+            .landing-nav .brand {
+                font-size: 1.1rem;
+            }
+            .landing-nav .brand i {
+                font-size: 1.3rem;
+            }
+
+            /* CTA buttons */
+            .btn-login-primary,
+            .btn-login-outline {
+                padding: 0.6rem 1.25rem;
+                font-size: 0.85rem;
+            }
+
+            /* Login cards */
+            .login-card {
+                padding: 1.25rem;
+            }
+            .login-card .icon-wrapper {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+            .login-card h4 {
+                font-size: 1.1rem;
+            }
+
+            /* Feature cards */
+            .feature-card h5 {
+                font-size: 0.95rem;
+            }
+            .feature-card p {
+                font-size: 0.82rem;
             }
         }
     </style>

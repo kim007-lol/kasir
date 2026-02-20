@@ -358,11 +358,8 @@ class TransactionController extends Controller
 
         $netTotal = $grossTotal - $discountAmount;
 
-        // SEC-07: Kasir tidak bisa memalsukan nama — paksa pakai nama sendiri
+        // Nama kasir yang melayani (manual input dari form)
         $cashierName = $validated['cashier_name'];
-        if (auth()->check() && auth()->user()->role === 'kasir') {
-            $cashierName = auth()->user()->name;
-        }
 
         $paidAmount = (float) $validated['paid_amount'];
         $changeAmount = $paidAmount - $netTotal;

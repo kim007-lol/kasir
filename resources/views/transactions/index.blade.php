@@ -333,6 +333,65 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
             padding: 0.75rem;
         }
 
+        /* Compact product table */
+        #multiCartFormContainer .table th,
+        #multiCartFormContainer .table td {
+            font-size: 0.78rem;
+            padding: 0.35rem 0.3rem;
+        }
+
+        /* Quick pay buttons stack */
+        #quickPaymentButtons {
+            justify-content: center;
+        }
+        #quickPaymentButtons .btn {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.5rem;
+        }
+
+        /* Cart table compact */
+        .col-lg-4 .table td,
+        .col-lg-4 .table th {
+            font-size: 0.78rem;
+            padding: 0.3rem 0.25rem;
+        }
+
+        /* Page title */
+        h2.fw-bold {
+            font-size: 1.2rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        #multiCartFormContainer .table th,
+        #multiCartFormContainer .table td {
+            font-size: 0.72rem;
+            padding: 0.25rem 0.2rem;
+        }
+
+        .qty-input {
+            width: 55px !important;
+            font-size: 0.75rem;
+        }
+
+        #quickPaymentButtons .btn {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.4rem;
+        }
+
+        .form-label {
+            font-size: 0.8rem;
+        }
+
+        .form-control-sm, .form-select-sm {
+            font-size: 0.8rem;
+        }
+
+        /* Checkout button */
+        #payButton {
+            font-size: 0.95rem;
+            padding: 0.6rem;
+        }
     }
 
     .card {

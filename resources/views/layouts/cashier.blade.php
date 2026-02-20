@@ -111,6 +111,88 @@
         #toast-container>.toast-info {
             background-color: #5b9dd9;
         }
+
+        /* ===== GLOBAL RESPONSIVE UTILITIES ===== */
+        .pagination svg {
+            width: 1rem;
+            height: 1rem;
+        }
+        .pagination .flex.justify-between.flex-1 {
+            display: none;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .content {
+                padding: 20px 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 15px 0;
+            }
+            .content .container {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+            h2.fw-bold {
+                font-size: 1.3rem;
+            }
+            .table th, .table td {
+                font-size: 0.82rem;
+                padding: 0.4rem 0.35rem;
+            }
+            .card-body {
+                padding: 0.85rem;
+            }
+            .card-header {
+                padding: 0.6rem 0.85rem;
+            }
+            /* Filter buttons horizontal scroll */
+            .btn-group.w-100 {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .btn-group.w-100 .btn {
+                white-space: nowrap;
+                font-size: 0.78rem;
+                padding: 0.35rem 0.6rem;
+            }
+            /* Navbar brand smaller */
+            .navbar-brand {
+                font-size: 0.95rem;
+            }
+            .nav-link {
+                font-size: 0.85rem !important;
+                padding: 0.4rem 0.6rem !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .content {
+                padding: 10px 0;
+            }
+            .content .container {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+            h2.fw-bold {
+                font-size: 1.15rem;
+            }
+            .table th, .table td {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.25rem;
+            }
+            .btn-sm {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.35rem;
+            }
+            .card {
+                border-radius: 0.5rem;
+            }
+        }
     </style>
 </head>
 

@@ -20,7 +20,7 @@
             color: #000;
             width: 80mm;
             margin: 0 auto;
-            padding: 5mm;
+            padding: 2mm 3mm;
         }
 
         .shop-name {
@@ -33,20 +33,20 @@
         .shop-address {
             font-size: 10px;
             text-align: center;
-            margin-bottom: 3px;
+            margin-bottom: 1px;
         }
 
         .receipt-title {
             font-size: 13px;
             font-weight: bold;
             text-align: center;
-            margin: 6px 0;
+            margin: 3px 0;
             text-transform: uppercase;
         }
 
         .dashed-line {
             border-top: 1px dashed #000;
-            margin: 4px 0;
+            margin: 2px 0;
         }
 
         .info-row {
@@ -57,7 +57,7 @@
         }
 
         .item-row {
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .item-name {
@@ -83,25 +83,16 @@
             font-size: 16px;
             font-weight: bold;
             text-align: right;
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
         .footer {
             text-align: center;
-            margin-top: 10px;
+            margin-top: 4px;
             font-size: 10px;
         }
 
-        .barcode-box {
-            height: 30px;
-            width: 85%;
-            margin: 6px auto;
-            background: repeating-linear-gradient(90deg,
-                    #000 0px, #000 2px,
-                    transparent 2px, transparent 4px,
-                    #000 4px, #000 6px,
-                    transparent 6px, transparent 8px);
-        }
+
 
         /* Print Optimization */
         @media print {
@@ -232,23 +223,17 @@
     </div>
 
     <div class="dashed-line"></div>
+    <div class="dashed-line"></div>
 
     {{-- Grand Total --}}
-    <div style="text-align: right;">
-        <small style="font-size: 9px;">{{ strtoupper($transaction->payment_method) }}</small>
-        <div class="big-total">Rp {{ number_format($transaction->total, 0, ',', '.') }}</div>
-    </div>
+    <div class="big-total">Rp {{ number_format($transaction->total, 0, ',', '.') }}</div>
 
-    {{-- Barcode --}}
-    <div class="barcode-box"></div>
-    <div style="text-align: center; font-size: 9px;">{{ $transaction->invoice }}</div>
-
-    <div class="dashed-line" style="margin-top: 6px;"></div>
+    <div class="dashed-line" style="margin-top: 2px;"></div>
 
     {{-- Footer --}}
     <div class="footer">
         <div>*** TERIMA KASIH ***</div>
-        <div style="margin-top: 3px;">{{ $transaction->created_at->isoFormat('dddd, D MMMM Y HH:mm') }}</div>
+        <div>{{ $transaction->created_at->isoFormat('dddd, D MMMM Y HH:mm') }}</div>
     </div>
 
     <script>
