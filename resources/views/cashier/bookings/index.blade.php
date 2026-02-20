@@ -16,39 +16,39 @@
     <!-- Status Tabs -->
     <ul class="nav nav-pills mb-4" id="status-tabs">
         <li class="nav-item">
-            <a class="nav-link {{ $status == 'pending' ? 'active' : '' }}" href="?status=pending">
+            <a class="nav-link tab-pending {{ $status == 'pending' ? 'active' : '' }}" href="?status=pending">
                 <i class="bi bi-clock"></i> Menunggu
                 @if($statusCounts['pending'] > 0)
-                <span class="badge bg-warning text-dark">{{ $statusCounts['pending'] }}</span>
+                <span class="badge bg-white text-dark">{{ $statusCounts['pending'] }}</span>
                 @endif
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ $status == 'confirmed' ? 'active' : '' }}" href="?status=confirmed">
+            <a class="nav-link tab-confirmed {{ $status == 'confirmed' ? 'active' : '' }}" href="?status=confirmed">
                 <i class="bi bi-check-circle"></i> Dikonfirmasi
                 @if($statusCounts['confirmed'] > 0)
-                <span class="badge bg-info">{{ $statusCounts['confirmed'] }}</span>
+                <span class="badge bg-white text-dark">{{ $statusCounts['confirmed'] }}</span>
                 @endif
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ $status == 'processing' ? 'active' : '' }}" href="?status=processing">
+            <a class="nav-link tab-processing {{ $status == 'processing' ? 'active' : '' }}" href="?status=processing">
                 <i class="bi bi-fire"></i> Diproses
                 @if($statusCounts['processing'] > 0)
-                <span class="badge bg-primary">{{ $statusCounts['processing'] }}</span>
+                <span class="badge bg-white text-dark">{{ $statusCounts['processing'] }}</span>
                 @endif
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ $status == 'ready' ? 'active' : '' }}" href="?status=ready">
+            <a class="nav-link tab-ready {{ $status == 'ready' ? 'active' : '' }}" href="?status=ready">
                 <i class="bi bi-check2-all"></i> Siap
                 @if($statusCounts['ready'] > 0)
-                <span class="badge bg-success">{{ $statusCounts['ready'] }}</span>
+                <span class="badge bg-white text-dark">{{ $statusCounts['ready'] }}</span>
                 @endif
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ $status == 'all' ? 'active' : '' }}" href="?status=all">
+            <a class="nav-link tab-all {{ $status == 'all' ? 'active' : '' }}" href="?status=all">
                 <i class="bi bi-grid"></i> Semua
             </a>
         </li>
@@ -387,21 +387,60 @@
 
 <style>
     .nav-pills .nav-link {
-        color: #6c757d;
-        font-weight: 500;
+        font-weight: 600;
         border-radius: 0.75rem;
         margin-right: 0.25rem;
         transition: all 0.3s ease;
+        color: #fff;
+    }
+
+    .nav-pills .nav-link.tab-pending {
+        background-color: #f0ad4e;
+    }
+    .nav-pills .nav-link.tab-pending.active {
+        background-color: #d48806;
+        box-shadow: 0 3px 10px rgba(212, 136, 6, 0.4);
+    }
+
+    .nav-pills .nav-link.tab-confirmed {
+        background-color: #17a2b8;
+    }
+    .nav-pills .nav-link.tab-confirmed.active {
+        background-color: #0d8da0;
+        box-shadow: 0 3px 10px rgba(13, 141, 160, 0.4);
+    }
+
+    .nav-pills .nav-link.tab-processing {
+        background-color: #4a90d9;
+    }
+    .nav-pills .nav-link.tab-processing.active {
+        background-color: #2563eb;
+        box-shadow: 0 3px 10px rgba(37, 99, 235, 0.4);
+    }
+
+    .nav-pills .nav-link.tab-ready {
+        background-color: #28a745;
+    }
+    .nav-pills .nav-link.tab-ready.active {
+        background-color: #1e7e34;
+        box-shadow: 0 3px 10px rgba(30, 126, 52, 0.4);
+    }
+
+    .nav-pills .nav-link.tab-all {
+        background-color: #6c757d;
+    }
+    .nav-pills .nav-link.tab-all.active {
+        background-color: #495057;
+        box-shadow: 0 3px 10px rgba(73, 80, 87, 0.4);
+    }
+
+    .nav-pills .nav-link:hover {
+        opacity: 0.85;
+        transform: translateY(-1px);
     }
 
     .nav-pills .nav-link.active {
-        background-color: #ff6b6b;
-        color: white;
-    }
-
-    .nav-pills .nav-link:hover:not(.active) {
-        background-color: #fff0f0;
-        color: #ee5253;
+        transform: scale(1.05);
     }
 
     .card {
@@ -416,5 +455,38 @@
     .btn-sm {
         padding: 0.3rem 0.6rem;
         font-size: 0.8rem;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        #status-tabs {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 5px;
+        }
+
+        #status-tabs::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        #status-tabs::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+
+        .nav-pills .nav-link {
+            font-size: 0.78rem;
+            padding: 0.4rem 0.7rem;
+            white-space: nowrap;
+        }
+
+        .card-footer .d-flex {
+            flex-direction: column;
+        }
+
+        .card-footer .btn {
+            width: 100%;
+        }
     }
 </style>

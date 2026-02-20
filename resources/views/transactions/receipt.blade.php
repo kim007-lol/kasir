@@ -262,8 +262,12 @@
                     <i class="bi bi-printer"></i> Print
                 </button>
                 @php
+                $thermalRoute = auth()->check() && auth()->user()->role === 'kasir' ? 'cashier.transactions.thermalReceipt' : 'transactions.thermalReceipt';
                 $transactionRoute = auth()->check() && auth()->user()->role === 'kasir' ? 'cashier.transactions.index' : 'transactions.index';
                 @endphp
+                <a href="{{ route($thermalRoute, $lastTransaction->id) }}" target="_blank" class="btn btn-success btn-sm">
+                    <i class="bi bi-receipt"></i> Cetak Thermal
+                </a>
                 <a href="{{ route($transactionRoute) }}" class="btn btn-secondary btn-sm">
                     <i class="bi bi-arrow-left"></i> Kembali / Transaksi Baru
                 </a>

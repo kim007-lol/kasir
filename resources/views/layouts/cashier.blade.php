@@ -64,6 +64,32 @@
             border-radius: 0.5rem;
         }
 
+        /* Dropdown Menu */
+        .navbar .dropdown-menu {
+            background-color: #fff;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 0.5rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            padding: 0.5rem 0;
+        }
+
+        .navbar .dropdown-item {
+            color: #333 !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: var(--transition);
+        }
+
+        .navbar .dropdown-item:hover,
+        .navbar .dropdown-item.active {
+            background-color: var(--primary-color);
+            color: #fff !important;
+        }
+
+        .navbar .dropdown-divider {
+            margin: 0.25rem 0;
+        }
+
         .content {
             flex: 1;
             padding: 30px 0;
@@ -105,25 +131,57 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('cashier.transactions.index') ? 'active' : '' }}" href="{{ route('cashier.transactions.index') }}">TRANSAKSI</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('cashier.stock.index') ? 'active' : '' }}" href="{{ route('cashier.stock.index') }}">STOK ITEM KASIR</a>
+                    {{-- Dropdown: Stok --}}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('cashier.stock.*', 'cashier.stock-adjustments.*', 'cashier.consignment.*') ? 'active' : '' }}"
+                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            STOK
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('cashier.stock.index') ? 'active' : '' }}" href="{{ route('cashier.stock.index') }}">
+                                    <i class="bi bi-box-seam me-2"></i>Stok Item Kasir
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('cashier.stock-adjustments.*') ? 'active' : '' }}" href="{{ route('cashier.stock-adjustments.index') }}">
+                                    <i class="bi bi-clipboard-check me-2"></i>Stock Opname
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('cashier.consignment.*') ? 'active' : '' }}" href="{{ route('cashier.consignment.index') }}">
+                                    <i class="bi bi-shop me-2"></i>Barang Titipan
+                                </a>
+                            </li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('cashier.consignment.*') ? 'active' : '' }}" href="{{ route('cashier.consignment.index') }}">BARANG TITIPAN</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('cashier.history.index') ? 'active' : '' }}" href="{{ route('cashier.history.index') }}">HISTORI TRANSAKSI</a>
+                    {{-- Dropdown: Histori --}}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('cashier.history.*', 'cashier.bookings.history') ? 'active' : '' }}"
+                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            HISTORI
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('cashier.history.index') ? 'active' : '' }}" href="{{ route('cashier.history.index') }}">
+                                    <i class="bi bi-clock-history me-2"></i>Histori Transaksi
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('cashier.bookings.history') ? 'active' : '' }}" href="{{ route('cashier.bookings.history') }}">
+                                    <i class="bi bi-journal-text me-2"></i>Histori Booking
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('cashier.bookings.index', 'cashier.bookings.show') ? 'active' : '' }}" href="{{ route('cashier.bookings.index') }}">
-                            PESANAN ONLINE
+                            PESANAN
                             <span class="badge bg-danger ms-1" id="nav-booking-badge" style="{{ \App\Models\Booking::pending()->count() > 0 ? '' : 'display:none' }}">
                                 {{ \App\Models\Booking::pending()->count() ?: '' }}
                             </span>
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('cashier.bookings.history') ? 'active' : '' }}" href="{{ route('cashier.bookings.history') }}">HISTORI BOOKING</a>
                     </li>
                 </ul>
                 <div class="d-flex align-items-center text-white">

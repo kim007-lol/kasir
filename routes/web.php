@@ -17,6 +17,7 @@ use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CashierBookingController;
 use App\Http\Controllers\ShopSettingController;
+use App\Http\Controllers\StockAdjustmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -93,6 +94,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('cashier-items', CashierItemController::class);
 
     Route::get('/transaksi/download/{id}', [TransactionController::class, 'downloadReceipt'])->name('transactions.downloadReceipt');
+    Route::get('/transaksi/thermal/{id}', [TransactionController::class, 'thermalReceipt'])->name('transactions.thermalReceipt');
+
+    // Stock Opname
+    Route::get('/stock-adjustments', [StockAdjustmentController::class, 'index'])->name('stock-adjustments.index');
+    Route::get('/stock-adjustments/create', [StockAdjustmentController::class, 'create'])->name('stock-adjustments.create');
+    Route::post('/stock-adjustments', [StockAdjustmentController::class, 'store'])->name('stock-adjustments.store');
 
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
     Route::get('/history/{transaction}', [HistoryController::class, 'show'])->name('history.show');
@@ -125,7 +132,13 @@ Route::middleware(['auth', 'role:kasir'])->prefix('cashier')->name('cashier.')->
     Route::post('/transaksi/bayar', [TransactionController::class, 'checkout'])->name('transactions.checkout');
     Route::get('/transaksi/struk', [TransactionController::class, 'receipt'])->name('transactions.receipt');
     Route::get('/transaksi/download/{id}', [TransactionController::class, 'downloadReceipt'])->name('transactions.downloadReceipt');
+    Route::get('/transaksi/thermal/{id}', [TransactionController::class, 'thermalReceipt'])->name('transactions.thermalReceipt');
     Route::post('/transaksi/reset', [TransactionController::class, 'clearCart'])->name('transactions.clearCart');
+
+    // Stock Opname
+    Route::get('/stock-adjustments', [StockAdjustmentController::class, 'index'])->name('stock-adjustments.index');
+    Route::get('/stock-adjustments/create', [StockAdjustmentController::class, 'create'])->name('stock-adjustments.create');
+    Route::post('/stock-adjustments', [StockAdjustmentController::class, 'store'])->name('stock-adjustments.store');
 
     // Stok Item Kasir
     Route::get('/stock', [CashierItemController::class, 'cashierIndex'])->name('stock.index');

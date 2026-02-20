@@ -499,6 +499,24 @@ class TransactionController extends Controller
         return view('transactions.receipt-pdf', compact('transaction', 'details'));
     }
 
+    public function thermalReceipt($id): View|RedirectResponse
+    {
+        $transaction = Transaction::find($id);
+
+        if (!$transaction) {
+            return redirect()->route($this->routeIndex())->with('error', 'Transaksi tidak ditemukan');
+        }
+
+        // Ownership check: kasir hanya bisa cetak transaksi sendiri
+        if (auth()->user()->role !== 'admin' && $transaction->user_id !== auth()->id()) {
+            return redirect()->route($this->routeIndex())->with('error', 'Anda tidak memiliki akses untuk mencetak struk ini.');
+        }
+
+        $details = TransactionDetail::where('transaction_id', $transaction->id)->with('item')->get();
+
+        return view('transactions.receipt-thermal', compact('transaction', 'details'));
+    }
+
     private function calculateTotal(&$cart): float
     {
         $total = 0;

@@ -300,8 +300,12 @@
                 <i class="bi bi-printer"></i> Print Struk
             </button>
             @php
+            $thermalRoute = auth()->check() && auth()->user()->role === 'kasir' ? 'cashier.transactions.thermalReceipt' : 'transactions.thermalReceipt';
             $historyRoute = auth()->check() && auth()->user()->role === 'kasir' ? 'cashier.history.index' : 'history.index';
             @endphp
+            <a href="{{ route($thermalRoute, $transaction->id) }}" target="_blank" class="btn btn-success">
+                <i class="bi bi-receipt"></i> Cetak Thermal
+            </a>
             <a href="{{ route($historyRoute) }}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Kembali ke History
             </a>
