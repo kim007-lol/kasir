@@ -265,6 +265,11 @@
                             </span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('cashier.customer-display') }}" target="_blank" title="Buka di monitor pelanggan">
+                            <i class="bi bi-display"></i> LAYAR PELANGGAN
+                        </a>
+                    </li>
                 </ul>
                 <div class="d-flex align-items-center text-white">
                     <span class="me-3 d-none d-lg-block">{{ auth()->user()->name }}</span>

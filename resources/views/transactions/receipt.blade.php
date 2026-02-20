@@ -268,7 +268,7 @@
                 <a href="{{ route($thermalRoute, $lastTransaction->id) }}" target="_blank" class="btn btn-success btn-sm">
                     <i class="bi bi-receipt"></i> Cetak Thermal
                 </a>
-                <a href="{{ route($transactionRoute) }}" class="btn btn-secondary btn-sm">
+                <a href="{{ route($transactionRoute) }}" class="btn btn-secondary btn-sm" id="backBtn">
                     <i class="bi bi-arrow-left"></i> Kembali / Transaksi Baru
                 </a>
             </div>
@@ -279,6 +279,20 @@
 
 <script>
     window.onload = function() {
+        // Customer Display Integration
+        const cfdChannel = new BroadcastChannel('kasirku-customer-display');
+        
+        // Show persistent "Thank You" when receipt is loaded
+        cfdChannel.postMessage({ type: 'show-thank-you' });
+
+        // Reset display when "Kembali" is clicked
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) {
+            backBtn.addEventListener('click', function() {
+                cfdChannel.postMessage({ type: 'reset-display' });
+            });
+        }
+
         // Auto-print logic
         const receiptCard = document.getElementById('receiptCard');
         const hasSuccess = receiptCard ? receiptCard.dataset.print === 'true' : false;
@@ -286,8 +300,6 @@
         if (hasSuccess) {
             setTimeout(() => {
                 window.print();
-                // Optional: Auto redirect after print? 
-                // Currently user has to click 'Kembali'
             }, 800);
         }
     }

@@ -404,6 +404,25 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
     style="display: none;"></div>
 
 <script>
+    // ===== Customer-Facing Display: BroadcastChannel Sender =====
+    const cfdChannel = new BroadcastChannel('kasirku-customer-display');
+
+    // Broadcast current cart state on page load
+    (function broadcastCartState() {
+        const cart = @json($cart ?? []);
+        const total = {{ $total ?? 0 }};
+        const items = Object.values(cart).map(item => ({
+            name: item.name,
+            price: item.price,
+            qty: item.qty
+        }));
+        cfdChannel.postMessage({
+            type: 'cart-update',
+            items: items,
+            total: total
+        });
+    })();
+
     // M3 Fix: Prevent double-submit on checkout
     function handleCheckoutSubmit(form) {
         const btn = form.querySelector('#payButton');
@@ -411,6 +430,15 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
         btn.dataset.submitting = 'true';
         btn.disabled = true;
         btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Memproses...';
+
+        // Notify customer display
+        cfdChannel.postMessage({ type: 'checkout-processing' });
+
+        // Send success after short delay (form will redirect anyway)
+        setTimeout(() => {
+            cfdChannel.postMessage({ type: 'checkout-success' });
+        }, 1500);
+
         return true;
     }
 
