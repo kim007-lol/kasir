@@ -19,6 +19,10 @@ return new class extends Migration
             $table->softDeletes();
         });
 
+        Schema::table('users', function (Blueprint $table) {
+            $table->softDeletes();
+        });
+
         Schema::table('transactions', function (Blueprint $table) {
             // Check if columns exist before adding them to avoid errors if re-running or partial runs
             if (!Schema::hasColumn('transactions', 'discount_percent')) {
@@ -40,6 +44,10 @@ return new class extends Migration
         });
 
         Schema::table('categories', function (Blueprint $table) {
+            $table->dropSoftDeletes();
+        });
+
+        Schema::table('users', function (Blueprint $table) {
             $table->dropSoftDeletes();
         });
 

@@ -69,13 +69,14 @@
                         <option value="" disabled>-- Pilih Role --</option>
                         <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Admin</option>
                         <option value="kasir" {{ old('role', $user->role) === 'kasir' ? 'selected' : '' }}>Kasir</option>
+                        <option value="pelanggan" {{ old('role', $user->role) === 'pelanggan' ? 'selected' : '' }}>Pelanggan</option>
                     </select>
                     @error('role')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                     <small class="text-muted mt-1 d-block">
                         <i class="bi bi-info-circle"></i>
-                        <strong>Admin</strong> = akses penuh (gudang, laporan, user). <strong>Kasir</strong> = transaksi & stok kasir.
+                        <strong>Admin</strong> = akses penuh. <strong>Kasir</strong> = transaksi POS. <strong>Pelanggan</strong> = akses booking online.
                     </small>
                 </div>
 

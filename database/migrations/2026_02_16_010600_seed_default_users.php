@@ -1,55 +1,78 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 use Carbon\Carbon;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         $now = Carbon::now();
 
-        // Seed Admin User
-        DB::table('users')->updateOrInsert(
-            ['email' => 'devidiana@gmail.com'],
+        $users = [
             [
+                'email' => 'devidiana@gmail.com',
                 'name' => 'Devi Diana Safitri, SPd.',
                 'username' => 'admin',
-                'password' => Hash::make('adminsmegabiz'),
+                'password' => 'adminsmegabiz',
                 'role' => 'admin',
-                'email_verified_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]
-        );
-
-        // Seed Cashier User
-        DB::table('users')->updateOrInsert(
-            ['email' => 'kasir123@gmail.com'],
+            ],
             [
+                'email' => 'kasir123@gmail.com',
                 'name' => 'Kasir SMEGABIZ',
                 'username' => 'kasir',
-                'password' => Hash::make('kasir123'),
+                'password' => 'kasir123',
                 'role' => 'kasir',
-                'email_verified_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]
-        );
+            ],
+            [
+                'email' => 'admin@tokoku.com',
+                'name' => 'Administrator',
+                'username' => 'admin_tokoku',
+                'password' => 'password',
+                'role' => 'admin',
+            ],
+            [
+                'email' => 'kasir@tokoku.com',
+                'name' => 'Staf Kasir',
+                'username' => 'kasir_tokoku',
+                'password' => 'password',
+                'role' => 'kasir',
+            ],
+            [
+                'email' => 'user@example.com',
+                'name' => 'Pelanggan Setia',
+                'username' => 'user_example',
+                'password' => 'password',
+                'role' => 'pelanggan',
+            ],
+        ];
+
+        foreach ($users as $user) {
+            User::updateOrCreate(
+                ['email' => $user['email']],
+                [
+                    'name' => $user['name'],
+                    'username' => $user['username'],
+                    'password' => Hash::make($user['password']),
+                    'role' => $user['role'],
+                    'email_verified_at' => $now,
+                ]
+            );
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        DB::table('users')->whereIn('email', ['devidiana@gmail.com', 'kasir123@gmail.com'])->delete();
+        $emails = [
+            'devidiana@gmail.com',
+            'kasir123@gmail.com',
+            'admin@tokoku.com',
+            'kasir@tokoku.com',
+            'user@example.com',
+        ];
+
+        User::whereIn('email', $emails)->delete();
     }
 };

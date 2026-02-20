@@ -13,9 +13,7 @@
         </span>
         @auth
         <div class="ms-auto d-flex align-items-center gap-3">
-            <a href="{{ route('about') }}" class="nav-link text-light small d-flex align-items-center gap-2">
-                <i class="bi bi-info-circle"></i> Profile
-            </a>
+
             <span class="d-none d-md-inline text-light small">
                 <i class="bi bi-person-circle"></i> {{ auth()->user()->name }}
             </span>
