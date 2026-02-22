@@ -55,7 +55,6 @@
                                 @endif
                             </td>
                             <td>
-                            <td>
                                 <div class="d-flex gap-1 justify-content-center" role="group">
                                     <a href="{{ route('categories.edit', $category) }}" class="btn btn-warning btn-sm text-white" title="Edit">
                                         <i class="bi bi-pencil"></i>

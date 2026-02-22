@@ -38,7 +38,9 @@ class CategoryController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100', \Illuminate\Validation\Rule::unique('categories', 'name')->withoutTrashed()]
+            'name' => ['required', 'string', 'max:100', \Illuminate\Validation\Rule::unique('categories', 'name')]
+        ], [
+            'name.unique' => 'Kategori ini sudah ada (termasuk di daftar Non-Aktif). Silakan gunakan nama lain atau aktifkan kembali kategori tersebut.'
         ]);
 
         Category::create($validated);
@@ -54,7 +56,9 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100', \Illuminate\Validation\Rule::unique('categories', 'name')->withoutTrashed()->ignore($category->id)]
+            'name' => ['required', 'string', 'max:100', \Illuminate\Validation\Rule::unique('categories', 'name')->ignore($category->id)]
+        ], [
+            'name.unique' => 'Nama kategori ini sudah terdaftar untuk kategori lain. Silakan gunakan nama yang berbeda.'
         ]);
 
         $category->update($validated);
