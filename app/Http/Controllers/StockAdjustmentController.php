@@ -30,7 +30,7 @@ class StockAdjustmentController extends Controller
             ->when($type, fn($q) => $q->where('type', $type))
             ->latest()
             ->paginate(15)
-            ->withQueryString();
+            ->appends($request->query());
 
         return view('stock-adjustments.index', compact('adjustments', 'search', 'startDate', 'endDate', 'type'));
     }

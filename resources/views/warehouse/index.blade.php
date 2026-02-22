@@ -203,10 +203,16 @@
     @push('scripts')
     <script>
         $(document).ready(function() {
-            $('.select2-basic').select2({
+            $('#category_id').select2({
                 theme: 'bootstrap-5',
                 width: '100%',
-                placeholder: '-- Pilih Kategori --',
+                placeholder: '-- Semua Kategori --',
+                allowClear: true
+            });
+            $('#supplier_id').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: '-- Semua Supplier --',
                 allowClear: true
             });
         });

@@ -202,7 +202,16 @@
         <div class="shop-name">SMEGABIZ</div>
         <div class="shop-address">Surabaya</div>
 
-        <div class="receipt-title">STRUK PEMBELIAN</div>
+        <div class="receipt-title">
+            @if($transaction->source === 'online')
+                PESANAN ONLINE 
+                <div style="font-size: 10px; font-weight: normal; margin-top: 3px;">
+                    ({{ $transaction->booking ? strtoupper($transaction->booking->delivery_type) : 'BOOKING' }})
+                </div>
+            @else
+                STRUK PEMBELIAN
+            @endif
+        </div>
         <div class="text-center" style="font-size: 10px; margin-bottom: 5px; text-align: center;">SMEGABIZ</div>
 
         <div class="dashed-line"></div>
@@ -270,7 +279,9 @@
         </div>
         <div class="total-row" style="font-weight: bold;">
             <span class="{{ $transaction->change_amount > 0 ? 'text-green' : '' }}">Kembalian</span>
-            <span class="{{ $transaction->change_amount > 0 ? 'text-green' : '' }}">{{ number_format($transaction->change_amount, 0, ',', '.') }}</span>
+            <span class="{{ $transaction->change_amount > 0 ? 'text-green' : '' }}">
+                {{ $transaction->change_amount == 0 ? 'PAS' : number_format($transaction->change_amount, 0, ',', '.') }}
+            </span>
         </div>
 
         <div class="dashed-line"></div>
@@ -311,6 +322,16 @@
             </a>
         </div>
     </div>
+
+    <!-- Auto Print Script -->
+    <script>
+        window.onload = function() {
+            // Memberi jeda sedikit agar render font/CSS thermal stabil sebelum auto-print memicu
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        };
+    </script>
 </body>
 
 </html>

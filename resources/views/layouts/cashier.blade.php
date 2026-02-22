@@ -363,6 +363,128 @@
             }
         })();
     </script>
+    </script>
+    
+    {{-- Global Notification Sound --}}
+    <audio id="global-notification-sound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbsGczHjqMw9zQe0smMHm50+K1ZzUlXKXN3rmGSTc0bqzP4byNUj46d7PP5b2MUUA=" type="audio/wav">
+    </audio>
+
+    {{-- Global Smart Notification System --}}
+    <script>
+        let lastPendingCount = {{ \App\Models\Booking::pending()->count() }};
+        let wsConnected = false;
+        let pollInterval = null;
+        const POLL_NORMAL = 30000;
+        const POLL_FALLBACK = 10000;
+
+        function updateGlobalBadges(count) {
+            const navBadge = document.getElementById('nav-booking-badge');
+            // Jika variabel dashboard ada
+            const dashboardBadge = document.getElementById('pending-count');
+            const dashboardMenuBadge = document.getElementById('menu-badge');
+            const dashboardAlert = document.getElementById('booking-alert');
+
+            if (count > 0) {
+                if (navBadge) { navBadge.textContent = count; navBadge.style.display = ''; }
+                if (dashboardBadge) dashboardBadge.textContent = count;
+                if (dashboardMenuBadge) { dashboardMenuBadge.textContent = count; dashboardMenuBadge.style.display = ''; }
+                if (dashboardAlert) dashboardAlert.style.display = '';
+            } else {
+                if (navBadge) navBadge.style.display = 'none';
+                if (dashboardMenuBadge) dashboardMenuBadge.style.display = 'none';
+                if (dashboardAlert) dashboardAlert.style.display = 'none';
+            }
+        }
+
+        function triggerNotification(bookingData = null) {
+            // Sound
+            try { document.getElementById('global-notification-sound').play(); } catch(e) {}
+            
+            // Pop-up Swal
+            const msg = bookingData ? 'Pesanan Baru: ' + (bookingData.booking_code || '') : 'Ada pesanan baru masuk!';
+            
+            // Khusus Swal agar menonjol jika buka POS tapi bisa di-close
+            Swal.fire({
+                title: 'Pesanan Online Baru!',
+                text: msg + ' Silakan cek antrean pesanan.',
+                icon: 'info',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 6000,
+                timerProgressBar: true
+            });
+        }
+
+        function pollGlobalBookings() {
+            fetch('{{ route("cashier.bookings.pendingCount") }}')
+                .then(r => r.json())
+                .then(data => {
+                    updateGlobalBadges(data.pending_count);
+
+                    if (data.pending_count > lastPendingCount) {
+                        triggerNotification();
+                        
+                        // Khusus jika sedang buka halaman booking yg butuh refresh grid
+                        const currentStatus = window.currentStatus || null;
+                        if (currentStatus && ['pending', 'all'].includes(currentStatus) && !document.querySelector('.modal.show')) {
+                            setTimeout(() => window.location.reload(), 2000);
+                        }
+                    }
+                    lastPendingCount = data.pending_count;
+                })
+                .catch(err => console.log('Global polling error:', err));
+        }
+
+        function startGlobalPolling(interval) {
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = setInterval(pollGlobalBookings, interval);
+        }
+
+        // Start Initial Polling
+        pollGlobalBookings();
+        startGlobalPolling(POLL_NORMAL);
+
+        // Websocket Injection
+        setTimeout(() => {
+            if (window.Echo) {
+                window.Echo.connector.pusher.connection.bind('connected', () => {
+                    wsConnected = true;
+                    if (typeof toastr !== 'undefined') toastr.success('Real-time aktif', 'Sistem');
+                    startGlobalPolling(POLL_NORMAL);
+                });
+
+                window.Echo.connector.pusher.connection.bind('disconnected', () => {
+                    wsConnected = false;
+                    startGlobalPolling(POLL_FALLBACK);
+                });
+
+                window.Echo.connector.pusher.connection.bind('unavailable', () => {
+                    wsConnected = false;
+                    startGlobalPolling(POLL_FALLBACK);
+                });
+
+                window.Echo.channel('bookings')
+                    .listen('NewBookingCreated', (e) => {
+                        console.log('⚡ Global Real-time booking received:', e.booking);
+                        let newCount = lastPendingCount + 1;
+                        lastPendingCount = newCount;
+                        updateGlobalBadges(newCount);
+                        triggerNotification(e.booking);
+
+                        // Khusus grid table update otomatis jika ada
+                        const currentStatus = window.currentStatus || null;
+                        if (currentStatus && ['pending', 'all'].includes(currentStatus) && !document.querySelector('.modal.show')) {
+                            setTimeout(() => window.location.reload(), 2000);
+                        }
+                    });
+            } else {
+                startGlobalPolling(POLL_FALLBACK);
+            }
+        }, 1500);
+    </script>
+    
     @stack('scripts')
 </body>
 

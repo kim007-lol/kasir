@@ -136,16 +136,16 @@
                 <div class="card-header bg-white fw-semibold">
                     <i class="bi bi-lightning"></i> Aksi
                 </div>
-                <div class="card-body d-grid gap-2">
+                <div class="card-body d-flex gap-2">
                     @if($booking->status === 'pending')
-                    <form action="{{ route('cashier.bookings.accept', $booking) }}" method="POST">
+                    <form action="{{ route('cashier.bookings.accept', $booking) }}" method="POST" class="flex-fill"
+                          onsubmit="event.preventDefault(); let form = this; Swal.fire({title: 'Terima Pesanan?', text: 'Pesanan ini belum siap namun stok kasir akan otomatis ter-booking.', icon: 'info', showCancelButton: true, confirmButtonText: 'Ya, Terima', cancelButtonText: 'Batal'}).then((res) => { if(res.isConfirmed) form.submit(); });">
                         @csrf
-                        <button type="submit" class="btn btn-success w-100"
-                            onclick="return confirm('Terima pesanan ini? Stok akan dikurangi.')">
+                        <button type="submit" class="btn btn-success w-100">
                             <i class="bi bi-check-lg"></i> Terima Pesanan
                         </button>
                     </form>
-                    <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#rejectDetailModal">
+                    <button type="button" class="btn btn-danger flex-fill w-100" data-bs-toggle="modal" data-bs-target="#rejectDetailModal">
                         <i class="bi bi-x-lg"></i> Tolak Pesanan
                     </button>
                     @endif
@@ -158,16 +158,19 @@
                     @endif
 
                     @if($booking->status === 'processing')
-                    <form action="{{ route('cashier.bookings.ready', $booking) }}" method="POST">
-                        @csrf
-                        <button class="btn btn-success w-100"><i class="bi bi-check2-all"></i> Pesanan Siap!</button>
-                    </form>
+                    <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#readyDetailModal">
+                        <i class="bi bi-check2-all"></i> Pesanan Siap (Proses Pembayaran)
+                    </button>
                     @endif
 
                     @if($booking->canBeCompleted())
-                    <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#completeDetailModal">
-                        <i class="bi bi-bag-check"></i> Selesaikan Pesanan
-                    </button>
+                    <form action="{{ route('cashier.bookings.complete', $booking) }}" method="POST">
+                        @csrf
+                        <button type="button" class="btn btn-success w-100"
+                            onclick="let form = this.closest('form'); Swal.fire({title: 'Selesaikan Pesanan?', text: 'Pastikan barang sudah diserahkan ke pelanggan.', icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Selesai!', cancelButtonText: 'Batal'}).then((res) => { if(res.isConfirmed) form.submit(); });">
+                            <i class="bi bi-bag-check"></i> Selesaikan Pesanan
+                        </button>
+                    </form>
                     @endif
 
                     @if(in_array($booking->status, ['completed', 'cancelled']))
@@ -209,41 +212,124 @@
 </div>
 @endif
 
-{{-- Complete Modal --}}
-@if($booking->canBeCompleted())
-<div class="modal fade" id="completeDetailModal" tabindex="-1">
+{{-- Ready (Payment) Modal --}}
+@if($booking->status === 'processing')
+<div class="modal fade" id="readyDetailModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="{{ route('cashier.bookings.complete', $booking) }}" method="POST">
+            <form action="{{ route('cashier.bookings.ready', $booking) }}" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title">Selesaikan {{ $booking->booking_code }}</h5>
+                    <h5 class="modal-title">Pesanan Siap & Pembayaran {{ $booking->booking_code }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Total: <strong>Rp {{ number_format($booking->total, 0, ',', '.') }}</strong></p>
-                    <label class="form-label fw-semibold">Metode Pembayaran *</label>
-                    <div class="d-flex gap-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="payment_method" value="cash" checked>
-                            <label class="form-check-label"><i class="bi bi-cash"></i> Cash</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="payment_method" value="qris">
-                            <label class="form-check-label"><i class="bi bi-qr-code"></i> QRIS</label>
+                    <p>Total: <strong style="font-size: 1.2rem; color: var(--primary-dark);">Rp <span id="paymentTotal">{{ number_format($booking->total, 0, ',', '') }}</span></strong></p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            @if($booking->delivery_type === 'delivery')
+                                Nama Pengantar Pesanan *
+                            @else
+                                Nama Kasir / Yang Melayani *
+                            @endif
+                        </label>
+                        <input type="text" name="assignee_name" class="form-control" 
+                            placeholder="{{ $booking->delivery_type === 'delivery' ? 'Masukkan nama kurir pengantar' : 'Masukkan nama kasir' }}" 
+                            value="{{ auth()->user()->name }}"
+                            required autocomplete="off">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Metode Pembayaran *</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input payment-method-radio" type="radio" name="payment_method" value="cash" checked onchange="toggleCashInput(true)">
+                                <label class="form-check-label"><i class="bi bi-cash"></i> Cash</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input payment-method-radio" type="radio" name="payment_method" value="qris" onchange="toggleCashInput(false)">
+                                <label class="form-check-label"><i class="bi bi-qr-code"></i> QRIS</label>
+                            </div>
                         </div>
                     </div>
+
+                    <div class="mb-3" id="cashInputContainer">
+                        <label class="form-label fw-semibold">Uang Tunai (Cash) *</label>
+                        <input type="number" name="paid_amount" id="paid_amount" class="form-control fw-bold" 
+                            placeholder="0" value="{{ $booking->total }}" min="{{ $booking->total }}" required oninput="calculateChange()">
+                        <div class="mt-2 fw-semibold" id="changeAmountText" style="color: green;">
+                            Kembalian: Pas
+                        </div>
+                    </div>
+
                     <div class="alert alert-info py-2 mt-3 mb-0" style="font-size: 0.85rem;">
-                        <i class="bi bi-info-circle"></i> Transaksi otomatis tercatat di sistem.
+                        <i class="bi bi-info-circle"></i> Transaksi akan dicatat dan struk otomatis akan dicetak.
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success"><i class="bi bi-bag-check"></i> Selesaikan</button>
+                    <button type="submit" class="btn btn-success"><i class="bi bi-printer"></i> Proses Bayar & Cetak</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 @endif
+
 @endsection
+
+@push('scripts')
+<script>
+    function toggleCashInput(isCash) {
+        const container = document.getElementById('cashInputContainer');
+        const input = document.getElementById('paid_amount');
+        if (isCash) {
+            container.style.display = 'block';
+            input.setAttribute('required', 'required');
+            calculateChange();
+        } else {
+            container.style.display = 'none';
+            input.removeAttribute('required');
+        }
+    }
+
+    function calculateChange() {
+        const total = {{ $booking->total }};
+        const paid = parseFloat(document.getElementById('paid_amount').value) || 0;
+        const changeText = document.getElementById('changeAmountText');
+        
+        if (paid < total) {
+            changeText.style.color = 'red';
+            changeText.textContent = 'Kurang: Rp ' + new Intl.NumberFormat('id-ID').format(total - paid);
+        } else if (paid === total) {
+            changeText.style.color = 'green';
+            changeText.textContent = 'Kembalian: Pas';
+        } else {
+            changeText.style.color = 'green';
+            changeText.textContent = 'Kembalian: Rp ' + new Intl.NumberFormat('id-ID').format(paid - total);
+        }
+    }
+
+    @if(session('print_transaction_id'))
+    document.addEventListener('DOMContentLoaded', function() {
+        let printUrl = "{{ route('cashier.transactions.thermalReceipt', session('print_transaction_id')) }}";
+        
+        Swal.fire({
+            title: 'Transaksi Berhasil!',
+            text: 'Uang pas/kembalian telah dihitung. Sistem memblokir popup otomatis, silakan klik tombol di bawah untuk mencetak struk.',
+            icon: 'success',
+            showCancelButton: true,
+            confirmButtonText: '<i class="bi bi-printer"></i> Buka Struk',
+            cancelButtonText: 'Tutup',
+            confirmButtonColor: '#28a745',
+            allowOutsideClick: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.open(printUrl, 'Struk Pesanan', 'width=400,height=600');
+            }
+        });
+    });
+    @endif
+</script>
+@endpush

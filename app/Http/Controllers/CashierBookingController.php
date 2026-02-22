@@ -70,10 +70,6 @@ class CashierBookingController extends Controller
      */
     public function reject(Request $request, Booking $booking)
     {
-        if (!$booking->canBeCancelled()) {
-            return back()->with('error', 'Pesanan ini tidak bisa ditolak (status: ' . $booking->status_label . ')');
-        }
-
         $request->validate([
             'cancel_reason' => 'required|string|max:500',
         ], [
@@ -82,15 +78,22 @@ class CashierBookingController extends Controller
 
         try {
             DB::transaction(function () use ($booking, $request) {
+                // SEC-08 Fix: Re-fetch booking with lock to prevent race condition double-cancel
+                $lockedBooking = Booking::where('id', $booking->id)->lockForUpdate()->first();
+
+                if (!$lockedBooking || !$lockedBooking->canBeCancelled()) {
+                    throw new \Exception('Pesanan ini sudah tidak bisa ditolak (status: ' . ($lockedBooking ? $lockedBooking->status_label : 'Tidak Ditemukan') . ')');
+                }
+
                 // BUG-04: Stok dikurangi saat placeOrder, jadi selalu kembalikan saat reject/cancel
-                foreach ($booking->items as $bookingItem) {
+                foreach ($lockedBooking->items as $bookingItem) {
                     $cashierItem = CashierItem::find($bookingItem->cashier_item_id);
                     if ($cashierItem) {
                         $cashierItem->increment('stock', $bookingItem->qty);
                     }
                 }
 
-                $booking->update([
+                $lockedBooking->update([
                     'status' => 'cancelled',
                     'cancel_reason' => $request->cancel_reason,
                 ]);
@@ -98,7 +101,7 @@ class CashierBookingController extends Controller
 
             return back()->with('success', "Pesanan {$booking->booking_code} ditolak. Stok telah dikembalikan.");
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -116,38 +119,36 @@ class CashierBookingController extends Controller
     }
 
     /**
-     * Mark as ready
+     * Mark as ready → creates Transaction + TransactionDetail records and triggers receipt
      */
-    public function ready(Booking $booking)
+    public function ready(Request $request, Booking $booking)
     {
         if ($booking->status !== 'processing') {
             return back()->with('error', 'Pesanan harus sedang diproses terlebih dahulu');
         }
 
-        $booking->update(['status' => 'ready']);
-        return back()->with('success', "Pesanan {$booking->booking_code} siap diambil/dikirim!");
-    }
-
-    /**
-     * Complete booking → creates Transaction + TransactionDetail records
-     */
-    public function complete(Request $request, Booking $booking)
-    {
-        if (!$booking->canBeCompleted()) {
-            return back()->with('error', 'Pesanan belum siap untuk diselesaikan (status: ' . $booking->status_label . ')');
-        }
-
         $request->validate([
             'payment_method' => 'required|in:cash,qris',
+            'assignee_name' => 'required|string|max:100',
+            'paid_amount' => 'required_if:payment_method,cash|numeric|min:' . $booking->total,
+        ], [
+            'assignee_name.required' => $booking->delivery_type === 'delivery'
+                ? 'Nama pengantar pesanan harus diisi.'
+                : 'Nama kasir atau pelayan harus diisi.',
+            'paid_amount.required_if' => 'Jumlah uang tunai wajib diisi jika metode pembayaran Cash.',
+            'paid_amount.min' => 'Jumlah uang tunai tidak boleh kurang dari total pesanan.',
         ]);
 
         try {
-            DB::transaction(function () use ($booking, $request) {
+            $transaction = DB::transaction(function () use ($booking, $request) {
                 // Generate invoice
                 $invoice = 'INV-' . date('YmdHis') . '-' . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
 
                 // Find linked member via user
                 $member = $booking->user?->member;
+
+                $paidAmount = $request->payment_method === 'cash' ? $request->paid_amount : $booking->total;
+                $changeAmount = $request->payment_method === 'cash' ? ($paidAmount - $booking->total) : 0;
 
                 // Create Transaction record
                 $transaction = Transaction::create([
@@ -155,13 +156,13 @@ class CashierBookingController extends Controller
                     'customer_name' => $booking->customer_name,
                     'member_id' => $member?->id,
                     'total' => $booking->total,
-                    'paid_amount' => $booking->total, // Fully paid
-                    'change_amount' => 0,
+                    'paid_amount' => $paidAmount, // Fully paid
+                    'change_amount' => $changeAmount,
                     'payment_method' => $request->payment_method,
                     'discount_percent' => 0,
                     'discount_amount' => 0,
                     'user_id' => Auth::id(), // Kasir who completed it
-                    'cashier_name' => Auth::user()->name,
+                    'cashier_name' => $request->assignee_name,
                     'source' => 'online',
                     'booking_id' => $booking->id,
                 ]);
@@ -191,14 +192,36 @@ class CashierBookingController extends Controller
                     ]);
                 }
 
-                // Mark booking as completed
+                // Mark booking as ready
                 $booking->update([
-                    'status' => 'completed',
+                    'status' => 'ready',
                     'payment_method' => $request->payment_method,
                 ]);
+
+                return $transaction;
             });
 
-            return back()->with('success', "Pesanan {$booking->booking_code} selesai! Transaksi otomatis tercatat.");
+            return back()->with('success', "Pesanan {$booking->booking_code} siap! Transaksi otomatis tercatat.")
+                ->with('print_transaction_id', $transaction->id);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Complete booking → Just updates status to complete
+     */
+    public function complete(Booking $booking)
+    {
+        if (!$booking->canBeCompleted()) {
+            return back()->with('error', 'Pesanan belum siap untuk diselesaikan (status: ' . $booking->status_label . ')');
+        }
+
+        try {
+            $booking->update([
+                'status' => 'completed',
+            ]);
+            return back()->with('success', "Pesanan {$booking->booking_code} telah diserahkan (Selesai).");
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

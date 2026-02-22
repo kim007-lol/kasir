@@ -55,7 +55,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                 </div>
 
                 <!-- Payment Method Filter -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="payment_method" class="form-label fw-semibold">Metode Pembayaran</label>
                     <select class="form-select" id="payment_method" name="payment_method">
                         <option value="" {{ empty($paymentMethod) ? 'selected' : '' }}>Semua Metode</option>
@@ -64,8 +64,18 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                     </select>
                 </div>
 
+                <!-- Source Filter -->
+                <div class="col-md-3">
+                    <label for="source" class="form-label fw-semibold">Sumber Pesanan</label>
+                    <select class="form-select" id="source" name="source">
+                        <option value="" {{ empty($source) ? 'selected' : '' }}>Semua Sumber</option>
+                        <option value="pos" {{ ($source ?? '') == 'pos' ? 'selected' : '' }}>Kasir (POS)</option>
+                        <option value="online" {{ ($source ?? '') == 'online' ? 'selected' : '' }}>Pemesanan Online</option>
+                    </select>
+                </div>
+
                 <!-- Search -->
-                <div class="col-md-8">
+                <div class="col-md-6">
                     <label for="search" class="form-label fw-semibold">Cari Invoice / Nama Pembeli</label>
                     <input type="text" class="form-control" id="search" name="search" value="{{ $search ?? '' }}" placeholder="Ketik invoice atau nama pembeli...">
                 </div>
@@ -112,6 +122,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                             <th class="d-none d-md-table-cell">Pembeli</th>
                             <th>Total</th>
                             <th>Metode</th>
+                            <th class="d-none d-md-table-cell">Sumber</th>
                             <th>Kasir</th>
                             <th class="d-none d-lg-table-cell">Tanggal</th>
                             <th style="width: 110px;">Aksi</th>
@@ -139,6 +150,11 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                                     {{ strtoupper($transaction->payment_method) }}
                                 </span>
                             </td>
+                            <td class="d-none d-md-table-cell">
+                                <span class="badge {{ $transaction->source == 'online' ? 'bg-primary' : 'bg-secondary' }}">
+                                    {{ strtoupper($transaction->source) }}
+                                </span>
+                            </td>
                             <td>
                                 <small>{{ $transaction->cashier_name ?? $transaction->user->name ?? 'System' }}</small>
                             </td>
@@ -153,7 +169,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
+                            <td colspan="8" class="text-center py-4 text-muted">
                                 <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                                 <p>Tidak ada data transaksi</p>
                             </td>

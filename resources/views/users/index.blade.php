@@ -108,7 +108,7 @@
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     @if($user->id !== auth()->id())
-                                    <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Yakin ingin menonaktifkan user {{ $user->name }}?')">
+                                    <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="confirmDelete(event, 'Yakin ingin menonaktifkan pengguna {{ $user->name }} ini?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger" title="Nonaktifkan">

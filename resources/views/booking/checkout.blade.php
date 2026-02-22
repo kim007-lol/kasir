@@ -120,9 +120,14 @@
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body">
                     <h6 class="card-title fw-bold mb-3"><i class="bi bi-wallet2"></i> Pembayaran</h6>
-                    <div class="alert alert-info small mb-0">
+                    <div id="pickupPaymentInfo" class="alert alert-info small mb-0">
                         <i class="bi bi-info-circle-fill me-1"></i>
                         Pembayaran dilakukan di Kasir (Tunai/QRIS) saat mengambil pesanan.
+                    </div>
+                    
+                    <div id="deliveryPaymentInfo" class="alert alert-warning small mb-0" style="display: none;">
+                        <i class="bi bi-exclamation-square-fill me-1"></i>
+                        Pembayaran dilakukan di tempat (COD). <strong>Mohon siapkan Uang Pas</strong> untuk mempermudah driver kami menyerahkan pesanan.
                     </div>
                 </div>
             </div>
@@ -144,17 +149,27 @@
         const deliverySection = document.getElementById('deliverySection');
         const pickupTime = document.getElementById('pickupTime');
         const deliveryAddress = document.getElementById('deliveryAddress');
+        const pickupPaymentInfo = document.getElementById('pickupPaymentInfo');
+        const deliveryPaymentInfo = document.getElementById('deliveryPaymentInfo');
 
         if (isPickup) {
             pickupSection.style.display = 'block';
             deliverySection.style.display = 'none';
             pickupTime.required = true;
             deliveryAddress.required = false;
+            
+            // Tampilan info pembayaran
+            if (pickupPaymentInfo) pickupPaymentInfo.style.display = 'block';
+            if (deliveryPaymentInfo) deliveryPaymentInfo.style.display = 'none';
         } else {
             pickupSection.style.display = 'none';
             deliverySection.style.display = 'block';
             pickupTime.required = false;
             deliveryAddress.required = true;
+            
+            // Tampilan info pembayaran
+            if (pickupPaymentInfo) pickupPaymentInfo.style.display = 'none';
+            if (deliveryPaymentInfo) deliveryPaymentInfo.style.display = 'block';
         }
     }
 </script>

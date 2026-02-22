@@ -229,24 +229,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
 
 
 
-                    {{-- Payment Method --}}
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold">Metode Pembayaran</label>
-                        <div class="d-flex gap-2">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="payment_method" id="payment_cash" value="cash" checked>
-                                <label class="form-check-label" for="payment_cash">
-                                    <i class="bi bi-cash"></i> Cash
-                                </label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="payment_method" id="payment_qris" value="qris">
-                                <label class="form-check-label" for="payment_qris">
-                                    <i class="bi bi-qr-code"></i> QRIS
-                                </label>
-                            </div>
-                        </div>
-                    </div>
+
 
                     {{-- Global Discount (Potongan Rp) --}}
                     @if(auth()->check() && auth()->user()->role === 'admin')
@@ -309,10 +292,26 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                         <span class="small" id="paymentErrorText"></span>
                     </div>
 
-                    {{-- Submit Button --}}
-                    <button type="submit" class="btn btn-success btn-lg w-100 text-white fw-bold" id="payButton" disabled>
-                        <i class="bi bi-check-circle"></i> Bayar Sekarang
-                    </button>
+                    {{-- Payment Method & Submit Button Group --}}
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="row g-2">
+                            <div class="col-sm-6">
+                                <label class="form-label small fw-bold text-muted mb-2">Metode Pembayaran</label>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="payment_method" id="payment_cash" value="cash" checked autocomplete="off">
+                                    <label class="btn btn-outline-primary fw-bold" for="payment_cash"><i class="bi bi-cash"></i> Cash</label>
+                                  
+                                    <input type="radio" class="btn-check" name="payment_method" id="payment_qris" value="qris" autocomplete="off">
+                                    <label class="btn btn-outline-primary fw-bold" for="payment_qris"><i class="bi bi-qr-code"></i> QRIS</label>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 d-flex align-items-end">
+                                <button type="submit" class="btn btn-success w-100 text-white fw-bold py-2" id="payButton" disabled>
+                                    <i class="bi bi-check-circle me-2"></i> Bayar Sekarang
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
             @endif
@@ -463,27 +462,21 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
         const resetCartBtn = document.getElementById('resetCartBtn');
         if (resetCartBtn) {
             resetCartBtn.addEventListener('click', function() {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        title: 'Reset Keranjang?',
-                        text: "Semua item di keranjang akan dihapus!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#3085d6',
-                        confirmButtonText: 'Ya, Reset!',
-                        cancelButtonText: 'Batal',
-                        reverseButtons: true
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            document.getElementById('resetCartForm').submit();
-                        }
-                    });
-                } else {
-                    if (confirm('Apakah Anda yakin ingin mengosongkan keranjang?')) {
+                Swal.fire({
+                    title: 'Reset Keranjang?',
+                    text: "Semua item di keranjang akan dihapus!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Reset!',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
                         document.getElementById('resetCartForm').submit();
                     }
-                }
+                });
             });
         }
 

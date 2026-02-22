@@ -350,25 +350,9 @@ class TransactionController extends Controller
             $discountAmount = 0;
         }
 
-        // Security: Discount cannot exceed gross total
-        if ($discountAmount > $grossTotal) {
-            return redirect()->route($routeIndex)
-                ->with('error', 'Diskon tidak boleh melebihi total belanja (Rp ' . number_format($grossTotal, 0, ',', '.') . ')');
-        }
-
-        $netTotal = $grossTotal - $discountAmount;
-
         // Nama kasir yang melayani (manual input dari form)
         $cashierName = $validated['cashier_name'];
-
         $paidAmount = (float) $validated['paid_amount'];
-        $changeAmount = $paidAmount - $netTotal;
-
-        // Validasi pembayaran
-        if ($paidAmount < $netTotal) {
-            return redirect()->route($routeIndex)
-                ->with('error', 'Uang pembayaran kurang! Total: Rp ' . number_format($netTotal, 0, ',', '.') . ', Dibayar: Rp ' . number_format($paidAmount, 0, ',', '.'));
-        }
 
         try {
             // C2 Fix: Tambah random suffix untuk mencegah invoice collision
@@ -376,7 +360,52 @@ class TransactionController extends Controller
 
             $transactionId = null;
 
-            DB::transaction(function () use ($cart, $validated, $invoice, $grossTotal, $netTotal, $discountAmount, $paidAmount, $changeAmount, &$transactionId, $sessionTokenKey, $checkoutToken, $cashierName) {
+            DB::transaction(function () use ($cart, $validated, $invoice, $discountAmount, $paidAmount, &$transactionId, $sessionTokenKey, $checkoutToken, $cashierName) {
+                $grossTotal = 0;
+                $detailsData = [];
+
+                foreach ($cart as $itemId => $item) {
+                    // Lock row for update to prevent race conditions
+                    $product = CashierItem::where('id', $itemId)->lockForUpdate()->first();
+
+                    if (!$product) {
+                        throw new \Exception("Item ID {$itemId} tidak ditemukan.");
+                    }
+
+                    if ($product->stock < $item['qty']) {
+                        throw new \Exception("Stok {$product->name} tidak cukup saat pemrosesan akhir. Sisa: {$product->stock}");
+                    }
+
+                    if ($product->selling_price <= 0) {
+                        throw new \Exception("{$product->name}: harga jual tidak valid (Rp 0). Hubungi admin.");
+                    }
+
+                    // C3 Fix: Gunakan harga terkini dari database, bukan dari session
+                    $currentPrice = $product->final_price;
+                    $grossTotal += $currentPrice * $item['qty'];
+
+                    $detailsData[] = [
+                        'product' => $product,
+                        'qty' => $item['qty'],
+                        'currentPrice' => $currentPrice,
+                        'currentOriginalPrice' => $product->selling_price,
+                        'currentDiscount' => $product->discount,
+                    ];
+                }
+
+                // Security: Discount cannot exceed gross total
+                if ($discountAmount > $grossTotal) {
+                    throw new \Exception('Diskon tidak boleh melebihi total belanja (Rp ' . number_format($grossTotal, 0, ',', '.') . ')');
+                }
+
+                $netTotal = $grossTotal - $discountAmount;
+                $changeAmount = $paidAmount - $netTotal;
+
+                // Validasi ulang pembayaran setelah kalkulasi harga terbaru
+                if ($paidAmount < $netTotal) {
+                    throw new \Exception('Uang pembayaran kurang! Total pesanan berubah menjadi Rp ' . number_format($netTotal, 0, ',', '.') . ' akibat pembaruan harga sistem.');
+                }
+
                 // Determine customer name based on member_id
                 $customerName = 'Non Member';
                 if (!empty($validated['member_id'])) {
@@ -400,22 +429,8 @@ class TransactionController extends Controller
 
                 $transactionId = $transaction->id;
 
-                foreach ($cart as $itemId => $item) {
-                    // Lock row for update to prevent race conditions
-                    $product = CashierItem::where('id', $itemId)->lockForUpdate()->first();
-
-                    if (!$product) {
-                        throw new \Exception("Item ID {$itemId} tidak ditemukan.");
-                    }
-
-                    if ($product->stock < $item['qty']) {
-                        throw new \Exception("Stok {$product->name} tidak cukup saat pemrosesan akhir. Sisa: {$product->stock}");
-                    }
-
-                    // C3 Fix: Gunakan harga terkini dari database, bukan dari session
-                    $currentPrice = $product->final_price;
-                    $currentOriginalPrice = $product->selling_price;
-                    $currentDiscount = $product->discount;
+                foreach ($detailsData as $data) {
+                    $product = $data['product'];
 
                     $purchasePrice = 0;
                     if ($product->is_consignment) {
@@ -425,17 +440,17 @@ class TransactionController extends Controller
                     }
 
                     TransactionDetail::create([
-                        'transaction_id' => $transaction->id,
-                        'item_id' => $item['item_id'],
-                        'price' => $currentPrice,
-                        'original_price' => $currentOriginalPrice,
-                        'discount' => $currentDiscount,
-                        'qty' => $item['qty'],
-                        'subtotal' => $currentPrice * $item['qty'],
+                        'transaction_id' => $transactionId,
+                        'item_id' => $product->id,
+                        'price' => $data['currentPrice'],
+                        'original_price' => $data['currentOriginalPrice'],
+                        'discount' => $data['currentDiscount'],
+                        'qty' => $data['qty'],
+                        'subtotal' => $data['currentPrice'] * $data['qty'],
                         'purchase_price' => $purchasePrice
                     ]);
 
-                    $product->decrement('stock', $item['qty']);
+                    $product->decrement('stock', $data['qty']);
                 }
 
                 session()->forget('cart');
