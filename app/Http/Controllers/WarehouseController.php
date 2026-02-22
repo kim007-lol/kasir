@@ -62,7 +62,7 @@ class WarehouseController extends Controller
             'code' => 'required|string|max:50|unique:warehouse_items,code',
             'name' => 'required|string|max:150',
             'purchase_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0',
+            'selling_price' => 'required|numeric|min:0|gte:purchase_price',
             // 'discount' => 'nullable|numeric|min:0', // Disabled 
             'stock' => 'required|integer|min:0',
             'exp_date' => 'nullable|date'
@@ -102,7 +102,7 @@ class WarehouseController extends Controller
             'code' => 'required|string|max:50|unique:warehouse_items,code,' . $warehouse->id,
             'name' => 'required|string|max:150',
             'purchase_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0',
+            'selling_price' => 'required|numeric|min:0|gte:purchase_price',
             // 'discount' => 'nullable|numeric|min:0', // Disabled
             'stock' => 'required|integer|min:0',
             'exp_date' => 'nullable|date'

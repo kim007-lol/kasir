@@ -147,6 +147,25 @@
     }
 
     document.getElementById('selling_price').addEventListener('input', calculateFinalPrice);
+
+    // Dinamisasi batas MIN pada Harga Jual agar tidak kurang dari Harga Beli
+    const purchaseInput = document.getElementById('purchase_price');
+    const sellingInput = document.getElementById('selling_price');
+    
+    function updateMinSellingPrice() {
+        const minVal = parseFloat(purchaseInput.value) || 0;
+        sellingInput.min = minVal;
+        
+        if (parseFloat(sellingInput.value) < minVal) {
+            sellingInput.value = minVal;
+            calculateFinalPrice();
+        }
+    }
+
+    purchaseInput.addEventListener('input', updateMinSellingPrice);
+    
+    // Set first initial min
+    updateMinSellingPrice();
 </script>
 @endpush
 @endsection

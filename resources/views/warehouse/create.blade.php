@@ -148,6 +148,21 @@
 
     document.getElementById('selling_price').addEventListener('input', calculateFinalPrice);
 
+    // Dinamisasi batas MIN pada Harga Jual agar tidak kurang dari Harga Beli
+    const purchaseInput = document.getElementById('purchase_price');
+    const sellingInput = document.getElementById('selling_price');
+    
+    purchaseInput.addEventListener('input', function() {
+        const minVal = parseFloat(this.value) || 0;
+        sellingInput.min = minVal;
+        
+        // Cek secara real-time apabila selling_price saat ini di bawah limit
+        if (parseFloat(sellingInput.value) < minVal) {
+            sellingInput.value = minVal;
+            calculateFinalPrice();
+        }
+    });
+
     // Calculate on page load
     calculateFinalPrice();
 </script>
