@@ -76,6 +76,11 @@ class CashierItemController extends Controller
                 // Lock warehouse item untuk update
                 $warehouse = WarehouseItem::lockForUpdate()->findOrFail($validated['warehouse_item_id']);
 
+                // Cek apakah diskon melebihi atau sama dengan harga jual
+                if ($inputDiscount !== null && $inputDiscount >= $warehouse->final_price) {
+                    throw new \Exception('Potongan harga (Rp ' . number_format($inputDiscount, 0, ',', '.') . ') tidak boleh melebihi atau sama dengan harga jual barang (Rp ' . number_format($warehouse->final_price, 0, ',', '.') . ').');
+                }
+
                 // Cek apakah stok cukup
                 if ($warehouse->stock < $validated['quantity']) {
                     throw new \Exception('Stok gudang tidak cukup. Stok tersedia: ' . $warehouse->stock);
@@ -341,6 +346,11 @@ class CashierItemController extends Controller
             DB::transaction(function () use ($validated, $inputDiscount) {
                 // Lock warehouse item for update
                 $warehouse = WarehouseItem::lockForUpdate()->findOrFail($validated['warehouse_item_id']);
+
+                // Cek apakah diskon melebihi atau sama dengan harga jual
+                if ($inputDiscount !== null && $inputDiscount >= $warehouse->final_price) {
+                    throw new \Exception('Potongan harga (Rp ' . number_format($inputDiscount, 0, ',', '.') . ') tidak boleh melebihi atau sama dengan harga jual barang (Rp ' . number_format($warehouse->final_price, 0, ',', '.') . ').');
+                }
 
                 // Check if stock is sufficient
                 if ($warehouse->stock < $validated['quantity']) {

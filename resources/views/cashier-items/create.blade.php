@@ -137,12 +137,20 @@
                 currentStock = parseInt(selectedOption.dataset.stock);
                 itemInfo.style.display = 'block';
 
-                // Set max quantity
+                // Set max quantity and max discount
                 quantityInput.max = currentStock;
+                const discountInput = document.getElementById('discount');
+                if (discountInput) {
+                    discountInput.max = Math.max(0, parseInt(selectedOption.dataset.price) - 1);
+                }
                 validateQuantity();
             } else {
                 itemInfo.style.display = 'none';
                 currentStock = 0;
+                const discountInput = document.getElementById('discount');
+                if (discountInput) {
+                    discountInput.max = '';
+                }
             }
         });
 

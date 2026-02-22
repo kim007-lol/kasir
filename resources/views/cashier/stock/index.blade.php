@@ -251,9 +251,17 @@
             document.getElementById('infoStock').textContent = stock;
             document.getElementById('infoPrice').textContent = Number(price).toLocaleString('id-ID');
             document.getElementById('quantity_input').max = stock;
+            const discountInput = document.querySelector('input[name="discount"]');
+            if (discountInput) {
+                discountInput.max = Math.max(0, parseInt(price) - 1);
+            }
         } else {
             document.getElementById('selectedItemInfo').classList.add('d-none');
             document.getElementById('quantity_input').max = '';
+            const discountInput = document.querySelector('input[name="discount"]');
+            if (discountInput) {
+                discountInput.max = '';
+            }
         }
     });
 </script>
