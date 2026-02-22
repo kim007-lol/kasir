@@ -65,11 +65,14 @@ class CashierItemController extends Controller
     {
         $validated = $request->validate([
             'warehouse_item_id' => 'required|exists:warehouse_items,id',
-            'quantity' => 'required|integer|min:1'
+            'quantity' => 'required|integer|min:1',
+            'discount' => 'nullable|numeric|min:0'
         ]);
 
+        $inputDiscount = $request->input('discount');
+
         try {
-            DB::transaction(function () use ($validated) {
+            DB::transaction(function () use ($validated, $inputDiscount) {
                 // Lock warehouse item untuk update
                 $warehouse = WarehouseItem::lockForUpdate()->findOrFail($validated['warehouse_item_id']);
 
@@ -88,13 +91,20 @@ class CashierItemController extends Controller
                     // Update stok kasir yang sudah ada
                     $cashierItem->increment('stock', $validated['quantity']);
 
-                    // Sync harga dan diskon jika ada perubahan
-                    $cashierItem->update([
+                    // Siapkan array data update
+                    $updateData = [
                         'selling_price' => $warehouse->final_price,
                         'name' => $warehouse->name,
                         'code' => $warehouse->code,
-                        // 'discount' => $warehouse->discount, // Disabled sync
-                    ]);
+                    ];
+
+                    // Jika user (admin) spesifik mengisi angka diskon, update nilai diskonnya
+                    if ($inputDiscount !== null) {
+                        $updateData['discount'] = (float) $inputDiscount;
+                    }
+
+                    // Sync harga dan atribut
+                    $cashierItem->update($updateData);
 
                     // Log Transfer In
                     \App\Models\StockTransferLog::create([
@@ -116,7 +126,7 @@ class CashierItemController extends Controller
                         'code' => $warehouse->code,
                         'name' => $warehouse->name,
                         'selling_price' => $warehouse->final_price,
-                        'discount' => 0, // Default 0
+                        'discount' => $inputDiscount !== null ? (float) $inputDiscount : 0,
                         'stock' => $validated['quantity']
                     ]);
 
@@ -321,11 +331,14 @@ class CashierItemController extends Controller
     {
         $validated = $request->validate([
             'warehouse_item_id' => 'required|exists:warehouse_items,id',
-            'quantity' => 'required|integer|min:1'
+            'quantity' => 'required|integer|min:1',
+            'discount' => 'nullable|numeric|min:0'
         ]);
 
+        $inputDiscount = $request->input('discount');
+
         try {
-            DB::transaction(function () use ($validated) {
+            DB::transaction(function () use ($validated, $inputDiscount) {
                 // Lock warehouse item for update
                 $warehouse = WarehouseItem::lockForUpdate()->findOrFail($validated['warehouse_item_id']);
 
@@ -344,13 +357,20 @@ class CashierItemController extends Controller
                     // Update existing cashier stock
                     $cashierItem->increment('stock', $validated['quantity']);
 
-                    // Sync price and discount if there are changes
-                    $cashierItem->update([
+                    // Siapkan array data update
+                    $updateData = [
                         'selling_price' => $warehouse->final_price,
                         'name' => $warehouse->name,
                         'code' => $warehouse->code,
-                        // 'discount' => $warehouse->discount, // Disabled sync
-                    ]);
+                    ];
+
+                    // Jika user mengisi angka diskon, update nilai diskonnya
+                    if ($inputDiscount !== null) {
+                        $updateData['discount'] = (float) $inputDiscount;
+                    }
+
+                    // Sync harga dan atribut
+                    $cashierItem->update($updateData);
 
                     // Log Transfer In
                     \App\Models\StockTransferLog::create([
@@ -372,7 +392,7 @@ class CashierItemController extends Controller
                         'code' => $warehouse->code,
                         'name' => $warehouse->name,
                         'selling_price' => $warehouse->final_price,
-                        'discount' => 0, // Default 0
+                        'discount' => $inputDiscount !== null ? (float) $inputDiscount : 0,
                         'stock' => $validated['quantity']
                     ]);
 

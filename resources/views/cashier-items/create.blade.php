@@ -81,6 +81,15 @@
                     <small class="text-muted" id="stockWarning"></small>
                 </div>
 
+                <div class="mb-4">
+                    <label for="discount" class="form-label">Potongan Harga / Diskon Kasir (Rp) <span class="text-muted fw-normal">(Opsional)</span></label>
+                    <input type="number" min="0" class="form-control @error('discount') is-invalid @enderror" id="discount" name="discount" value="{{ old('discount') }}" placeholder="Contoh: 1000">
+                    <small class="text-muted fst-italic"><i class="bi bi-info-circle"></i> Biarkan kosong jika tidak ingin mengubah nilai diskon saat ini, atau jika ini barang baru tanpa diskon.</small>
+                    @error('discount')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary" id="submitBtn">
                         <i class="bi bi-arrow-right-circle"></i> Transfer ke Kasir

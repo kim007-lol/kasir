@@ -186,7 +186,12 @@
                     <div class="mb-3">
                         <label class="form-label">Jumlah yang Ditambahkan</label>
                         <input type="number" class="form-control" name="quantity" id="quantity_input" required min="1" placeholder="Masukkan jumlah">
-                        <small class="text-muted">Stok akan dikurangi dari gudang dan ditambahkan ke kasir</small>
+                        <small class="text-muted d-block">Stok akan dikurangi dari gudang dan ditambahkan ke kasir</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Potongan Harga / Diskon Kasir (Rp) <small class="text-muted fw-normal">(Opsional)</small></label>
+                        <input type="number" min="0" class="form-control" name="discount" placeholder="Contoh: 1500 (kosongkan jika tidak ingin diubah)">
+                        <small class="text-muted d-block fst-italic"><i class="bi bi-info-circle"></i> Input ini akan mengatur nilai diskon barang di etalase kasir.</small>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
