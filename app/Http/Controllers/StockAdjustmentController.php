@@ -54,25 +54,26 @@ class StockAdjustmentController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        $item = CashierItem::findOrFail($validated['cashier_item_id']);
-
-        $stockBefore = $item->stock;
-
-        if ($validated['type'] === 'decrease' && $item->stock < $validated['quantity']) {
-            $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
-            return redirect()->route($routePrefix . 'stock-adjustments.create')
-                ->with('error', "Stok tidak cukup! Stok saat ini: {$item->stock}")
-                ->withInput();
-        }
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
 
         try {
-            DB::transaction(function () use ($validated, $item, $stockBefore) {
+            $result = DB::transaction(function () use ($validated) {
+                // Perbaikan Race Condition: Lock row untuk memastikan konsistensi selama transaksi
+                $item = CashierItem::lockForUpdate()->findOrFail($validated['cashier_item_id']);
+
+                $stockBefore = $item->stock;
+
+                if ($validated['type'] === 'decrease' && $item->stock < $validated['quantity']) {
+                    throw new \Exception("Stok tidak cukup! Stok saat ini: {$item->stock}");
+                }
+
                 if ($validated['type'] === 'increase') {
                     $item->increment('stock', $validated['quantity']);
                 } else {
                     $item->decrement('stock', $validated['quantity']);
                 }
 
+                // Refresh untuk mendapatkan nilai setelah decrement/increment diproses db
                 $item->refresh();
 
                 StockAdjustment::create([
@@ -85,15 +86,25 @@ class StockAdjustmentController extends Controller
                     'reason' => $validated['reason'],
                     'notes' => $validated['notes'] ?? null,
                 ]);
+
+                return [
+                    'name' => $item->name,
+                    'stockBefore' => $stockBefore,
+                    'stockAfter' => $item->stock
+                ];
             });
 
-            $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
             return redirect()->route($routePrefix . 'stock-adjustments.index')
-                ->with('success', "Penyesuaian stok berhasil. {$item->name}: {$stockBefore} → {$item->stock}");
+                ->with('success', "Penyesuaian stok berhasil. {$result['name']}: {$result['stockBefore']} → {$result['stockAfter']}");
         } catch (\Exception $e) {
-            $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+            $errorMessage = $e->getMessage();
+            // Handle unique message vs unknown exceptions
+            if (!str_starts_with($errorMessage, 'Stok tidak cukup!')) {
+                $errorMessage = 'Terjadi kesalahan: ' . $errorMessage;
+            }
+
             return redirect()->route($routePrefix . 'stock-adjustments.create')
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->with('error', $errorMessage)
                 ->withInput();
         }
     }

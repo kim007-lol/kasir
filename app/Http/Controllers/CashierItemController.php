@@ -154,32 +154,37 @@ class CashierItemController extends Controller
         ]);
 
         $newStock = (int) $validated['stock'];
-        $currentStock = (int) $cashierItem->stock;
-        $difference = $newStock - $currentStock;
 
         // Default to current discount if not provided, or update if provided
         $newDiscount = isset($validated['discount']) ? (float)$validated['discount'] : $cashierItem->discount;
         $newExpiryDate = $validated['expiry_date'] ?? null;
 
-        // If only discount changed (no stock change)
-        if ($difference === 0) {
-            $cashierItem->update(['discount' => $newDiscount, 'expiry_date' => $newExpiryDate]);
-            return redirect()->route('cashier-items.index')->with('success', 'Data item kasir berhasil diperbarui.');
-        }
-
-        // If consignment or no warehouse link, just update
-        if ($cashierItem->is_consignment || !$cashierItem->warehouse_item_id) {
-            $cashierItem->update([
-                'stock' => $newStock,
-                'discount' => $newDiscount,
-                'expiry_date' => $newExpiryDate
-            ]);
-            return redirect()->route('cashier-items.index')->with('success', 'Stok kasir berhasil diperbarui.');
-        }
-
         try {
-            DB::transaction(function () use ($cashierItem, $newStock, $difference, $newDiscount, $newExpiryDate) {
-                $warehouse = WarehouseItem::where('id', $cashierItem->warehouse_item_id)
+            DB::transaction(function () use ($cashierItem, $newStock, $newDiscount, $newExpiryDate) {
+                // Perbaikan Race Condition: Lock row cashierItem terlebih dahulu
+                $lockedCashierItem = \App\Models\CashierItem::lockForUpdate()->find($cashierItem->id);
+
+                $currentStock = (int) $lockedCashierItem->stock;
+                $difference = $newStock - $currentStock;
+
+                // Jika tidak ada perubahan stok (hanya diskon/tanggal), update dan selesai
+                if ($difference === 0) {
+                    $lockedCashierItem->update(['discount' => $newDiscount, 'expiry_date' => $newExpiryDate]);
+                    return;
+                }
+
+                // Jika titipan atau tidak ada relasi gudang, langsung berbarui
+                if ($lockedCashierItem->is_consignment || !$lockedCashierItem->warehouse_item_id) {
+                    $lockedCashierItem->update([
+                        'stock' => $newStock,
+                        'discount' => $newDiscount,
+                        'expiry_date' => $newExpiryDate
+                    ]);
+                    return;
+                }
+
+                // Kasus: Ada relasi gudang & ada perbedaan stok
+                $warehouse = WarehouseItem::where('id', $lockedCashierItem->warehouse_item_id)
                     ->lockForUpdate()
                     ->first();
 
@@ -199,9 +204,9 @@ class CashierItemController extends Controller
                     // Log Edit Increase
                     \App\Models\StockTransferLog::create([
                         'warehouse_item_id' => $warehouse->id,
-                        'cashier_item_id' => $cashierItem->id,
-                        'item_name' => $cashierItem->name,
-                        'item_code' => $cashierItem->code,
+                        'cashier_item_id' => $lockedCashierItem->id,
+                        'item_name' => $lockedCashierItem->name,
+                        'item_code' => $lockedCashierItem->code,
                         'quantity' => $difference,
                         'type' => 'edit_increase',
                         'notes' => 'Edit stok manual (+)',
@@ -215,9 +220,9 @@ class CashierItemController extends Controller
                     // Log Edit Decrease
                     \App\Models\StockTransferLog::create([
                         'warehouse_item_id' => $warehouse->id,
-                        'cashier_item_id' => $cashierItem->id,
-                        'item_name' => $cashierItem->name,
-                        'item_code' => $cashierItem->code,
+                        'cashier_item_id' => $lockedCashierItem->id,
+                        'item_name' => $lockedCashierItem->name,
+                        'item_code' => $lockedCashierItem->code,
                         'quantity' => $returnQty,
                         'type' => 'edit_decrease',
                         'notes' => 'Edit stok manual (-)',
@@ -225,14 +230,14 @@ class CashierItemController extends Controller
                     ]);
                 }
 
-                $cashierItem->update([
+                $lockedCashierItem->update([
                     'stock' => $newStock,
                     'discount' => $newDiscount,
                     'expiry_date' => $newExpiryDate
                 ]);
             });
 
-            return redirect()->route('cashier-items.index')->with('success', 'Stok kasir berhasil diperbarui dan disinkronkan dengan gudang.');
+            return redirect()->route('cashier-items.index')->with('success', 'Data item dan stok kasir berhasil diperbarui dan disinkronkan dengan gudang jika relevan.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
