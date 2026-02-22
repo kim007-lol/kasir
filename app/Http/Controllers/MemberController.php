@@ -23,7 +23,8 @@ class MemberController extends Controller
                 $searchLower = '%' . mb_strtolower($search) . '%';
                 $query->where(function ($q) use ($searchLower) {
                     $q->whereRaw('LOWER(name) LIKE ?', [$searchLower])
-                        ->orWhereRaw('LOWER(phone) LIKE ?', [$searchLower]);
+                        ->orWhereRaw('LOWER(phone) LIKE ?', [$searchLower])
+                        ->orWhereRaw('LOWER(address) LIKE ?', [$searchLower]);
                 });
             })
             ->orderByRaw('transactions_sum_total DESC NULLS LAST')
