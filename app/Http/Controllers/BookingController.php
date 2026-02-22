@@ -42,7 +42,12 @@ class BookingController extends Controller
             });
 
         if ($selectedCategory) {
-            $query->where('category_id', $selectedCategory);
+            $query->where(function ($q) use ($selectedCategory) {
+                $q->where('category_id', $selectedCategory)
+                    ->orWhereHas('warehouseItem', function ($sub) use ($selectedCategory) {
+                        $sub->where('category_id', $selectedCategory);
+                    });
+            });
         }
 
         if ($search) {
