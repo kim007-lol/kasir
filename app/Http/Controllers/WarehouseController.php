@@ -17,6 +17,7 @@ class WarehouseController extends Controller
     {
         $search = $request->get('search');
         $categoryId = $request->get('category_id');
+        $supplierId = $request->get('supplier_id');
 
         $query = WarehouseItem::select('id', 'code', 'name', 'category_id', 'supplier_id', 'purchase_price', 'selling_price', 'discount', 'stock', 'exp_date')
             ->with(['category:id,name', 'supplier:id,name'])
@@ -33,18 +34,22 @@ class WarehouseController extends Controller
             ->when($categoryId, function ($query) use ($categoryId) {
                 $query->where('category_id', $categoryId);
             })
+            ->when($supplierId, function ($query) use ($supplierId) {
+                $query->where('supplier_id', $supplierId);
+            })
             ->orderBy('code', 'asc');
 
         $warehouseItems = $query->paginate(15);
         $categories = Category::orderBy('name')->get();
+        $suppliers = Supplier::orderBy('name')->get();
 
         if ($request->ajax()) {
             /** @var \Illuminate\View\View $view */
-            $view = view('warehouse.index', compact('warehouseItems', 'search', 'categories', 'categoryId'));
+            $view = view('warehouse.index', compact('warehouseItems', 'search', 'categories', 'categoryId', 'suppliers', 'supplierId'));
             return $view->fragment('data-container');
         }
 
-        return view('warehouse.index', compact('warehouseItems', 'search', 'categories', 'categoryId'));
+        return view('warehouse.index', compact('warehouseItems', 'search', 'categories', 'categoryId', 'suppliers', 'supplierId'));
     }
 
     public function create(): View

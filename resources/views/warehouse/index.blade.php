@@ -17,9 +17,9 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('warehouse.index') }}" class="row g-3 align-items-end">
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <label for="search" class="form-label fw-semibold">Cari Barang Gudang</label>
-                    <input type="text" class="form-control" id="search" name="search" value="{{ $search ?? '' }}" placeholder="Cari berdasarkan nama atau kode barang...">
+                    <input type="text" class="form-control" id="search" name="search" value="{{ $search ?? '' }}" placeholder="Cari nama atau kode...">
                 </div>
                 <div class="col-md-3">
                     <label for="category_id" class="form-label fw-semibold">Kategori</label>
@@ -32,14 +32,25 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label for="supplier_id" class="form-label fw-semibold">Supplier</label>
+                    <select name="supplier_id" id="supplier_id" class="form-select select2-basic">
+                        <option value="">-- Semua Supplier --</option>
+                        @foreach($suppliers as $sup)
+                        <option value="{{ $sup->id }}" {{ (isset($supplierId) && $supplierId == $sup->id) ? 'selected' : '' }}>
+                            {{ $sup->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary w-100">
                             <i class="bi bi-search"></i> Cari
                         </button>
-                        @if((isset($search) && $search) || (isset($categoryId) && $categoryId))
-                        <a href="{{ route('warehouse.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle"></i> Reset
+                        @if((isset($search) && $search) || (isset($categoryId) && $categoryId) || (isset($supplierId) && $supplierId))
+                        <a href="{{ route('warehouse.index') }}" class="btn btn-outline-secondary px-3" title="Reset Filter">
+                            <i class="bi bi-x-circle"></i>
                         </a>
                         @endif
                     </div>
