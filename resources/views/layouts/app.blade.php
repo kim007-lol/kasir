@@ -22,13 +22,13 @@
     <style>
         :root {
             --sidebar-width: 250px;
-            --sidebar-bg: #ff6b6b;
-            --sidebar-bg-solid: #ff6b6b;
-            --navbar-bg: #ee5253;
+            --sidebar-bg: #ff0000;
+            --sidebar-bg-solid: #ff0000;
+            --navbar-bg: #cc0000;
             --content-bg: #f0f5fa;
-            --primary-color: #ff6b6b;
-            --primary-dark: #ee5253;
-            --secondary-color: #ff8a80;
+            --primary-color: #ff0000;
+            --primary-dark: #cc0000;
+            --secondary-color: #ff2222;
             --accent-color: #ffcccc;
             --success-color: #48bb78;
             --warning-color: #ed8936;
@@ -489,7 +489,7 @@
                 text: message,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#ff6b6b',
+                confirmButtonColor: '#ff0000',
                 cancelButtonColor: '#adb5bd',
                 confirmButtonText: 'Ya, Hapus!',
                 cancelButtonText: 'Batal',

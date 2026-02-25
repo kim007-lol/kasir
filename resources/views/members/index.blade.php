@@ -41,7 +41,7 @@
         <div class="card shadow-sm border-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
-                    <thead style="background-color: #ff6b6b; color: white;">
+                    <thead style="background-color: #ff0000; color: white;">
                         <tr>
                             <th style="width: 50px;">No</th>
                             <th>Nama Member</th>

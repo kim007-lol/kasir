@@ -10,14 +10,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #ff6b6b;
-            --primary-dark: #ee5253;
+            --primary: #ff0000;
+            --primary-dark: #cc0000;
             --border-radius: 0.75rem;
         }
 
         body {
             font-family: 'Inter', 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #f8f9fc 0%, #fff0f0 100%);
+            background: linear-gradient(135deg, #f8f9fc 0%, #ffe0e0 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -99,7 +99,7 @@
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
-            background: linear-gradient(135deg, var(--primary-dark), #d63031);
+            background: linear-gradient(135deg, var(--primary-dark), #bb0000);
         }
 
         .auth-link {

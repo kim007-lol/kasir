@@ -88,7 +88,7 @@
     <div class="card shadow-sm border-0">
         <div class="table-responsive">
             <table class="table table-hover mb-0">
-                <thead style="background-color: #ff6b6b; color: white;">
+                <thead style="background-color: #ff0000; color: white;">
                     <tr>
                         <th style="width: 50px;">No</th>
                         <th>Nama Barang</th>
@@ -178,7 +178,7 @@
 <div class="modal fade" id="addConsignmentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="background-color: #ff6b6b; color: white;">
+            <div class="modal-header" style="background-color: #ff0000; color: white;">
                 <h5 class="modal-title fw-bold">Tambah Barang Titipan</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>

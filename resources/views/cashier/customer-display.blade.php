@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #ff6b6b;
-            --primary-dark: #ee5253;
+            --primary: #ff0000;
+            --primary-dark: #cc0000;
             --bg-dark: #f0f2f5;
             --bg-card: #ffffff;
             --bg-item: #f8f9fa;

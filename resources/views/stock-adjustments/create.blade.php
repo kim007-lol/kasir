@@ -207,7 +207,7 @@
                     html: `Anda akan <b>${typeLabel}</b> stok sebanyak <b>${qty}</b> untuk:<br><b>${itemName}</b>`,
                     icon: 'question',
                     showCancelButton: true,
-                    confirmButtonColor: '#ff6b6b',
+                    confirmButtonColor: '#ff0000',
                     cancelButtonColor: '#adb5bd',
                     confirmButtonText: 'Ya, Lanjutkan',
                     cancelButtonText: 'Batal',

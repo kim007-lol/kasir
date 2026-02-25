@@ -10,10 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #ff6b6b;
-            --primary-dark: #ee5253;
-            --secondary: #ff8a80;
-            --accent: #fff0f0;
+            --primary: #ff0000;
+            --primary-dark: #cc0000;
+            --secondary: #ff2222;
+            --accent: #ffe0e0;
             --dark: #2c3e50;
             --light-bg: #f8f9fc;
         }
@@ -57,7 +57,7 @@
 
         /* ===== HERO ===== */
         .hero {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, #d63031 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, #bb0000 100%);
             color: white;
             padding: 5rem 0 4rem;
             position: relative;
@@ -679,7 +679,7 @@
                                 <p class="small text-muted mb-0" data-i18n="sme.hours_days">Senin – Jumat</p>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        {{-- <div class="col-md-4">
                             <div class="feature-card text-center" style="border-top: 3px solid #28a745;">
                                 <i class="bi bi-cash-stack text-success" style="font-size: 2rem;"></i>
                                 <h6 class="fw-bold mt-2" data-i18n="sme.omset_title">Total Omset</h6>
@@ -694,7 +694,7 @@
                                 <p class="fw-bold text-warning mb-0">Rp 6.280.000</p>
                                 <p class="small text-muted mb-0">Nov 2024 – Apr 2025</p>
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
 
                     <!-- Aktivitas Siswa -->

@@ -131,7 +131,7 @@
 
         .loading-overlay .spinner {
             border: 3px solid #eee;
-            border-top: 3px solid #ff6b6b;
+            border-top: 3px solid #ff0000;
             border-radius: 50%;
             width: 30px;
             height: 30px;

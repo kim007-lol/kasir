@@ -117,10 +117,10 @@
         <!-- Summary Cards -->
         <div class="row g-3 mb-4">
             <div class="col-12 col-sm-6 col-lg-2">
-                <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #ff6b6b;">
+                <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #ff0000;">
                     <div class="card-body">
                         <p class="text-muted mb-2 small">Total Transaksi</p>
-                        <h3 class="mb-0" style="color: #ff6b6b;">{{ $totalTransactions }}</h3>
+                        <h3 class="mb-0" style="color: #ff0000;">{{ $totalTransactions }}</h3>
                     </div>
                 </div>
             </div>
@@ -185,7 +185,7 @@
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
-                                <thead style="background-color: #ff6b6b; color: white;">
+                                <thead style="background-color: #ff0000; color: white;">
                                     <tr>
                                         <th style="width: 50px;">No</th>
                                         <th>Kode</th>
@@ -254,7 +254,7 @@
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
-                                <thead style="background-color: #ff6b6b; color: white;">
+                                <thead style="background-color: #ff0000; color: white;">
                                     <tr>
                                         <th style="width: 50px;">No</th>
                                         <th>Nama Produk</th>
@@ -294,7 +294,7 @@
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead style="background-color: #ff6b6b; color: white;">
+                        <thead style="background-color: #ff0000; color: white;">
                             <tr>
                                 <th style="width: 50px;">No</th>
                                 <th>Invoice</th>

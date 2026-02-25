@@ -24,10 +24,10 @@
 
     <style>
         :root {
-            --navbar-bg: #ee5253;
+            --navbar-bg: #cc0000;
             --content-bg: #f0f5fa;
-            --primary-color: #ff6b6b;
-            --primary-dark: #ee5253;
+            --primary-color: #ff0000;
+            --primary-dark: #cc0000;
             --transition: all 0.3s ease;
         }
 
@@ -193,6 +193,20 @@
                 border-radius: 0.5rem;
             }
         }
+        /* Custom Dashboard Interactions */
+        .hover-card {
+            transition: var(--transition);
+        }
+        .hover-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        }
     </style>
 </head>
 
@@ -313,7 +327,7 @@
                 text: message,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#ff6b6b',
+                confirmButtonColor: '#ff0000',
                 cancelButtonColor: '#adb5bd',
                 confirmButtonText: 'Ya, Hapus!',
                 cancelButtonText: 'Batal',

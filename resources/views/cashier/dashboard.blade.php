@@ -5,7 +5,7 @@
 @section('content')
 <div class="row mb-4">
     <div class="col-12">
-        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5253 100%);">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);">
             <div class="card-body p-4 text-white">
                 <h2 class="fw-bold mb-0">Selamat Datang, {{ auth()->user()->name }}!</h2>
                 <p class="mb-0 mt-2 opacity-75">Siap melayani pelanggan hari ini?</p>
@@ -149,3 +149,4 @@
         </a>
     </div>
 </div>
+@endsection

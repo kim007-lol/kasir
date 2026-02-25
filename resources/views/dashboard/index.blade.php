@@ -10,28 +10,28 @@
 
     <div class="row g-3">
         <div class="col-12 col-sm-6 col-lg-6">
-            <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #ff6b6b;">
+            <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #ff0000;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="text-muted mb-2">Total Produk</p>
-                            <h2 class="mb-0" id="totalItems" style="color: #ff6b6b;">{{ $totalItems }}</h2>
+                            <h2 class="mb-0" id="totalItems" style="color: #ff0000;">{{ $totalItems }}</h2>
                         </div>
-                        <i class="bi bi-box" style="font-size: 2.5rem; color: #ff6b6b; opacity: 0.2;"></i>
+                        <i class="bi bi-box" style="font-size: 2.5rem; color: #ff0000; opacity: 0.2;"></i>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="col-12 col-sm-6 col-lg-6">
-            <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #ff8a80;">
+            <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #ff2222;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="text-muted mb-2">Total Transaksi</p>
-                            <h2 class="mb-0" id="totalTransactions" style="color: #ff8a80;">{{ $totalTransactions }}</h2>
+                            <h2 class="mb-0" id="totalTransactions" style="color: #ff2222;">{{ $totalTransactions }}</h2>
                         </div>
-                        <i class="bi bi-receipt" style="font-size: 2.5rem; color: #ff8a80; opacity: 0.2;"></i>
+                        <i class="bi bi-receipt" style="font-size: 2.5rem; color: #ff2222; opacity: 0.2;"></i>
                     </div>
                 </div>
             </div>
@@ -169,7 +169,7 @@
             datasets: [{
                 label: 'Jumlah Transaksi',
                 data: counts,
-                borderColor: '#ff6b6b',
+                borderColor: '#ff0000',
                 backgroundColor: 'rgba(255, 107, 107, 0.1)',
                 tension: 0.4,
                 fill: true,

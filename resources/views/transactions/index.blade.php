@@ -14,7 +14,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
             <i class="bi bi-receipt"></i> Transaksi
         </h2>
         <div class="card shadow-sm border-0">
-            <div class="card-header" style="background-color: #ff6b6b; color: white;">
+            <div class="card-header" style="background-color: #ff0000; color: white;">
                 <h5 class="mb-0">
                     <i class="bi bi-box-seam"></i> Daftar Produk
                 </h5>
