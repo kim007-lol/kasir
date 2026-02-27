@@ -52,7 +52,8 @@ class CategoryController extends Controller
 
         Category::create($validated);
 
-        return redirect()->route('categories.index')->with('success', 'Kategori berhasil ditambahkan');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'categories.index')->with('success', 'Kategori berhasil ditambahkan');
     }
 
     public function edit(Category $category): View
@@ -77,19 +78,22 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        return redirect()->route('categories.index')->with('success', 'Kategori berhasil diperbarui');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'categories.index')->with('success', 'Kategori berhasil diperbarui');
     }
 
     public function destroy(Category $category): RedirectResponse
     {
         $category->delete();
-        return redirect()->route('categories.index')->with('success', 'Kategori berhasil di non-aktifkan');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'categories.index')->with('success', 'Kategori berhasil di non-aktifkan');
     }
 
     public function restore($id): RedirectResponse
     {
         $category = Category::withTrashed()->findOrFail($id);
         $category->restore();
-        return redirect()->route('categories.index')->with('success', 'Kategori berhasil diaktifkan kembali');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'categories.index')->with('success', 'Kategori berhasil diaktifkan kembali');
     }
 }
