@@ -1,11 +1,15 @@
-@extends('layouts.app')
+@php
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+$layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
+@endphp
+@extends($layout)
 
 @section('title', 'Tambah Member')
 
 @section('content')
 <div class="mb-4">
     <div class="d-flex align-items-center gap-3 mb-4">
-        <a href="{{ route('members.index') }}" class="btn btn-outline-secondary">
+        <a href="{{ route($routePrefix . 'members.index') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Kembali
         </a>
         <h2 class="fw-bold mb-0">
@@ -15,7 +19,7 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body">
-            <form action="{{ route('members.store') }}" method="POST">
+            <form action="{{ route($routePrefix . 'members.store') }}" method="POST">
                 @csrf
 
                 <div class="mb-3">
@@ -49,7 +53,7 @@
                     <button type="submit" class="btn fw-bold text-white" style="background-color: #5b9dd9;">
                         <i class="bi bi-check-circle"></i> Simpan
                     </button>
-                    <a href="{{ route('members.index') }}" class="btn btn-outline-secondary fw-bold">
+                    <a href="{{ route($routePrefix . 'members.index') }}" class="btn btn-outline-secondary fw-bold">
                         <i class="bi bi-x-circle"></i> Batal
                     </a>
                 </div>
