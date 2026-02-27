@@ -36,15 +36,6 @@
                     @enderror
                 </div>
 
-                <div class="mb-3">
-                    <label for="email" class="form-label fw-bold">Email <span class="text-danger">*</span></label>
-                    <input type="email" class="form-control @error('email') is-invalid @enderror"
-                        id="email" name="email" value="{{ old('email') }}" placeholder="Masukkan email" required>
-                    @error('email')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="password" class="form-label fw-bold">Password <span class="text-danger">*</span></label>
@@ -78,6 +69,25 @@
                     </small>
                 </div>
 
+                {{-- Phone field: only required when role = pelanggan --}}
+                <div class="mb-4" id="phone-field" style="{{ old('role') === 'pelanggan' ? '' : 'display:none;' }}">
+                    <label for="phone" class="form-label fw-bold">
+                        Nomor Telepon
+                        <span class="text-danger">*</span>
+                        <span class="badge bg-info text-dark ms-1" style="font-size: 0.7rem;">Pelanggan</span>
+                    </label>
+                    <input type="text" class="form-control @error('phone') is-invalid @enderror"
+                        id="phone" name="phone" value="{{ old('phone') }}"
+                        placeholder="Contoh: 081234567890">
+                    @error('phone')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="alert alert-info py-2 px-3 mt-2 mb-0" style="font-size: 0.82rem;">
+                        <i class="bi bi-lightbulb-fill me-1"></i>
+                        Jika sudah ada <strong>member</strong> dengan nama & nomor telepon yang sama, akun ini akan <strong>ditautkan otomatis</strong> ke member tersebut (tidak membuat member baru).
+                    </div>
+                </div>
+
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary fw-bold">
                         <i class="bi bi-check-circle"></i> Simpan User
@@ -86,6 +96,19 @@
                         <i class="bi bi-x-circle"></i> Batal
                     </a>
                 </div>
+
+                <script>
+                    document.getElementById('role').addEventListener('change', function () {
+                        const phoneField = document.getElementById('phone-field');
+                        const phoneInput = document.getElementById('phone');
+                        if (this.value === 'pelanggan') {
+                            phoneField.style.display = '';
+                        } else {
+                            phoneField.style.display = 'none';
+                            phoneInput.value = '';
+                        }
+                    });
+                </script>
             </form>
         </div>
     </div>
