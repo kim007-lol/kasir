@@ -594,27 +594,7 @@
                         <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-bank text-primary" style="font-size:1.5rem;"></i><p class="small fw-bold mb-0 mt-1">PBK</p><p class="small text-muted mb-0" data-i18n="sch.k8">Perbankan</p></div></div>
                     </div>
 
-                    <!-- Data Sekolah -->
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-4">
-                            <div class="feature-card text-center" style="border-top: 3px solid var(--primary);">
-                                <h3 class="fw-bold mb-0" style="color: var(--primary);">19.095 m²</h3>
-                                <p class="small text-muted mb-0" data-i18n="sch.stat_luas">Luas Lahan</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="feature-card text-center" style="border-top: 3px solid #28a745;">
-                                <h3 class="fw-bold mb-0 text-success">2.559</h3>
-                                <p class="small text-muted mb-0" data-i18n="sch.stat_siswa">Jumlah Siswa</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="feature-card text-center" style="border-top: 3px solid #ffc107;">
-                                <h3 class="fw-bold mb-0 text-warning">154</h3>
-                                <p class="small text-muted mb-0" data-i18n="sch.stat_ptk">Jumlah PTK</p>
-                            </div>
-                        </div>
-                    </div>
+
 
                     <!-- Kontak -->
                     <div class="border-top pt-4">
@@ -669,32 +649,15 @@
                         </div>
                     </div>
 
-                    <!-- Jam Operasional & Data Penjualan -->
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-4">
-                            <div class="feature-card text-center" style="border-top: 3px solid var(--primary);">
-                                <i class="bi bi-clock-fill text-primary" style="font-size: 2rem;"></i>
-                                <h6 class="fw-bold mt-2" data-i18n="sme.hours_title">Jam Operasional</h6>
+                    <!-- Jam Operasional -->
+                    <div class="mb-4">
+                        <div class="feature-card d-inline-flex align-items-center gap-3 text-start px-4 py-3" style="border-left: 4px solid var(--primary);">
+                            <i class="bi bi-clock-fill text-primary" style="font-size: 1.6rem;"></i>
+                            <div>
                                 <p class="fw-bold mb-0" style="color: var(--primary);">06.30 – 15.00 WIB</p>
-                                <p class="small text-muted mb-0" data-i18n="sme.hours_days">Senin – Jumat</p>
+                                <p class="small text-muted mb-0">Senin – Jumat</p>
                             </div>
                         </div>
-                        {{-- <div class="col-md-4">
-                            <div class="feature-card text-center" style="border-top: 3px solid #28a745;">
-                                <i class="bi bi-cash-stack text-success" style="font-size: 2rem;"></i>
-                                <h6 class="fw-bold mt-2" data-i18n="sme.omset_title">Total Omset</h6>
-                                <p class="fw-bold text-success mb-0">Rp 107.486.500</p>
-                                <p class="small text-muted mb-0">Nov 2024 – Apr 2025</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="feature-card text-center" style="border-top: 3px solid #ffc107;">
-                                <i class="bi bi-graph-up text-warning" style="font-size: 2rem;"></i>
-                                <h6 class="fw-bold mt-2" data-i18n="sme.profit_title">Laba Bersih</h6>
-                                <p class="fw-bold text-warning mb-0">Rp 6.280.000</p>
-                                <p class="small text-muted mb-0">Nov 2024 – Apr 2025</p>
-                            </div>
-                        </div> --}}
                     </div>
 
                     <!-- Aktivitas Siswa -->
@@ -763,28 +726,7 @@
                         <div class="col-6 col-md-4"><div class="feature-card text-center py-3" style="border-top: 3px solid #e41e2d;"><i class="bi bi-people text-danger" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="alfa.s9">Perekrutan Siswa</p></div></div>
                     </div>
 
-                    <!-- Data Siswa Alfamart Class -->
-                    <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart-fill text-danger me-2"></i> <span data-i18n="alfa.data_title">Jumlah Siswa Alfamart Class (5 Tahun Terakhir)</span></h5>
-                    <div class="table-responsive mb-4">
-                        <table class="table table-bordered table-hover text-center small">
-                            <thead style="background: #e41e2d; color: white;">
-                                <tr>
-                                    <th data-i18n="alfa.th_tahun">Tahun Ajaran</th>
-                                    <th>Kelas X</th>
-                                    <th>Kelas XI</th>
-                                    <th>Kelas XII</th>
-                                    <th data-i18n="alfa.th_total">Jumlah</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td>2020/2021</td><td>18</td><td>22</td><td>20</td><td class="fw-bold">60</td></tr>
-                                <tr><td>2021/2022</td><td>52</td><td>18</td><td>22</td><td class="fw-bold">92</td></tr>
-                                <tr><td>2022/2023</td><td>42</td><td>52</td><td>18</td><td class="fw-bold">112</td></tr>
-                                <tr><td>2023/2024</td><td>26</td><td>42</td><td>52</td><td class="fw-bold">120</td></tr>
-                                <tr style="background: #fff3cd;"><td>2024/2025</td><td>33</td><td>26</td><td>38</td><td class="fw-bold">97</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+
 
                     <!-- Implementasi Kurikulum -->
                     <h5 class="fw-bold mb-3"><i class="bi bi-journal-bookmark-fill text-danger me-2"></i> <span data-i18n="alfa.kur_title">Implementasi Kurikulum</span></h5>
@@ -844,9 +786,9 @@
                             <i class="bi bi-bag-heart-fill"></i>
                         </div>
                         <h4 data-i18n="login.cust_title">Login Pelanggan</h4>
-                        <p data-i18n="login.cust_desc">Untuk memesan makanan secara online. Daftar gratis jika belum punya akun.</p>
+                        <p data-i18n="login.cust_desc">Untuk memesan makanan secara online. Akun diberikan oleh kasir toko.</p>
                         <a href="{{ route('pelanggan.login') }}" class="btn-login-primary">
-                            <i class="bi bi-bag-heart"></i> <span data-i18n="login.cust_btn">Login / Daftar</span>
+                            <i class="bi bi-bag-heart"></i> <span data-i18n="login.cust_btn">Login Pelanggan</span>
                         </a>
                     </div>
                 </div>
@@ -972,8 +914,8 @@
                     staff_desc: "Untuk admin dan kasir. Kelola toko, transaksi, stok, dan laporan.",
                     staff_btn: "Login Staf",
                     cust_title: "Login Pelanggan",
-                    cust_desc: "Untuk memesan makanan secara online. Daftar gratis jika belum punya akun.",
-                    cust_btn: "Login / Daftar"
+                    cust_desc: "Untuk memesan makanan secara online. Akun diberikan oleh kasir toko.",
+                    cust_btn: "Login Pelanggan"
                 },
                 footer: { text: "© 2026 SMEGABIZ — Rekayasa Perangkat Lunak Project 2026" }
             },
@@ -1071,8 +1013,8 @@
                     staff_desc: "For admins and cashiers. Manage store, transactions, stock, and reports.",
                     staff_btn: "Staff Login",
                     cust_title: "Customer Login",
-                    cust_desc: "To order food online. Register for free if you don't have an account.",
-                    cust_btn: "Login / Register"
+                    cust_desc: "To order food online. Account is provided by the store cashier.",
+                    cust_btn: "Customer Login"
                 },
                 footer: { text: "© 2026 SMEGABIZ — Software Engineering Project 2026" }
             }
