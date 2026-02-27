@@ -31,11 +31,11 @@ class CustomerAuthController extends Controller
     {
         $credentials = $request->validate([
             'username' => 'required|string',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:5',
         ], [
             'username.required' => 'Username harus diisi',
             'password.required' => 'Password harus diisi',
-            'password.min' => 'Password minimal 8 karakter',
+            'password.min' => 'Password minimal 5 karakter',
         ]);
 
         // Rate limiting

@@ -19,18 +19,19 @@ class RegisterController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users',
+            'username' => 'required|string|min:5|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:5|confirmed',
         ], [
             'name.required' => 'Nama harus diisi',
             'username.required' => 'Username harus diisi',
+            'username.min' => 'Username minimal 5 karakter',
             'username.unique' => 'Username sudah digunakan',
             'email.required' => 'Email harus diisi',
             'email.email' => 'Email tidak valid',
             'email.unique' => 'Email sudah terdaftar',
             'password.required' => 'Password harus diisi',
-            'password.min' => 'Password minimal 6 karakter',
+            'password.min' => 'Password minimal 5 karakter',
             'password.confirmed' => 'Password tidak cocok',
         ]);
 

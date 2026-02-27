@@ -47,8 +47,8 @@ class UserController extends Controller
     {
         $rules = [
             'name'     => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users,username',
-            'password' => 'required|string|min:8|confirmed',
+            'username' => 'required|string|min:5|max:255|unique:users,username',
+            'password' => 'required|string|min:5|confirmed',
             'role'     => 'required|in:admin,kasir,pelanggan',
         ];
         if ($request->input('role') === 'pelanggan') {
@@ -58,9 +58,10 @@ class UserController extends Controller
         $validated = $request->validate($rules, [
             'name.required'      => 'Nama harus diisi',
             'username.required'  => 'Username harus diisi',
+            'username.min'       => 'Username minimal 5 karakter',
             'username.unique'    => 'Username sudah digunakan',
             'password.required'  => 'Password harus diisi',
-            'password.min'       => 'Password minimal 8 karakter',
+            'password.min'       => 'Password minimal 5 karakter',
             'password.confirmed' => 'Konfirmasi password tidak cocok',
             'role.required'      => 'Role harus dipilih',
             'role.in'            => 'Role tidak valid',
@@ -134,14 +135,15 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users,username,' . $user->id,
-            'password' => 'nullable|string|min:8|confirmed',
+            'username' => 'required|string|min:5|max:255|unique:users,username,' . $user->id,
+            'password' => 'nullable|string|min:5|confirmed',
             'role' => 'required|in:admin,kasir,pelanggan',
         ], [
             'name.required' => 'Nama harus diisi',
             'username.required' => 'Username harus diisi',
+            'username.min' => 'Username minimal 5 karakter',
             'username.unique' => 'Username sudah digunakan',
-            'password.min' => 'Password minimal 8 karakter',
+            'password.min' => 'Password minimal 5 karakter',
             'password.confirmed' => 'Konfirmasi password tidak cocok',
             'role.required' => 'Role harus dipilih',
             'role.in' => 'Role tidak valid',
