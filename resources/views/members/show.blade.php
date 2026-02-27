@@ -1,11 +1,15 @@
-@extends('layouts.app')
+@php
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+$layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
+@endphp
+@extends($layout)
 
 @section('title', 'Detail Member')
 
 @section('content')
 <div class="mb-4">
     <div class="d-flex align-items-center gap-3 mb-4">
-        <a href="{{ route('members.index') }}" class="btn btn-outline-secondary">
+        <a href="{{ route($routePrefix . 'members.index') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Kembali
         </a>
         <h2 class="fw-bold mb-0">
@@ -54,10 +58,10 @@
             <hr>
 
             <div class="d-flex gap-2">
-                <a href="{{ route('members.edit', $member) }}" class="btn btn-warning fw-bold text-white">
+                <a href="{{ route($routePrefix . 'members.edit', $member) }}" class="btn btn-warning fw-bold text-white">
                     <i class="bi bi-pencil"></i> Edit
                 </a>
-                <form action="{{ route('members.destroy', $member) }}" method="POST" style="display: inline;" onsubmit="confirmDelete(event, 'Data member ini akan dihapus permanently!')">
+                <form action="{{ route($routePrefix . 'members.destroy', $member) }}" method="POST" style="display: inline;" onsubmit="confirmDelete(event, 'Data member ini akan dihapus permanently!')">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger fw-bold">
