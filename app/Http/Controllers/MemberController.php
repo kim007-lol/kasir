@@ -61,7 +61,8 @@ class MemberController extends Controller
 
         Member::create($validated);
 
-        return redirect()->route('members.index')->with('success', 'Member berhasil ditambahkan');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'members.index')->with('success', 'Member berhasil ditambahkan');
     }
 
     /**
@@ -93,7 +94,8 @@ class MemberController extends Controller
 
         $member->update($validated);
 
-        return redirect()->route('members.index')->with('success', 'Member berhasil diperbarui');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'members.index')->with('success', 'Member berhasil diperbarui');
     }
 
     /**
@@ -103,7 +105,8 @@ class MemberController extends Controller
     {
         $member->delete();
 
-        return redirect()->route('members.index')->with('success', 'Member berhasil dihapus (Nonaktif)');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'members.index')->with('success', 'Member berhasil dihapus (Nonaktif)');
     }
 
     public function restore($id): RedirectResponse
@@ -111,6 +114,7 @@ class MemberController extends Controller
         $member = Member::withTrashed()->findOrFail($id);
         $member->restore();
 
-        return redirect()->route('members.index')->with('success', 'Member berhasil dipulihkan (Aktif)');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'members.index')->with('success', 'Member berhasil dipulihkan (Aktif)');
     }
 }
