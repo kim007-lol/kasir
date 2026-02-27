@@ -1,0 +1,497 @@
+# 📖 User Guide — Kasirku (SMEGABIZ)
+
+Panduan lengkap penggunaan aplikasi **Kasirku** untuk semua role: **Admin**, **Kasir**, dan **Pelanggan**.
+
+---
+
+## 🌐 1. Landing Page (`/`)
+
+Halaman utama yang ditampilkan kepada pengunjung yang belum login.
+
+### Fungsi Utama
+| Elemen | Fungsi |
+|---|---|
+| **Tombol Login Staff** | Mengarahkan ke halaman login untuk Admin & Kasir (`/login`) |
+| **Tombol Daftar / Login Pelanggan** | Mengarahkan ke halaman login/register akun pelanggan untuk booking online |
+| **Tombol Pesan Sekarang / Lihat Menu** | Shortcut langsung ke menu booking online (SmeGo) |
+| **Keranjang (Cart Icon)** | Tombol di navbar landing page untuk langsung ke keranjang belanja online |
+
+> [!NOTE]
+> Jika sudah login, halaman `/` akan otomatis redirect:
+> - **Admin** → `/dashboard`
+> - **Kasir** → `/cashier/dashboard`
+> - **Pelanggan** → `/booking/menu`
+
+---
+
+## 🔐 2. Halaman Login
+
+### Login Staff (Admin / Kasir) — `/login` atau `/staff/login`
+| Field | Keterangan |
+|---|---|
+| **Email** | Masukkan email staff |
+| **Password** | Masukkan kata sandi |
+| **Tombol Login** | Submit form login, redirect ke dashboard sesuai role |
+
+### Login / Register Pelanggan — `/pelanggan/login` & `/pelanggan/register`
+| Elemen | Fungsi |
+|---|---|
+| **Form Register** | Daftar akun baru sebagai pelanggan untuk booking online |
+| **Form Login** | Masuk ke akun pelanggan yang sudah terdaftar |
+| **Link Lupa Password** | (Jika tersedia) Reset password |
+
+---
+
+## 🖥️ 3. Panel Admin
+
+Admin menggunakan layout dengan **Sidebar** di sisi kiri.
+
+### 🗂️ Sidebar Admin
+
+| Menu | Icon | Fungsi |
+|---|---|---|
+| **Dashboard** | 📊 | Halaman utama admin: statistik penjualan, grafik, ringkasan data |
+| **Gudang** | 🏢 | Kelola stok produk di gudang (item induk sebelum dipindah ke kasir) |
+| **Supplier** | 🚚 | Kelola data supplier / pemasok barang |
+| **Kategori** | 📋 | Kelola kategori produk |
+| **Stok Item Kasir** | 🛒 | Kelola item yang tersedia di meja kasir (langsung dijual) |
+| **Stock Opname** | 📎 | Catat penyesuaian stok fisik vs sistem |
+| **Histori Transaksi** | ⏱️ | Lihat semua riwayat transaksi POS yang sudah selesai |
+| **Member** | 👥 | Kelola data member pelanggan tetap |
+| **Laporan** | 📈 | Laporan keuangan, ekspor PDF/Excel |
+| **Kelola User** | ⚙️ | Kelola akun Admin dan Kasir |
+| **Logout** | ↪️ | Tombol di bawah sidebar, keluar dari sesi |
+
+### 🔝 Navbar Admin
+| Elemen | Fungsi |
+|---|---|
+| **Toggle Button (☰)** | Sembunyikan/tampilkan sidebar (collapse/expand) |
+| **Brand SMEGABIZ** | Klik untuk kembali ke Dashboard |
+| **Nama User** | Menampilkan nama pengguna yang sedang login |
+
+---
+
+### 📊 3.1 Dashboard Admin (`/dashboard`)
+
+Menampilkan ringkasan bisnis hari ini & keseluruhan.
+
+| Kartu/Widget | Fungsi |
+|---|---|
+| **Total Pendapatan Hari Ini** | Total uang masuk dari transaksi hari ini |
+| **Jumlah Transaksi** | Berapa kali transaksi terjadi |
+| **Stok Kritis** | Peringatan produk yang stoknya hampir habis |
+| **Grafik Penjualan** | Visualisasi tren penjualan harian/mingguan |
+
+---
+
+### 🏢 3.2 Gudang (`/warehouse`)
+
+Halaman manajemen produk di gudang (stok induk).
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **+ Tambah Produk** | Form untuk menambah item baru ke gudang |
+| **✏️ Edit** | Ubah detail produk (nama, harga beli, stok) |
+| **🗑️ Hapus** | Hapus produk dari gudang (dengan konfirmasi) |
+| **Status Stok** | Indikator warna stok: Hijau (aman), Kuning (menipis), Merah (kritis) |
+| **Filter/Search** | Cari produk berdasarkan nama atau kode |
+
+---
+
+### 🚚 3.3 Supplier (`/suppliers`)
+
+Kelola data pemasok barang.
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **+ Tambah Supplier** | Tambah data supplier baru (nama, kontak, alamat) |
+| **✏️ Edit** | Ubah informasi supplier |
+| **🗑️ Hapus (Soft Delete)** | Hapus supplier — data tidak permanen dihapus |
+| **♻️ Restore** | Pulihkan supplier yang sudah dihapus |
+
+---
+
+### 📋 3.4 Kategori (`/categories`)
+
+Kelola kategori produk untuk pengelompokan menu.
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **+ Tambah Kategori** | Buat kategori baru (misal: Makanan, Minuman, Snack) |
+| **✏️ Edit** | Ubah nama/deskripsi kategori |
+| **🗑️ Hapus (Soft Delete)** | Hapus kategori (produk di kategori ini tidak terhapus) |
+| **♻️ Restore** | Pulihkan kategori yang dihapus |
+
+---
+
+### 🛒 3.5 Stok Item Kasir (`/cashier-items`)
+
+Produk yang siap dijual di POS kasir. Asal item dari Gudang atau Titipan (Konsinyasi).
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **+ Tambah Item** | Tambahkan item baru ke meja kasir |
+| **✏️ Edit** | Ubah harga jual, stok, diskon item kasir |
+| **🗑️ Hapus** | Hapus item dari daftar kasir |
+| **Badge Stok** | Merah = stok < 10, Kuning = stok ≤ 20, Hijau = aman |
+
+---
+
+### 📎 3.6 Stock Opname (`/stock-adjustments`)
+
+Penyesuaian stok fisik vs stok sistem.
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **+ Buat Penyesuaian** | Form untuk mencatat perbedaan stok (lebih/kurang) |
+| **Riwayat Opname** | Daftar semua penyesuaian yang pernah dilakukan |
+| **Tombol Simpan** | Simpan hasil perhitungan stok opname |
+
+---
+
+### ⏱️ 3.7 Histori Transaksi (`/history`)
+
+Riwayat semua transaksi POS yang telah selesai.
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **Filter Tanggal** | Tampilkan transaksi dalam rentang tanggal tertentu |
+| **Filter Metode Bayar** | Filter berdasarkan Cash atau QRIS |
+| **🔍 Lihat Detail** | Buka rincian transaksi: item, total, kasir, member |
+| **⬇️ Download PDF** | Unduh struk transaksi dalam format PDF |
+| **🖨️ Thermal** | Cetak struk format thermal printer |
+
+---
+
+### 👥 3.8 Member (`/members`)
+
+Kelola data pelanggan tetap / member.
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **+ Tambah Member** | Daftarkan pelanggan baru sebagai member |
+| **✏️ Edit** | Ubah data member (nama, nomor telpon, poin) |
+| **🗑️ Hapus (Soft Delete)** | Nonaktifkan member |
+| **♻️ Restore** | Pulihkan member yang dihapus |
+
+---
+
+### 📈 3.9 Laporan (`/reports`)
+
+Laporan keuangan dan analitik bisnis.
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **Filter Periode** | Pilih rentang tanggal laporan |
+| **📄 Export PDF** | Unduh laporan dalam format PDF |
+| **📊 Export Excel** | Unduh laporan dalam format Excel (.xlsx) |
+| **Riwayat Stok Masuk** | Melihat histori penambahan stok dari gudang |
+| **Riwayat Transfer** | Riwayat perpindahan barang dari gudang ke kasir |
+
+---
+
+### ⚙️ 3.10 Kelola User (`/users`)
+
+Manajemen akun Admin dan Kasir.
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **+ Tambah User** | Buat akun baru (Admin/Kasir) dengan email & password |
+| **✏️ Edit** | Ubah nama, email, role user |
+| **🗑️ Hapus (Soft Delete)** | Nonaktifkan akun user |
+| **♻️ Restore** | Aktifkan kembali user yang dihapus |
+
+---
+
+## 💼 4. Panel Kasir
+
+Kasir menggunakan layout **Navbar** di bagian atas (bukan sidebar).
+
+### 🔝 Navbar Kasir — Fungsi Setiap Item
+
+| Menu Navbar | Fungsi |
+|---|---|
+| **KASIR SMEGABIZ** *(Brand)* | Klik untuk kembali ke Dashboard Kasir |
+| **DASHBOARD** | Halaman utama kasir: shortcut menu, alert pesanan & stok |
+| **TRANSAKSI** | Buka halaman POS untuk melayani pembelian pelanggan |
+| **STOK ▼** *(dropdown)* | Menu dropdown untuk manajemen stok: |
+| &nbsp;&nbsp;&nbsp;↳ Stok Item Kasir | Lihat semua item yang ada di kasir beserta stoknya |
+| &nbsp;&nbsp;&nbsp;↳ Stock Opname | Catat penyesuaian stok fisik |
+| &nbsp;&nbsp;&nbsp;↳ Barang Titipan | Kelola item konsinyasi/titipan dari pihak luar |
+| **HISTORI ▼** *(dropdown)* | Menu dropdown untuk riwayat: |
+| &nbsp;&nbsp;&nbsp;↳ Histori Transaksi | Riwayat transaksi POS yang sudah dibayar |
+| &nbsp;&nbsp;&nbsp;↳ Histori Booking | Riwayat pesanan booking online yang sudah selesai atau ditolak |
+| **PESANAN** *(badge merah)* | Daftar pesanan booking online yang masuk; badge angka = jumlah pending |
+| **LAYAR PELANGGAN** | Buka tab baru untuk customer display di monitor kedua |
+| **Nama User** | Nama kasir yang sedang login |
+| **Logout** | Keluar dari sesi kasir |
+
+> [!TIP]  
+> Badge merah di navbar **PESANAN** diperbarui otomatis setiap 30 detik via polling, atau real-time jika WebSocket (Reverb) aktif. Notifikasi suara akan berbunyi saat ada pesanan baru.
+
+---
+
+### 🏠 4.1 Dashboard Kasir (`/cashier/dashboard`)
+
+| Elemen | Fungsi |
+|---|---|
+| **Banner Selamat Datang** | Menampilkan nama kasir yang login |
+| **Alert Pesanan Baru** *(kuning, berdenyut)* | Muncul jika ada pesanan booking online pending; klik untuk ke halaman Pesanan |
+| **Alert Stok Menipis** *(merah)* | Muncul jika ada item dengan stok < 5; menampilkan tabel stok kritis |
+| **Kartu Transaksi Baru** | Shortcut klik → ke halaman Transaksi |
+| **Kartu Stok Item Kasir** | Shortcut klik → ke halaman Stok Item Kasir |
+| **Kartu Riwayat Transaksi** | Shortcut klik → ke halaman Histori Transaksi |
+| **Kartu Pesanan Online** | Shortcut klik → ke halaman Pesanan; badge merah jika ada pending |
+| **Kartu Pengaturan Toko** | Shortcut klik → ke halaman Pengaturan jam buka toko |
+
+---
+
+### 💳 4.2 Transaksi POS (`/cashier/transaksi`)
+
+Halaman utama Point of Sale untuk melayani pembeli.
+
+#### Panel Kiri — Daftar Produk
+
+| Tombol/Elemen | Fungsi |
+|---|---|
+| **Reset** *(merah)* | Kosongkan semua item di keranjang (minta konfirmasi SweetAlert) |
+| **Tambah Terpilih** *(hijau)* | Masukkan semua item yang dicentang ke keranjang |
+| **Kotak Pencarian** | Ketik nama produk atau scan barcode → produk otomatis muncul |
+| **Tombol Cari** | Eksekusi pencarian manual |
+| **Checkbox Select All** | Pilih/batalkan semua produk di halaman sekaligus |
+| **Checkbox per Baris** | Pilih satu item untuk dimasukkan ke keranjang |
+| **Input Jumlah (Qty)** | Atur berapa unit yang ingin dibeli; aktif setelah item dicentang |
+| **Badge Stok** | Hijau (>20), Kuning (10–20), Merah (<10) |
+| **Paginasi** | Navigasi halaman produk jika lebih dari 1 halaman |
+
+> [!NOTE]
+> Jika barcode di-scan di kolom pencarian dan hanya ada **1 hasil unik**, item langsung ditambahkan ke keranjang secara otomatis dan halaman di-refresh.
+
+#### Panel Kanan — Keranjang & Pembayaran
+
+| Elemen | Fungsi |
+|---|---|
+| **Tabel Keranjang** | Daftar item yang sudah dipilih, beserta qty dan harga |
+| **🗑️ Hapus per Item** | Hapus satu item tertentu dari keranjang |
+| **Total Belanja** | Jumlah total harga semua item di keranjang |
+| **Total Setelah Potongan** | Muncul jika ada diskon; menampilkan harga akhir |
+| **Nama Kasir** *(wajib)* | Input nama kasir yang melayani transaksi ini |
+| **Pilih Member** | Dropdown untuk memilih member (opsional); non-member bisa dikosongkan |
+| **Potongan (Rp)** | *Khusus Admin* — input diskon nominal untuk transaksi |
+| **Uang Dibayar** | Input nominal uang yang diberikan pelanggan |
+| **10rb / 20rb / 50rb / 100rb** | Tombol shortcut uang cepat (isi otomatis field uang dibayar) |
+| **Pas** | Isi otomatis dengan nominal tepat sesuai total (dibulatkan ke atas per 1000) |
+| **Kembalian** | Muncul otomatis: selisih uang dibayar - total |
+| **Cash / QRIS** | Pilih metode pembayaran |
+| **Bayar Sekarang** | Submit transaksi; aktif hanya jika uang dibayar ≥ total |
+
+---
+
+### 📦 4.3 Stok Item Kasir (`/cashier/stock`)
+
+Daftar semua item yang tersedia di kasir.
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **+ Tambah dari Gudang** | Pindahkan barang dari gudang ke kasir (mengurangi stok gudang) |
+| **+ Tambah Konsinyasi** | Tambah barang titipan langsung tanpa gudang |
+| **Badge Stok** | Indikator warna stok menipis atau aman |
+| **Detail Item** | Lihat informasi lengkap item (harga beli, jual, diskon) |
+
+---
+
+### 📎 4.4 Stock Opname (`/cashier/stock-adjustments`)
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **+ Buat Penyesuaian** | Form input stok aktual fisik untuk dibandingkan dengan stok sistem |
+| **Riwayat** | Lihat daftar penyesuaian stok yang sudah dilakukan |
+| **Simpan** | Simpan hasil penyesuaian dan update stok di sistem |
+
+---
+
+### 🍱 4.5 Barang Titipan / Konsinyasi (`/cashier/consignment`)
+
+Item yang dititipkan oleh pihak ketiga untuk dijual di kasir.
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **+ Tambah Titipan** | Daftarkan barang titipan baru (nama, harga, stok, tanggal) |
+| **✏️ Edit** | Ubah detail barang titipan |
+| **🗑️ Hapus** | Hapus item konsinyasi (dengan konfirmasi) |
+
+---
+
+### ⏱️ 4.6 Histori Transaksi (`/cashier/history`)
+
+Riwayat transaksi POS kasir.
+
+| Tombol/Aksi | Fungsi |
+|---|---|
+| **Filter Tanggal** | Tampilkan transaksi di rentang tanggal tertentu |
+| **Filter Metode Bayar** | Filter Cash atau QRIS |
+| **🔍 Lihat Detail** | Buka rincian: item dibeli, total, kasir, member, kembalian |
+| **⬇️ Download PDF** | Unduh struk PDF |
+| **🖨️ Thermal** | Cetak struk thermal printer |
+
+---
+
+### 📦 4.7 Pesanan Online (`/cashier/bookings`)
+
+Kelola pesanan yang masuk dari aplikasi booking pelanggan (SmeGo).
+
+| Filter | Fungsi |
+|---|---|
+| **Semua / Pending / Diproses / Siap / Selesai / Ditolak** | Filter daftar pesanan berdasarkan status |
+
+| Tombol Aksi per Pesanan | Fungsi |
+|---|---|
+| **✅ Terima** | Terima pesanan (status: Pending → Diterima) |
+| **❌ Tolak** | Tolak pesanan dengan alasan (status: Pending → Ditolak) |
+| **🔄 Proses** | Mulai memproses pesanan (status: Diterima → Diproses) |
+| **✔️ Siap** | Tandai pesanan siap diambil (status: Diproses → Siap) |
+| **🏁 Selesai** | Selesaikan pesanan (status: Siap → Selesai) |
+| **🔍 Lihat Detail** | Buka modal detail: nama pelanggan, item, catatan, total |
+
+> [!IMPORTANT]
+> Saat ada pesanan baru masuk, sistem berbunyi (notifikasi suara) dan muncul pop-up SweetAlert di pojok kanan atas.
+
+---
+
+### 🖥️ 4.8 Layar Pelanggan (`/cashier/customer-display`)
+
+Terbuka di tab baru, dirancang untuk ditampilkan di monitor kedua menghadap pelanggan.
+
+| Elemen | Fungsi |
+|---|---|
+| **Tabel Keranjang Real-time** | Menampilkan item yang dipilih kasir secara langsung via BroadcastChannel |
+| **Total Harga** | Ditampilkan besar-besar untuk dilihat pelanggan |
+| **Status Checkout** | Berubah menjadi animasi "Sedang Diproses" saat kasir menekan Bayar |
+
+---
+
+### ⚙️ 4.9 Pengaturan Toko (`/cashier/settings`)
+
+Atur jam operasional untuk sistem booking online.
+
+| Tombol/Elemen | Fungsi |
+|---|---|
+| **Jam Buka** | Input waktu buka toko (format 24 jam) |
+| **Jam Tutup** | Input waktu tutup toko |
+| **Simpan Jam** | Simpan pengaturan jam operasional |
+| **Toggle Override** | Paksa toko jadi buka/tutup di luar jam operasional (berguna saat libur mendadak) |
+
+---
+
+## 🍱 5. Sistem Booking Online (SmeGo) — Panel Pelanggan
+
+Pelanggan menggunakan antarmuka terpisah yang diakses setelah login sebagai pelanggan.
+
+### 🔝 Navbar Booking (SmeGo)
+
+| Elemen | Fungsi |
+|---|---|
+| **SmeGo** *(brand)* | Klik untuk kembali ke halaman Menu |
+| **Menu** | Link ke halaman daftar menu makanan/minuman |
+| **🛒 Keranjang** | Link ke halaman keranjang belanja dengan badge jumlah item |
+| **Riwayat** | Link ke riwayat pesanan pelanggan |
+| **Logout** | Keluar dari akun pelanggan |
+
+---
+
+### 🍽️ 5.1 Menu (`/booking/menu`)
+
+Halaman utama untuk melihat dan memesan makanan/minuman.
+
+| Elemen | Fungsi |
+|---|---|
+| **Filter Kategori** | Tombol-tombol kategori (Semua, Makanan, Minuman, dll); klik untuk filter |
+| **Kotak Pencarian** | Cari item menu berdasarkan nama |
+| **Badge Titipan / Kategori** | Menampilkan apakah item adalah barang titipan atau kategori normal |
+| **Badge Stok** | 📦 angka = stok tersedia; ❌ Habis = tidak bisa dipesan |
+| **Input Qty** | Atur jumlah yang ingin dipesan (min 1, max sesuai stok) |
+| **Tombol Pesan** *(merah)* | Tambahkan item ke keranjang |
+| **Tombol Stok Habis** *(abu-abu, disabled)* | Muncul jika stok = 0; tidak bisa diklik |
+| **Tombol Toko Tutup** *(kuning, disabled)* | Muncul jika di luar jam operasional |
+
+> [!WARNING]
+> Jika muncul banner **"Toko Sedang Tutup"**, pelanggan hanya bisa melihat menu tetapi tidak bisa memesan.
+
+---
+
+### 🛒 5.2 Keranjang (`/booking/cart`)
+
+Halaman review pesanan sebelum checkout.
+
+| Elemen/Tombol | Fungsi |
+|---|---|
+| **Input Qty per Item** | Ubah jumlah tanpa reload halaman; auto-save setelah 500ms |
+| **Input Catatan** | Tambahkan catatan khusus per item (misal: "pedas", "tanpa bawang") — auto-save |
+| **Subtotal per Item** | Dihitung real-time saat qty diubah |
+| **Total Pembayaran** | Jumlah semua item; diperbarui langsung |
+| **🗑️ Hapus** | Klik → muncul modal konfirmasi → konfirmasi hapus item |
+| **Lanjut Checkout** *(biru)* | Lanjut ke halaman checkout; hanya muncul jika toko buka |
+| **Lihat Menu** | Muncul jika keranjang kosong; kembali ke halaman menu |
+
+---
+
+### ✅ 5.3 Checkout (`/booking/checkout`)
+
+Konfirmasi pesanan sebelum dikirim.
+
+| Elemen/Tombol | Fungsi |
+|---|---|
+| **Ringkasan Pesanan** | Tampilkan semua item + catatan + subtotal |
+| **Total Pembayaran** | Total final yang harus dibayar |
+| **Nama Pelanggan** | Ditampilkan otomatis dari akun yang login |
+| **Tombol Pesan Sekarang** | Submit pesanan ke kasir; pesanan masuk ke antrian dengan status **Pending** |
+| **Tombol Kembali** | Kembali ke keranjang tanpa submit |
+
+---
+
+### 📡 5.4 Status Pesanan (`/booking/status/{booking}`)
+
+Halaman pelacakan real-time status pesanan.
+
+| Elemen | Fungsi |
+|---|---|
+| **Kode Booking** | Nomor unik pesanan (misal: BK-20250225-0001) |
+| **Progress Status** | Visual timeline: Pending → Diterima → Diproses → Siap → Selesai |
+| **Status Badge** | Badge berwarna sesuai status saat ini |
+| **Detail Item** | Daftar item yang dipesan beserta catatan |
+| **Total** | Jumlah yang harus dibayar |
+| **Auto-refresh** | Halaman polling status setiap beberapa detik secara otomatis |
+| **Tombol Kembali ke Menu** | Kembali ke halaman menu untuk makukan pesanan baru |
+
+---
+
+### 📜 5.5 Riwayat Pesanan (`/booking/history`)
+
+Daftar semua pesanan yang pernah dibuat oleh pelanggan.
+
+| Elemen/Tombol | Fungsi |
+|---|---|
+| **Daftar Pesanan** | Tampilkan semua pesanan: kode, tanggal, total, status |
+| **Badge Status** | Hijau (Selesai), Biru (Diproses), Kuning (Pending), Merah (Ditolak) |
+| **🔍 Lihat Detail** | Buka halaman status pesanan untuk melihat rincian |
+
+---
+
+## 🎨 Kode Warna & Badge Global
+
+| Warna | Arti |
+|---|---|
+| 🟢 Hijau | Sukses / Stok Aman / Selesai |
+| 🟡 Kuning | Peringatan / Stok Menipis / Pending |
+| 🔴 Merah | Kritis / Stok Habis / Error / Ditolak |
+| 🔵 Biru | Info / Diproses |
+
+---
+
+## ❓ Tips & Catatan Penting
+
+> [!TIP]
+> - **Barcode scanner** dapat digunakan langsung di halaman Transaksi — fokus di kotak pencarian dan scan.
+> - **Layar Pelanggan** buka di browser terpisah dan biarkan terbuka di monitor kedua.
+> - Kasir tidak perlu reload halaman — notifikasi pesanan baru muncul otomatis.
+> - Diskon transaksi **hanya bisa diinput oleh Admin**, bukan Kasir.
