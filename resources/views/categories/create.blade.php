@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@php
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+$layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
+@endphp
+@extends($layout)
 
 @section('title', 'Tambah Kategori')
 
@@ -6,7 +10,7 @@
 <div class="row justify-content-center">
     <div class="col-md-6">
         <h2 class="mb-4">Tambah Kategori</h2>
-        <form action="{{ route('categories.store') }}" method="POST">
+        <form action="{{ route($routePrefix . 'categories.store') }}" method="POST">
             @csrf
             <div class="mb-3">
                 <label for="name" class="form-label">Nama Kategori</label>
@@ -17,7 +21,7 @@
             </div>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Simpan</button>
-                <a href="{{ route('categories.index') }}" class="btn btn-secondary">Batal</a>
+                <a href="{{ route($routePrefix . 'categories.index') }}" class="btn btn-secondary">Batal</a>
             </div>
         </form>
     </div>
