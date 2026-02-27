@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@php
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+$layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
+@endphp
+@extends($layout)
 
 @section('title', 'Gudang')
 
@@ -8,7 +12,7 @@
         <h2 class="fw-bold mb-0">
             <i class="bi bi-building"></i> Stok Gudang
         </h2>
-        <a href="{{ route('warehouse.create') }}" class="btn btn-primary text-white fw-bold">
+        <a href="{{ route($routePrefix . 'warehouse.create') }}" class="btn btn-primary text-white fw-bold">
             <i class="bi bi-plus-circle"></i> Tambah Barang
         </a>
     </div>
@@ -16,7 +20,7 @@
     <!-- Search Form -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('warehouse.index') }}" class="row g-3 align-items-end">
+            <form method="GET" action="{{ route($routePrefix . 'warehouse.index') }}" class="row g-3 align-items-end">
                 <div class="col-md-4">
                     <label for="search" class="form-label fw-semibold">Cari Barang Gudang</label>
                     <input type="text" class="form-control" id="search" name="search" value="{{ $search ?? '' }}" placeholder="Cari nama atau kode...">
@@ -49,7 +53,7 @@
                             <i class="bi bi-search"></i> Cari
                         </button>
                         @if((isset($search) && $search) || (isset($categoryId) && $categoryId) || (isset($supplierId) && $supplierId))
-                        <a href="{{ route('warehouse.index') }}" class="btn btn-outline-secondary px-3" title="Reset Filter">
+                        <a href="{{ route($routePrefix . 'warehouse.index') }}" class="btn btn-outline-secondary px-3" title="Reset Filter">
                             <i class="bi bi-x-circle"></i>
                         </a>
                         @endif
@@ -122,10 +126,10 @@
                             <td>
                                 <div class="d-flex gap-1 justify-content-center" role="group">
 
-                                    <a href="{{ route('warehouse.edit', $item) }}" class="btn btn-warning btn-sm text-white" title="Edit">
+                                    <a href="{{ route($routePrefix . 'warehouse.edit', $item) }}" class="btn btn-warning btn-sm text-white" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form action="{{ route('warehouse.destroy', $item) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Barang ini akan dihapus dari gudang!')">
+                                    <form action="{{ route($routePrefix . 'warehouse.destroy', $item) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Barang ini akan dihapus dari gudang!')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm text-white" title="Hapus">
@@ -219,7 +223,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             function pollWarehouseStock() {
-                fetch("{{ route('warehouse.status') }}")
+                fetch("{{ route($routePrefix . 'warehouse.status') }}")
                     .then(res => res.json())
                     .then(data => {
                         data.forEach(item => {
