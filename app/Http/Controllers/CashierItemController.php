@@ -252,7 +252,8 @@ class CashierItemController extends Controller
                 ]);
             });
 
-            return redirect()->route('cashier-items.index')->with('success', 'Data item dan stok kasir berhasil diperbarui dan disinkronkan dengan gudang jika relevan.');
+            $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.stock' : 'cashier-items';
+            return redirect()->route($routePrefix . '.index')->with('success', 'Data item dan stok kasir berhasil diperbarui dan disinkronkan dengan gudang jika relevan.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
@@ -283,7 +284,8 @@ class CashierItemController extends Controller
             $cashierItem->delete();
         });
 
-        return redirect()->route('cashier-items.index')->with('success', 'Item kasir berhasil dihapus dan stok dikembalikan ke gudang');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.stock' : 'cashier-items';
+        return redirect()->route($routePrefix . '.index')->with('success', 'Item kasir berhasil dihapus dan stok dikembalikan ke gudang');
     }
     public function cashierIndex(Request $request): View|\Illuminate\Support\HtmlString|string
     {
