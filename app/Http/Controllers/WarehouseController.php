@@ -89,7 +89,8 @@ class WarehouseController extends Controller
             }
         });
 
-        return redirect()->route('warehouse.index')->with('success', 'Barang gudang berhasil ditambahkan');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'warehouse.index')->with('success', 'Barang gudang berhasil ditambahkan');
     }
 
     public function edit(WarehouseItem $warehouse): View
@@ -131,25 +132,28 @@ class WarehouseController extends Controller
             }
         });
 
-        return redirect()->route('warehouse.index')->with('success', 'Barang gudang berhasil diperbarui');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'warehouse.index')->with('success', 'Barang gudang berhasil diperbarui');
     }
 
     public function destroy(WarehouseItem $warehouse): RedirectResponse
     {
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+
         // H5 Fix: Cek apakah ada item kasir aktif yang merujuk warehouse item ini
         $activeCashierItem = \App\Models\CashierItem::where('warehouse_item_id', $warehouse->id)
             ->where('stock', '>', 0)
             ->first();
 
         if ($activeCashierItem) {
-            return redirect()->route('warehouse.index')->with(
+            return redirect()->route($routePrefix . 'warehouse.index')->with(
                 'error',
                 "Tidak bisa menghapus. Item kasir \"{$activeCashierItem->name}\" masih memiliki stok ({$activeCashierItem->stock}). Kosongkan stok kasir terlebih dahulu."
             );
         }
 
         $warehouse->delete();
-        return redirect()->route('warehouse.index')->with('success', 'Barang gudang berhasil dihapus');
+        return redirect()->route($routePrefix . 'warehouse.index')->with('success', 'Barang gudang berhasil dihapus');
     }
     public function getStockStatus(): \Illuminate\Http\JsonResponse
     {
