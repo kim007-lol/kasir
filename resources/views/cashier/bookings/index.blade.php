@@ -111,16 +111,16 @@
                     @endif
                 </div>
                 <div class="card-footer bg-white border-0 pt-0">
-                    <div class="d-flex gap-2 flex-wrap w-100">
+                    <div class="d-grid gap-2 w-100">
                         {{-- PENDING: Accept or Reject --}}
                         @if($booking->status === 'pending')
-                        <form action="{{ route('cashier.bookings.accept', $booking) }}" method="POST" class="d-inline">
+                        <form action="{{ route('cashier.bookings.accept', $booking) }}" method="POST" class="m-0">
                             @csrf
-                            <button type="submit" class="btn btn-success btn-sm" style="min-width: 90px;">
+                            <button type="submit" class="btn btn-success btn-sm w-100">
                                 <i class="bi bi-check-lg"></i> Terima
                             </button>
                         </form>
-                        <button type="button" class="btn btn-danger btn-sm" style="min-width: 90px;" data-bs-toggle="modal"
+                        <button type="button" class="btn btn-danger btn-sm w-100" data-bs-toggle="modal"
                             data-bs-target="#rejectModal{{ $booking->id }}">
                             <i class="bi bi-x-lg"></i> Tolak
                         </button>
@@ -128,13 +128,13 @@
 
                         {{-- CONFIRMED: Process --}}
                         @if($booking->status === 'confirmed')
-                        <form action="{{ route('cashier.bookings.process', $booking) }}" method="POST" class="d-inline">
+                        <form action="{{ route('cashier.bookings.process', $booking) }}" method="POST" class="m-0">
                             @csrf
-                            <button type="submit" class="btn btn-primary btn-sm">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
                                 <i class="bi bi-fire"></i> Proses
                             </button>
                         </form>
-                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                        <button type="button" class="btn btn-danger btn-sm w-100" data-bs-toggle="modal"
                             data-bs-target="#rejectModal{{ $booking->id }}">
                             <i class="bi bi-x-lg"></i> Batalkan
                         </button>
@@ -143,13 +143,13 @@
                         {{-- PROCESSING: Ready --}}
                         @if($booking->status === 'processing')
                             @if($booking->delivery_type === 'delivery')
-                            <button type="button" class="btn btn-info text-white btn-sm" data-bs-toggle="modal" data-bs-target="#readyModal{{ $booking->id }}">
+                            <button type="button" class="btn btn-info text-white btn-sm w-100" data-bs-toggle="modal" data-bs-target="#readyModal{{ $booking->id }}">
                                 <i class="bi bi-send"></i> Kirim Pesanan
                             </button>
                             @else
-                            <form action="{{ route('cashier.bookings.ready', $booking) }}" method="POST" class="d-inline">
+                            <form action="{{ route('cashier.bookings.ready', $booking) }}" method="POST" class="m-0">
                                 @csrf
-                                <button type="submit" class="btn btn-primary btn-sm">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">
                                     <i class="bi bi-bell"></i> Tandai Siap Ambil
                                 </button>
                             </form>
@@ -159,21 +159,21 @@
                         {{-- READY: Complete --}}
                         @if($booking->canBeCompleted())
                             @if($booking->delivery_type === 'delivery')
-                            <form action="{{ route('cashier.bookings.complete', $booking) }}" method="POST" class="d-inline">
+                            <form action="{{ route('cashier.bookings.complete', $booking) }}" method="POST" class="m-0">
                                 @csrf
-                                <button type="button" class="btn btn-secondary btn-sm"
+                                <button type="button" class="btn btn-secondary btn-sm w-100"
                                     onclick="let form = this.closest('form'); Swal.fire({title: 'Selesaikan Pengiriman?', text: 'Pastikan kurir sudah kembali dan menyetor uang.', icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Selesai', cancelButtonText: 'Batal'}).then((res) => { if(res.isConfirmed) form.submit(); });">
                                     <i class="bi bi-bag-check"></i> Pesanan Diantar/Selesai
                                 </button>
                             </form>
                             @else
-                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#completeModal{{ $booking->id }}">
+                            <button type="button" class="btn btn-success btn-sm w-100" data-bs-toggle="modal" data-bs-target="#completeModal{{ $booking->id }}">
                                 <i class="bi bi-check2-all"></i> Selesaikan & Bayar
                             </button>
                             @endif
                         @endif
 
-                        <a href="{{ route('cashier.bookings.show', $booking) }}" class="btn btn-outline-secondary btn-sm">
+                        <a href="{{ route('cashier.bookings.show', $booking) }}" class="btn btn-outline-secondary btn-sm w-100">
                             <i class="bi bi-eye"></i> Detail
                         </a>
                     </div>
@@ -418,7 +418,7 @@
     .nav-pills .nav-link {
         font-weight: 600;
         border-radius: 0.75rem;
-        margin-right: 0.25rem;
+        margin-right: 0.75rem;
         transition: all 0.3s ease;
         color: #fff;
     }
@@ -507,15 +507,8 @@
         .nav-pills .nav-link {
             font-size: 0.78rem;
             padding: 0.4rem 0.7rem;
+            margin-right: 0.5rem;
             white-space: nowrap;
-        }
-
-        .card-footer .d-flex {
-            flex-direction: column;
-        }
-
-        .card-footer .btn {
-            width: 100%;
         }
     }
 </style>

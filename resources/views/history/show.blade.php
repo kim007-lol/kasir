@@ -237,16 +237,19 @@
 
             <div class="total-row">
                 <span>Metode Bayar</span>
-                <span>{{ strtoupper($transaction->payment_method) }}</span>
+                <span>{{ strtoupper($transaction->payment_method ?? 'CASH') }}</span>
             </div>
+            
+            @if(($transaction->payment_method ?? 'cash') === 'cash')
             <div class="total-row">
                 <span>Tunai</span>
-                <span>{{ number_format($transaction->paid_amount, 0, ',', '.') }}</span>
+                <span>{{ number_format($transaction->paid_amount ?? $transaction->total, 0, ',', '.') }}</span>
             </div>
             <div class="total-row" style="font-weight: bold; color: #000;">
-                <span class="{{ $transaction->change_amount > 0 ? 'text-green' : '' }}">Kembalian</span>
-                <span class="{{ $transaction->change_amount > 0 ? 'text-green' : '' }}">{{ number_format($transaction->change_amount, 0, ',', '.') }}</span>
+                <span class="{{ ($transaction->change_amount ?? 0) > 0 ? 'text-green' : '' }}">Kembalian</span>
+                <span class="{{ ($transaction->change_amount ?? 0) > 0 ? 'text-green' : '' }}">{{ number_format($transaction->change_amount ?? 0, 0, ',', '.') }}</span>
             </div>
+            @endif
 
             <div class="dashed-line"></div>
             <div class="dashed-line"></div>
