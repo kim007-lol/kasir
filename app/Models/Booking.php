@@ -18,16 +18,19 @@ class Booking extends Model
         'customer_name',
         'customer_phone',
         'delivery_type',
+        'pickup_time',
         'delivery_address',
         'status',
-        'notes',
         'total',
         'payment_method',
+        'amount_paid',
         'cancel_reason',
     ];
 
     protected $casts = [
+        'pickup_time' => 'datetime',
         'total' => 'decimal:2',
+        'amount_paid' => 'decimal:2',
     ];
 
     // ===== RELATIONSHIPS =====
