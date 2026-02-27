@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@php
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.stock' : 'cashier-items';
+$layout = auth()->check() && auth()->user()->role === 'kasir' ? 'layouts.cashier' : 'layouts.app';
+@endphp
+@extends($layout)
 
 @section('title', 'Edit Stok Kasir')
 
@@ -47,7 +51,7 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body p-4">
-            <form action="{{ route('cashier-items.update', $cashierItem) }}" method="POST">
+            <form action="{{ route($routePrefix . '.update', $cashierItem) }}" method="POST">
                 @csrf
                 @method('PUT')
 
@@ -87,7 +91,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-save"></i> Update
                     </button>
-                    <a href="{{ route('cashier-items.index') }}" class="btn btn-secondary">
+                    <a href="{{ route($routePrefix . '.index') }}" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Kembali
                     </a>
                 </div>
