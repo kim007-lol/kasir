@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@php
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+$layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
+@endphp
+@extends($layout)
 
 @section('title', 'Edit Supplier')
 
@@ -10,7 +14,7 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body p-4">
-            <form action="{{ route('suppliers.update', $supplier) }}" method="POST">
+            <form action="{{ route($routePrefix . 'suppliers.update', $supplier) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="mb-3">
@@ -57,7 +61,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-save"></i> Update
                     </button>
-                    <a href="{{ route('suppliers.index') }}" class="btn btn-secondary">
+                    <a href="{{ route($routePrefix . 'suppliers.index') }}" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Kembali
                     </a>
                 </div>
