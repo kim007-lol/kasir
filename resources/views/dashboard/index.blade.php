@@ -8,8 +8,8 @@
         <i class="bi bi-speedometer2"></i> Dashboard
     </h2>
 
-    <div class="row g-3">
-        <div class="col-12 col-sm-6 col-lg-6">
+    <div class="row g-4">
+        <div class="col-12 col-sm-6">
             <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #ff0000;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
@@ -23,12 +23,12 @@
             </div>
         </div>
 
-        <div class="col-12 col-sm-6 col-lg-6">
+        <div class="col-12 col-sm-6">
             <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #ff2222;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <p class="text-muted mb-2">Total Transaksi</p>
+                            <p class="text-muted mb-2">Transaksi Hari Ini</p>
                             <h2 class="mb-0" id="totalTransactions" style="color: #ff2222;">{{ $totalTransactions }}</h2>
                         </div>
                         <i class="bi bi-receipt" style="font-size: 2.5rem; color: #ff2222; opacity: 0.2;"></i>
@@ -36,12 +36,7 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Today's Metrics -->
-    <div class="row g-3 mt-4">
-        <div class="col-12">
-        </div>
         <div class="col-12 col-sm-6">
             <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #28a745;">
                 <div class="card-body">
@@ -55,6 +50,7 @@
                 </div>
             </div>
         </div>
+
         <div class="col-12 col-sm-6">
             <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #ffc107;">
                 <div class="card-body">
@@ -71,7 +67,7 @@
     </div>
 
     <!-- Quick Actions -->
-    <div class="row g-3 mt-4">
+    <div class="row g-3 mt-3">
         <div class="col-12">
             <h5 class="fw-bold mb-3">Quick Access</h5>
         </div>
@@ -94,7 +90,7 @@
 
     {{-- Low Stock Alert --}}
     @if(isset($lowStockItems) && $lowStockItems->count() > 0)
-    <div class="row g-3 mt-4">
+    <div class="row g-3 mt-3">
         <div class="col-12">
             <div class="card shadow-sm border-0 border-start border-4 border-danger">
                 <div class="card-body">
@@ -133,7 +129,7 @@
     @endif
 
     <!-- Sales Chart -->
-    <div class="row g-3 mt-4">
+    <div class="row g-3 mt-3">
         <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-body">
