@@ -18,7 +18,7 @@
             </h5>
         </div>
         <div class="card-body">
-            <form method="GET" action="{{ route('reports.index') }}" class="row g-3">
+            <form method="GET" action="{{ route('reports.index') }}" class="row g-3" id="report-filter-form">
                 <!-- Quick Filter Tabs -->
                 <div class="col-12">
                     <label class="form-label fw-semibold">Filter Periode:</label>
@@ -75,12 +75,6 @@
 
                 <div class="col-12">
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-search"></i> Tampilkan Laporan
-                        </button>
-                        <a href="{{ route('reports.exportPdf', array_merge(request()->all(), ['type' => 'detail'])) }}" class="btn btn-success">
-                            <i class="bi bi-file-earmark-pdf"></i> PDF Detail
-                        </a>
                         <a href="{{ route('reports.exportExcel', request()->all()) }}" class="btn btn-success">
                             <i class="bi bi-file-earmark-excel"></i> Export Excel
                         </a>
@@ -97,18 +91,40 @@
     </div>
 
     <script>
-        // Toggle custom date fields
-        document.querySelectorAll('input[name="filter"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const customDates = document.getElementById('custom-dates');
-                const customDatesEnd = document.getElementById('custom-dates-end');
-                if (this.value === 'custom') {
-                    customDates.classList.remove('d-none');
-                    customDatesEnd.classList.remove('d-none');
-                } else {
-                    customDates.classList.add('d-none');
-                    customDatesEnd.classList.add('d-none');
-                }
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('report-filter-form');
+
+            // Custom date toggle
+            document.querySelectorAll('input[name="filter"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const customDates = document.getElementById('custom-dates');
+                    const customDatesEnd = document.getElementById('custom-dates-end');
+                    if (this.value === 'custom') {
+                        customDates.classList.remove('d-none');
+                        customDatesEnd.classList.remove('d-none');
+                    } else {
+                        customDates.classList.add('d-none');
+                        customDatesEnd.classList.add('d-none');
+                        // Auto-submit when non-custom filter selected
+                        form.submit();
+                    }
+                });
+            });
+
+            // Auto-submit on source radio change
+            document.querySelectorAll('input[name="source"]').forEach(radio => {
+                radio.addEventListener('change', () => form.submit());
+            });
+
+            // Auto-submit when both custom dates are filled
+            const startDate = document.getElementById('start_date');
+            const endDate = document.getElementById('end_date');
+            [startDate, endDate].forEach(input => {
+                input.addEventListener('change', function() {
+                    if (startDate.value && endDate.value) {
+                        form.submit();
+                    }
+                });
             });
         });
     </script>
