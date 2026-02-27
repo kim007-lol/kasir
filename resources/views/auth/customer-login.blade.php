@@ -210,9 +210,9 @@
 
         <hr class="my-3">
 
-        <p class="text-center text-muted mb-0" style="font-size: 0.9rem;">
-            Belum punya akun?
-            <a href="{{ route('pelanggan.register') }}" class="auth-link">Daftar Sekarang</a>
+        <p class="text-center text-muted mb-0" style="font-size: 0.85rem;">
+            <i class="bi bi-info-circle"></i>
+            Akun pelanggan diberikan oleh kasir / admin toko.
         </p>
     </div>
 
