@@ -64,7 +64,7 @@
                             <th>Harga Jual</th>
                             <th class="text-center">Stok</th>
                             <th class="text-center">Exp Date</th>
-                            <th class="text-center">Status</th>
+                            <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -126,10 +126,21 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                @if($item->stock > 0)
-                                <i class="bi bi-check-circle-fill text-success" title="Ready"></i>
+                                @if($item->is_consignment)
+                                <span class="badge bg-info">Titipan</span>
                                 @else
-                                <i class="bi bi-x-circle-fill text-secondary" title="Habis"></i>
+                                <div class="d-flex gap-1 justify-content-center" role="group">
+                                    <a href="{{ route('cashier.stock.edit', $item) }}" class="btn btn-warning btn-sm text-white" title="Edit Stok">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <form action="{{ route('cashier.stock.destroy', $item) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Item ini akan dihapus dari kasir dan stok dikembalikan ke gudang!')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm text-white" title="Hapus">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                                 @endif
                             </td>
                         </tr>
