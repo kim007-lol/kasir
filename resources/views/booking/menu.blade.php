@@ -152,16 +152,17 @@
         font-size: 1rem;
         display: flex;
         align-items: center;
+        margin-top: 1px; /* Subtle adjustment for vertical symmetry */
     }
     .search-input {
         border-radius: 2rem;
-        padding: 0.7rem 1.25rem 0.7rem 2.8rem;
+        padding: 0.75rem 1.25rem 0.75rem 2.8rem;
         border: 1px solid #e9ecef;
         background: white;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         transition: all 0.3s ease;
-        line-height: 1.5;
+        line-height: normal; /* Standardize line height */
     }
     .search-input:focus {
         border-color: var(--primary);

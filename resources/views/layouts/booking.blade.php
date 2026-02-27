@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" style="zoom: 70%;">
+<html lang="id" style="zoom: 70%; height: 100%;">
 
 <head>
     <meta charset="UTF-8">
@@ -20,9 +20,10 @@
         body {
             font-family: 'Inter', 'Segoe UI', sans-serif;
             background-color: var(--light-bg);
-            min-height: 100vh;
+            min-height: 100%;
             display: flex;
             flex-direction: column;
+            margin: 0;
         }
 
         /* Navbar with Glassmorphism */
