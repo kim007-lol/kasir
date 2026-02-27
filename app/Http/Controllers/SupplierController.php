@@ -65,7 +65,8 @@ class SupplierController extends Controller
 
         Supplier::create($validated);
 
-        return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil ditambahkan');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'suppliers.index')->with('success', 'Supplier berhasil ditambahkan');
     }
 
     public function edit(Supplier $supplier): View
@@ -95,19 +96,22 @@ class SupplierController extends Controller
 
         $supplier->update($validated);
 
-        return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil diperbarui');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'suppliers.index')->with('success', 'Supplier berhasil diperbarui');
     }
 
     public function destroy(Supplier $supplier): RedirectResponse
     {
         $supplier->delete();
-        return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil di non-aktifkan');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'suppliers.index')->with('success', 'Supplier berhasil di non-aktifkan');
     }
 
     public function restore($id): RedirectResponse
     {
         $supplier = Supplier::withTrashed()->findOrFail($id);
         $supplier->restore();
-        return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil diaktifkan kembali');
+        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+        return redirect()->route($routePrefix . 'suppliers.index')->with('success', 'Supplier berhasil diaktifkan kembali');
     }
 }
