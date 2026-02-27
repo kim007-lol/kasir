@@ -158,19 +158,34 @@
                     @endif
 
                     @if($booking->status === 'processing')
-                    <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#readyDetailModal">
-                        <i class="bi bi-check2-all"></i> Pesanan Siap (Proses Pembayaran)
-                    </button>
+                        @if($booking->delivery_type === 'delivery')
+                        <button type="button" class="btn btn-info text-white w-100" data-bs-toggle="modal" data-bs-target="#readyDetailModal">
+                            <i class="bi bi-send"></i> Kirim Pesanan
+                        </button>
+                        @else
+                        <form action="{{ route('cashier.bookings.ready', $booking) }}" method="POST" class="w-100">
+                            @csrf
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-bell"></i> Tandai Siap Ambil
+                            </button>
+                        </form>
+                        @endif
                     @endif
 
                     @if($booking->canBeCompleted())
-                    <form action="{{ route('cashier.bookings.complete', $booking) }}" method="POST">
-                        @csrf
-                        <button type="button" class="btn btn-success w-100"
-                            onclick="let form = this.closest('form'); Swal.fire({title: 'Selesaikan Pesanan?', text: 'Pastikan barang sudah diserahkan ke pelanggan.', icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Selesai!', cancelButtonText: 'Batal'}).then((res) => { if(res.isConfirmed) form.submit(); });">
-                            <i class="bi bi-bag-check"></i> Selesaikan Pesanan
+                        @if($booking->delivery_type === 'delivery')
+                        <form action="{{ route('cashier.bookings.complete', $booking) }}" method="POST" class="w-100">
+                            @csrf
+                            <button type="button" class="btn btn-secondary w-100"
+                                onclick="let form = this.closest('form'); Swal.fire({title: 'Selesaikan Pengiriman?', text: 'Pastikan kurir sudah kembali dan menyetor uang.', icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Selesai!', cancelButtonText: 'Batal'}).then((res) => { if(res.isConfirmed) form.submit(); });">
+                                <i class="bi bi-bag-check"></i> Pesanan Diantar/Selesai
+                            </button>
+                        </form>
+                        @else
+                        <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#completeDetailModal">
+                            <i class="bi bi-check2-all"></i> Selesaikan & Bayar
                         </button>
-                    </form>
+                        @endif
                     @endif
 
                     @if(in_array($booking->status, ['completed', 'cancelled']))
@@ -212,30 +227,80 @@
 </div>
 @endif
 
-{{-- Ready (Payment) Modal --}}
-@if($booking->status === 'processing')
+{{-- Ready Modal (Delivery Only) --}}
+@if($booking->status === 'processing' && $booking->delivery_type === 'delivery')
 <div class="modal fade" id="readyDetailModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <form action="{{ route('cashier.bookings.ready', $booking) }}" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title">Pesanan Siap & Pembayaran {{ $booking->booking_code }}</h5>
+                    <h5 class="modal-title">Kirim Pesanan {{ $booking->booking_code }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <p>Total: <strong style="font-size: 1.2rem; color: var(--primary-dark);">Rp <span id="paymentTotal">{{ number_format($booking->total, 0, ',', '') }}</span></strong></p>
                     
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">
-                            @if($booking->delivery_type === 'delivery')
-                                Nama Pengantar Pesanan *
-                            @else
-                                Nama Kasir / Yang Melayani *
-                            @endif
-                        </label>
+                        <label class="form-label fw-semibold">Nama Pengantar Pesanan *</label>
                         <input type="text" name="assignee_name" class="form-control" 
-                            placeholder="{{ $booking->delivery_type === 'delivery' ? 'Masukkan nama kurir pengantar' : 'Masukkan nama kasir' }}" 
+                            placeholder="Masukkan nama kurir pengantar" 
+                            value="{{ auth()->user()->name }}"
+                            required autocomplete="off">
+                    </div>
+
+                    <div class="alert alert-secondary my-3">
+                        <h6 class="alert-heading fw-bold mb-2"><i class="bi bi-info-circle"></i> Info Pembayaran Pelanggan</h6>
+                        <p class="mb-1">
+                            Metode: <strong>{{ strtoupper($booking->payment_method ?? 'CASH') }}</strong>
+                        </p>
+                        @if(($booking->payment_method ?? 'cash') === 'cash')
+                        <p class="mb-0">
+                            Uang Tunai: <strong>Rp {{ number_format($booking->amount_paid ?? $booking->total, 0, ',', '.') }}</strong>
+                            <br>
+                            Kembalian: <strong class="text-success">
+                                {{ ($booking->amount_paid ?? $booking->total) > $booking->total ? 'Rp ' . number_format(($booking->amount_paid ?? $booking->total) - $booking->total, 0, ',', '.') : 'Pas' }}
+                            </strong>
+                        </p>
+                        <input type="hidden" name="payment_method" value="cash">
+                        @else
+                        <input type="hidden" name="payment_method" value="qris">
+                        @endif
+                        <small class="text-muted mt-2 d-block"><em>*Informasi pembayaran otomatis disinkronkan dari data pilihan pemesan.</em></small>
+                    </div>
+
+                    <div class="alert alert-info py-2 mt-3 mb-0" style="font-size: 0.85rem;">
+                        <i class="bi bi-info-circle"></i> Transaksi akan dicatat dan struk otomatis akan dicetak.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-info text-white"><i class="bi bi-printer"></i> Kirim & Cetak Struk</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
+{{-- Complete Modal (Pickup Only) --}}
+@if($booking->status === 'ready' && $booking->delivery_type === 'pickup')
+<div class="modal fade" id="completeDetailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ route('cashier.bookings.complete', $booking) }}" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">Selesaikan Pembayaran {{ $booking->booking_code }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Total: <strong style="font-size: 1.2rem; color: var(--primary-dark);">Rp <span id="paymentTotal">{{ number_format($booking->total, 0, ',', '') }}</span></strong></p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nama Kasir / Yang Melayani *</label>
+                        <input type="text" name="assignee_name" class="form-control" 
+                            placeholder="Masukkan nama kasir" 
                             value="{{ auth()->user()->name }}"
                             required autocomplete="off">
                     </div>
@@ -269,7 +334,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success"><i class="bi bi-printer"></i> Proses Bayar & Cetak</button>
+                    <button type="submit" class="btn btn-success"><i class="bi bi-printer"></i> Bayar & Selesai</button>
                 </div>
             </form>
         </div>
