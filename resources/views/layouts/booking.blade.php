@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html lang="id" style="zoom: 70%; height: 100%;">
+<html lang="id" style="height: 100%;">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Apply 70% zoom only on Desktop screens (width > 991px) */
+        @media (min-width: 992px) {
+            html {
+                zoom: 70%;
+            }
+        }
+    </style>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Booking Makanan — SmeGo')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">

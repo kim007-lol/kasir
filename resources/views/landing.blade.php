@@ -59,9 +59,23 @@
         .hero {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, #bb0000 100%);
             color: white;
-            padding: 5rem 0 4rem;
+            padding: 4rem 0 3rem;
             position: relative;
             overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 3rem 0;
+                text-align: center;
+            }
+            .hero h1 {
+                font-size: 2rem !important;
+            }
+            .hero p {
+                margin: 0 auto 1.5rem !important;
+                font-size: 1rem !important;
+            }
         }
 
         .hero::before {
@@ -98,6 +112,8 @@
             opacity: 0.92;
             line-height: 1.7;
             max-width: 550px;
+            margin-bottom: 2rem;
+        }
         }
 
         .hero-badge {

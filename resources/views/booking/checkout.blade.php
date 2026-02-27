@@ -241,6 +241,14 @@
         transform: translateY(-2px);
         box-shadow: 0 10px 25px rgba(255,0,0,0.3) !important;
     }
+    @media (max-width: 576px) {
+        .delivery-selector, .payment-selector {
+            flex-direction: column;
+        }
+        .delivery-option, .payment-option {
+            padding: 0.75rem;
+        }
+    }
 </style>
 
 <script>

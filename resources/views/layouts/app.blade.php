@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html lang="id" style="zoom: 70%;">
+<html lang="id" style="height: 100%;">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Apply 70% zoom only on Desktop screens (width > 991px) */
+        @media (min-width: 992px) {
+            html {
+                zoom: 70%;
+            }
+        }
+    </style>
     <title>@yield('title', 'SMEGABIZ')</title>
 
     <!-- Bootstrap 5 CSS -->

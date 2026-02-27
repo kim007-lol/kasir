@@ -50,7 +50,7 @@
 
     <!-- Menu Grid -->
     <div class="col-12">
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2 g-md-3">
             @forelse($items as $item)
             <div class="col">
                 <div class="card h-100 border-0 shadow-sm menu-card">
@@ -206,6 +206,34 @@
         .search-input {
             padding: 0.6rem 1rem 0.6rem 2.5rem;
             font-size: 0.85rem;
+        }
+    @media (max-width: 768px) {
+        .category-pill {
+            padding: 0.35rem 1rem;
+            font-size: 0.8rem;
+        }
+        .search-input {
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            font-size: 0.9rem;
+        }
+        .search-icon {
+            left: 0.9rem;
+        }
+        .menu-card .card-body {
+            padding: 0.75rem !important;
+        }
+        .menu-card h6 {
+            font-size: 0.9rem;
+        }
+        .menu-card .text-danger {
+            font-size: 0.85rem !important;
+        }
+        .menu-card .btn-sm {
+            padding: 0.4rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        .form-control-sm {
+            width: 45px !important;
         }
     }
 </style>
