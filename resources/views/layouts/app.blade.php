@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" style="zoom: 80%; overflow: hidden;">
 
 <head>
     <meta charset="UTF-8">
@@ -88,7 +88,8 @@
             background: var(--sidebar-bg);
             padding: 20px 0;
             position: fixed;
-            height: 100vh;
+            top: 0;
+            bottom: 0;
             overflow-y: auto;
             z-index: 1000;
             transition: var(--transition);

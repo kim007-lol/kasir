@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" style="zoom: 80%; overflow: hidden;">
 
 <head>
     <meta charset="UTF-8">
@@ -44,17 +44,38 @@
             background-color: var(--navbar-bg);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             z-index: 1050;
+            padding: 0.85rem 0;
         }
 
         .navbar-brand {
             font-weight: 700;
             color: white !important;
+            display: flex;
+            align-items: center;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            gap: 0.5rem;
         }
 
         .nav-link {
             color: rgba(255, 255, 255, 0.9) !important;
             font-weight: 500;
             transition: var(--transition);
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+        }
+
+        /* Ensure all items in navbar collapse are centered */
+        .navbar-collapse {
+            align-items: center;
+        }
+
+        .navbar-nav {
+            align-items: center;
         }
 
         .nav-link:hover,
@@ -220,7 +241,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <ul class="navbar-nav me-auto mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('cashier.dashboard') ? 'active' : '' }}" href="{{ route('cashier.dashboard') }}">DASHBOARD</a>
                     </li>
@@ -315,8 +336,7 @@
                         </a>
                     </li>
                 </ul>
-                <div class="d-flex align-items-center text-white">
-                    <span class="me-3 d-none d-lg-block">{{ auth()->user()->name }}</span>
+                <div class="ms-auto d-flex align-items-center">
                     <form action="{{ route('logout') }}" method="POST" class="d-inline">
                         @csrf
                         <button type="submit" class="btn btn-outline-light btn-sm">
