@@ -220,11 +220,13 @@ class BookingController extends Controller
             'delivery_type' => 'required|in:pickup,delivery',
             'delivery_address' => 'required_if:delivery_type,delivery|nullable|string|max:500',
             'pickup_time' => 'required_if:delivery_type,pickup|nullable|date_format:H:i',
+            'payment_method' => 'required_if:delivery_type,delivery|nullable|in:cash,qris',
             'notes' => 'nullable|string|max:500',
         ], [
             'delivery_type.required' => 'Pilih metode pengambilan',
             'delivery_address.required_if' => 'Alamat pengiriman harus diisi untuk delivery',
             'pickup_time.required_if' => 'Jam ambil harus diisi',
+            'payment_method.required_if' => 'Pilih metode pembayaran',
         ]);
 
         try {
@@ -232,6 +234,25 @@ class BookingController extends Controller
 
             $user = Auth::user();
             $total = 0;
+
+            // Calculate total first for amount_paid validation
+            foreach ($cart as $cartItem) {
+                $item = CashierItem::find($cartItem['cashier_item_id']);
+                if ($item) {
+                    $total += $item->final_price * $cartItem['qty'];
+                }
+            }
+
+            if ($request->delivery_type === 'delivery' && $request->payment_method === 'cash') {
+                $request->validate([
+                    'amount_paid' => 'required|numeric|min:' . $total,
+                ], [
+                    'amount_paid.required' => 'Nominal uang tunai harus diisi',
+                    'amount_paid.min' => 'Nominal uang tunai minimal Rp ' . number_format($total, 0, ',', '.'),
+                ]);
+            }
+
+            $total = 0; // Reset for actual calculation with lock
 
             // SEC-05 + BUG-03: Validasi stok & harga dari DB dengan lock
             $validatedCart = [];
@@ -259,8 +280,8 @@ class BookingController extends Controller
                     'notes' => $cartItem['notes'] ?? null,
                 ];
 
-                // BUG-04: Kurangi stok saat order dibuat
-                $item->decrement('stock', $cartItem['qty']);
+                // BUG-04: Stok HANYA dikurangi saat kasir mengonfirmasi pesanan, bukan saat dibuat.
+                // $item->decrement('stock', $cartItem['qty']);
             }
 
             // Prepare notes with time info
@@ -272,6 +293,12 @@ class BookingController extends Controller
                 $notes = trim("{$notes}\n[Estimasi Sampai: {$estimasi}]");
             }
 
+            // Format pickup_time to full datetime
+            $pickupTimeDt = null;
+            if ($request->delivery_type === 'pickup' && $request->pickup_time) {
+                $pickupTimeDt = now()->format('Y-m-d') . ' ' . $request->pickup_time . ':00';
+            }
+
             // Create booking
             $booking = Booking::create([
                 'booking_code' => Booking::generateBookingCode(),
@@ -279,9 +306,12 @@ class BookingController extends Controller
                 'customer_name' => $user->member?->name ?? $user->name,
                 'customer_phone' => $user->member?->phone ?? '',
                 'delivery_type' => $request->delivery_type,
+                'pickup_time' => $pickupTimeDt,
                 'delivery_address' => $request->delivery_type === 'delivery' ? $request->delivery_address : null,
                 'notes' => $notes,
                 'total' => $total,
+                'payment_method' => $request->delivery_type === 'delivery' ? $request->payment_method : null,
+                'amount_paid' => ($request->delivery_type === 'delivery' && $request->payment_method === 'cash') ? $request->amount_paid : null,
                 'status' => 'pending',
             ]);
 
