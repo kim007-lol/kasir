@@ -113,56 +113,98 @@
 </div>
 
 <style>
+    .category-pill {
+        background: white;
+        color: #6c757d;
+        border: 1px solid #e9ecef;
+        border-radius: 2rem;
+        padding: 0.45rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .category-pill:hover {
+        background: #f8f9fa;
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+    .category-pill.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(255, 0, 0, 0.25);
+    }
+
+    .search-wrapper {
+        position: relative;
+    }
+    .search-icon {
+        position: absolute;
+        left: 1.1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #adb5bd;
+        z-index: 5;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    .search-input {
+        border-radius: 2rem;
+        padding: 0.7rem 1.25rem 0.7rem 2.8rem;
+        border: 1px solid #e9ecef;
+        background: white;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+        line-height: 1.5;
+    }
+    .search-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 4px 15px rgba(255, 0, 0, 0.1);
+        outline: none;
+    }
+
     .menu-card {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        border-radius: 12px !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 1.25rem !important;
+        overflow: hidden;
     }
     .menu-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.08) !important;
+    }
+    .menu-card h6 {
+        font-weight: 700;
+        color: #2d3748;
+    }
+    .menu-card .badge {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.65rem;
+    }
+
+    .scroll-sm::-webkit-scrollbar {
+        height: 4px;
+    }
+    .scroll-sm::-webkit-scrollbar-thumb {
+        background: #dee2e6;
+        border-radius: 10px;
     }
 
     @media (max-width: 768px) {
-        .menu-card .card-body {
-            padding: 0.75rem !important;
+        .category-pill {
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
         }
-        .menu-card h6 {
-            font-size: 0.88rem;
-        }
-        .menu-card .badge {
-            font-size: 0.6rem !important;
-        }
-        .menu-card .fs-6 {
-            font-size: 0.85rem !important;
-        }
-        /* Category filter scroll */
-        .d-flex.gap-2.overflow-auto .btn {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.6rem;
-        }
-        .d-flex.gap-2.overflow-auto::-webkit-scrollbar {
-            height: 3px;
-        }
-        .d-flex.gap-2.overflow-auto::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 10px;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .menu-card .card-body {
-            padding: 0.6rem !important;
-        }
-        .menu-card h6 {
-            font-size: 0.82rem;
-        }
-        .menu-card .btn-sm {
-            font-size: 0.72rem;
-            padding: 0.2rem 0.4rem;
-        }
-        .menu-card input[type="number"] {
-            width: 45px !important;
-            font-size: 0.75rem;
+        .search-input {
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            font-size: 0.85rem;
         }
     }
 </style>

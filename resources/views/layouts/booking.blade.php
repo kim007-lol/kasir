@@ -83,10 +83,11 @@
         .booking-footer {
             background: white;
             border-top: 1px solid #eee;
-            padding: 1rem 0;
+            padding: 1.5rem 0;
             text-align: center;
             color: #6c757d;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            margin-top: auto;
         }
 
         /* Global toast override */
