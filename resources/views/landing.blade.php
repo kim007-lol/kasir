@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" style="zoom: 70%;">
 
 <head>
     <meta charset="UTF-8">
@@ -453,7 +453,7 @@
             <h2 class="section-title" data-i18n="feat.title">Fitur Unggulan</h2>
             <p class="section-subtitle" data-i18n="feat.subtitle">Semua yang Anda butuhkan untuk mengelola toko dan menerima pesanan online</p>
             <div class="row g-4">
-                <div class="col-md-6 col-lg-3">
+                <div class="col-md-6 col-lg-4">
                     <div class="feature-card">
                         <div class="feature-icon" style="background: #fff3cd; color: #856404;">
                             <i class="bi bi-cart-check-fill"></i>
@@ -462,7 +462,7 @@
                         <p data-i18n="feat.pos_desc">Transaksi cepat dengan barcode scanner, multi metode pembayaran, dan struk otomatis.</p>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-3">
+                <div class="col-md-6 col-lg-4">
                     <div class="feature-card">
                         <div class="feature-icon" style="background: #d4edda; color: #155724;">
                             <i class="bi bi-phone-fill"></i>
@@ -471,22 +471,40 @@
                         <p data-i18n="feat.booking_desc">Pelanggan pesan makanan langsung dari browser. Pilih pickup atau delivery.</p>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-3">
+                <div class="col-md-6 col-lg-4">
                     <div class="feature-card">
                         <div class="feature-icon" style="background: #cce5ff; color: #004085;">
-                            <i class="bi bi-bell-fill"></i>
+                            <i class="bi bi-box-seam-fill"></i>
                         </div>
-                        <h5 data-i18n="feat.realtime_title">Real-Time</h5>
-                        <p data-i18n="feat.realtime_desc">Pesanan masuk langsung ke kasir dengan notifikasi. Stok terupdate otomatis.</p>
+                        <h5 data-i18n="feat.stock_title">Stok Pintar</h5>
+                        <p data-i18n="feat.stock_desc">Manajemen stok gudang dan kasir yang terintegrasi. Pantau pergerakan barang secara akurat.</p>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-3">
+                <div class="col-md-6 col-lg-4">
                     <div class="feature-card">
-                        <div class="feature-icon" style="background: #f8d7da; color: #721c24;">
+                        <div class="feature-icon" style="background: #f8d7da; color: #a52834;">
+                            <i class="bi bi-bell-fill"></i>
+                        </div>
+                        <h5 data-i18n="feat.realtime_title">Notifikasi Instan</h5>
+                        <p data-i18n="feat.realtime_desc">Terima pesanan SmeGo secara real-time dengan notifikasi suara dan pop-up.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon" style="background: #e2e3e5; color: #383d41;">
                             <i class="bi bi-graph-up-arrow"></i>
                         </div>
-                        <h5 data-i18n="feat.report_title">Laporan Lengkap</h5>
-                        <p data-i18n="feat.report_desc">Rekap transaksi, profit, dan stok. Export ke PDF & Excel dalam sekali klik.</p>
+                        <h5 data-i18n="feat.report_title">Laporan Bisnis</h5>
+                        <p data-i18n="feat.report_desc">Rekap transaksi, laba, dan stok dalam satu klik. Ekspor data ke PDF & Excel dengan mudah.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon" style="background: #d1ecf1; color: #0c5460;">
+                            <i class="bi bi-display-fill"></i>
+                        </div>
+                        <h5 data-i18n="feat.display_title">Layar Pelanggan</h5>
+                        <p data-i18n="feat.display_desc">Tingkatkan kepercayaan dengan monitor khusus untuk transparansi transaksi pelanggan.</p>
                     </div>
                 </div>
             </div>
@@ -823,23 +841,27 @@
             id: {
                 nav: { login_staff: "Login Staf", order_food: "Pesan Makanan" },
                 hero: {
-                    badge: "Sistem Terintegrasi",
-                    title: "Kelola Toko & Pemesanan dalam Satu Platform",
-                    desc: "SMEGABIZ menggabungkan sistem kasir (POS) canggih dengan pemesanan makanan online. Pelanggan bisa pesan dari mana saja, kasir terima pesanan secara real-time.",
+                    badge: "Eco-System Bisnis Terintegrasi",
+                    title: "Sistem Kasir Pintar & Pemesanan Online Terintegrasi",
+                    desc: "Optimalkan operasional bisnis Anda dengan solusi ritel modern. Kelola transaksi kasir, stok gudang, hingga pesanan online pelanggan dalam satu ekosistem digital yang efisien.",
                     cta_order: "Pesan Sekarang",
                     cta_learn: "Pelajari Lebih"
                 },
                 feat: {
                     title: "Fitur Unggulan",
                     subtitle: "Semua yang Anda butuhkan untuk mengelola toko dan menerima pesanan online",
-                    pos_title: "Kasir (POS)",
-                    pos_desc: "Transaksi cepat dengan barcode scanner, multi metode pembayaran, dan struk otomatis.",
-                    booking_title: "Booking Online",
-                    booking_desc: "Pelanggan pesan makanan langsung dari browser. Pilih pickup atau delivery.",
-                    realtime_title: "Real-Time",
-                    realtime_desc: "Pesanan masuk langsung ke kasir dengan notifikasi. Stok terupdate otomatis.",
-                    report_title: "Laporan Lengkap",
-                    report_desc: "Rekap transaksi, profit, dan stok. Export ke PDF & Excel dalam sekali klik."
+                    pos_title: "Kasir Canggih",
+                    pos_desc: "Transaksi secepat kilat dengan pencarian produk cerdas, multi metode pembayaran, dan cetak struk otomatis.",
+                    booking_title: "SmeGo Online",
+                    booking_desc: "Pelanggan pesan makanan langsung dari browser (Pickup/Delivery), mengurangi antrian di toko.",
+                    stock_title: "Stok Pintar",
+                    stock_desc: "Manajemen stok gudang dan kasir yang terintegrasi. Pantau pergerakan barang secara akurat.",
+                    realtime_title: "Notifikasi Instan",
+                    realtime_desc: "Terima pesanan SmeGo secara real-time dengan notifikasi suara dan pop-up otomatis.",
+                    report_title: "Laporan Bisnis",
+                    report_desc: "Rekap transaksi, laba, dan stok harian hingga bulanan. Ekspor data ke PDF & Excel dengan mudah.",
+                    display_title: "Layar Pelanggan",
+                    display_desc: "Tingkatkan kepercayaan dengan monitor khusus untuk transparansi rincian belanja pelanggan."
                 },
                 hours: {
                     title: "Jam Operasional",
@@ -922,23 +944,27 @@
             en: {
                 nav: { login_staff: "Staff Login", order_food: "Order Food" },
                 hero: {
-                    badge: "Integrated System",
-                    title: "Manage Your Store & Orders in One Platform",
-                    desc: "SMEGABIZ combines an advanced POS cashier system with online food ordering. Customers can order from anywhere, and the cashier receives orders in real-time.",
+                    badge: "Integrated Business Ecosystem",
+                    title: "Smart POS & Integrated Online Ordering System",
+                    desc: "Optimize your business operations with modern retail solutions. Manage cashier transactions, warehouse stock, and online customer orders in one efficient digital ecosystem.",
                     cta_order: "Order Now",
                     cta_learn: "Learn More"
                 },
                 feat: {
                     title: "Key Features",
                     subtitle: "Everything you need to manage your store and receive online orders",
-                    pos_title: "Cashier (POS)",
-                    pos_desc: "Fast transactions with barcode scanner, multiple payment methods, and automatic receipts.",
-                    booking_title: "Online Booking",
-                    booking_desc: "Customers order food directly from their browser. Choose pickup or delivery.",
-                    realtime_title: "Real-Time",
-                    realtime_desc: "Orders go directly to the cashier with notifications. Stock updates automatically.",
-                    report_title: "Complete Reports",
-                    report_desc: "Transaction summaries, profit, and stock recaps. Export to PDF & Excel in one click."
+                    pos_title: "Advanced POS",
+                    pos_desc: "Lightning-fast transactions with smart product search, multiple payment methods, and auto-receipt prints.",
+                    booking_title: "SmeGo Online",
+                    booking_desc: "Customers order food directly from their browser (Pickup/Delivery), reducing store queues.",
+                    stock_title: "Smart Inventory",
+                    stock_desc: "Integrated warehouse and cashier stock management. Track goods movement accurately.",
+                    realtime_title: "Instant Alerts",
+                    realtime_desc: "Receive SmeGo orders in real-time with automatic sound notifications and pop-ups.",
+                    report_title: "Business Reports",
+                    report_desc: "Daily to monthly transaction, profit, and stock recaps. Easy export to PDF & Excel.",
+                    display_title: "Customer Display",
+                    display_desc: "Boost trust with a dedicated monitor for real-time transaction detail transparency."
                 },
                 hours: {
                     title: "Operating Hours",
