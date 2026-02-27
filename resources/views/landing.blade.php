@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" style="zoom: 70%;">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
