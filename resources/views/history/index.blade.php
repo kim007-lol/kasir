@@ -22,7 +22,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
             </h5>
         </div>
         <div class="card-body">
-            <form method="GET" action="{{ route($routePrefix . 'history.index') }}" class="row g-3">
+            <form method="GET" action="{{ route($routePrefix . 'history.index') }}" class="row g-3" id="history-filter-form">
                 <!-- Quick Filter Tabs -->
                 <div class="col-12">
                     <label class="form-label fw-semibold">Filter Cepat:</label>
@@ -82,9 +82,6 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
 
                 <div class="col-12">
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-search"></i> Terapkan Filter
-                        </button>
                         <a href="{{ route($routePrefix . 'history.index') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-clockwise"></i> Reset
                         </a>
@@ -95,18 +92,40 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
     </div>
 
     <script>
-        // Toggle custom date fields
-        document.querySelectorAll('input[name="filter"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const customDates = document.getElementById('custom-dates');
-                const customDatesEnd = document.getElementById('custom-dates-end');
-                if (this.value === 'custom') {
-                    customDates.classList.remove('d-none');
-                    customDatesEnd.classList.remove('d-none');
-                } else {
-                    customDates.classList.add('d-none');
-                    customDatesEnd.classList.add('d-none');
-                }
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('history-filter-form');
+
+            // Custom date toggle + auto-submit
+            document.querySelectorAll('input[name="filter"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const customDates = document.getElementById('custom-dates');
+                    const customDatesEnd = document.getElementById('custom-dates-end');
+                    if (this.value === 'custom') {
+                        customDates.classList.remove('d-none');
+                        customDatesEnd.classList.remove('d-none');
+                    } else {
+                        customDates.classList.add('d-none');
+                        customDatesEnd.classList.add('d-none');
+                        form.submit();
+                    }
+                });
+            });
+
+            // Auto-submit on dropdown change (payment method, source)
+            ['payment_method', 'source'].forEach(name => {
+                const el = document.getElementById(name);
+                if (el) el.addEventListener('change', () => form.submit());
+            });
+
+            // Auto-submit when both custom dates are filled
+            const startDate = document.getElementById('start_date');
+            const endDate = document.getElementById('end_date');
+            [startDate, endDate].forEach(input => {
+                input.addEventListener('change', function() {
+                    if (startDate.value && endDate.value) {
+                        form.submit();
+                    }
+                });
             });
         });
     </script>
