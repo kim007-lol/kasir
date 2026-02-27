@@ -59,10 +59,26 @@ class CashierBookingController extends Controller
             return back()->with('error', 'Pesanan ini tidak bisa diterima (status: ' . $booking->status_label . ')');
         }
 
-        // BUG-04: Stok sudah dikurangi saat placeOrder, jadi accept hanya update status
-        $booking->update(['status' => 'confirmed']);
+        try {
+            DB::transaction(function () use ($booking) {
+                // BUG-04: Kurangi stok saat kasir menerima pesanan (bukan saat pelanggan membuat pesanan)
+                foreach ($booking->items as $bookingItem) {
+                    $item = CashierItem::find($bookingItem->cashier_item_id);
+                    if ($item) {
+                        if ($item->stock < $bookingItem->qty) {
+                            throw new \Exception("Stok {$item->name} tidak mencukupi (Tersedia: {$item->stock}).");
+                        }
+                        $item->decrement('stock', $bookingItem->qty);
+                    }
+                }
 
-        return back()->with('success', "Pesanan {$booking->booking_code} diterima!");
+                $booking->update(['status' => 'confirmed']);
+            });
+
+            return back()->with('success', "Pesanan {$booking->booking_code} diterima!");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menerima pesanan: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -85,11 +101,13 @@ class CashierBookingController extends Controller
                     throw new \Exception('Pesanan ini sudah tidak bisa ditolak (status: ' . ($lockedBooking ? $lockedBooking->status_label : 'Tidak Ditemukan') . ')');
                 }
 
-                // BUG-04: Stok dikurangi saat placeOrder, jadi selalu kembalikan saat reject/cancel
-                foreach ($lockedBooking->items as $bookingItem) {
-                    $cashierItem = CashierItem::find($bookingItem->cashier_item_id);
-                    if ($cashierItem) {
-                        $cashierItem->increment('stock', $bookingItem->qty);
+                // BUG-04: Stok dikurangi saat accept, jadi HANYA kembalikan saat reject/cancel JIKA statusnya bukan pending
+                if ($lockedBooking->status !== 'pending') {
+                    foreach ($lockedBooking->items as $bookingItem) {
+                        $cashierItem = CashierItem::find($bookingItem->cashier_item_id);
+                        if ($cashierItem) {
+                            $cashierItem->increment('stock', $bookingItem->qty);
+                        }
                     }
                 }
 
@@ -119,7 +137,7 @@ class CashierBookingController extends Controller
     }
 
     /**
-     * Mark as ready → creates Transaction + TransactionDetail records and triggers receipt
+     * Mark as ready → creates Transaction + TransactionDetail records and triggers receipt (for Delivery only)
      */
     public function ready(Request $request, Booking $booking)
     {
@@ -127,14 +145,115 @@ class CashierBookingController extends Controller
             return back()->with('error', 'Pesanan harus sedang diproses terlebih dahulu');
         }
 
+        if ($booking->delivery_type === 'pickup') {
+            $booking->update(['status' => 'ready']);
+            return back()->with('success', "Pesanan {$booking->booking_code} siap diambil pelanggan.");
+        }
+
+        // Delivery Flow
+        $request->validate([
+            'assignee_name' => 'required|string|max:100',
+        ], [
+            'assignee_name.required' => 'Nama kurir harus diisi.',
+        ]);
+
+        try {
+            $transaction = DB::transaction(function () use ($booking, $request) {
+                // Generate invoice
+                $invoice = 'INV-' . date('YmdHis') . '-' . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+
+                // Find linked member via user
+                $member = $booking->user?->member;
+
+                $paymentMethod = $booking->payment_method ?? 'cash';
+                $paidAmount = $paymentMethod === 'cash' ? ($booking->amount_paid ?? $booking->total) : $booking->total;
+                $changeAmount = $paymentMethod === 'cash' ? ($paidAmount - $booking->total) : 0;
+
+                // Create Transaction record
+                $transaction = Transaction::create([
+                    'invoice' => $invoice,
+                    'customer_name' => $booking->customer_name,
+                    'member_id' => $member?->id,
+                    'total' => $booking->total,
+                    'paid_amount' => $paidAmount, // Fully paid
+                    'change_amount' => $changeAmount,
+                    'payment_method' => $paymentMethod,
+                    'discount_percent' => 0,
+                    'discount_amount' => 0,
+                    'user_id' => Auth::id(), // Kasir who completed it
+                    'cashier_name' => $request->assignee_name, // Kurir name instead for delivery
+                    'source' => 'online',
+                    'booking_id' => $booking->id,
+                ]);
+
+                // Create TransactionDetail for each booking item
+                foreach ($booking->items as $bookingItem) {
+                    $cashierItem = CashierItem::find($bookingItem->cashier_item_id);
+
+                    $purchasePrice = 0;
+                    if ($cashierItem) {
+                        if ($cashierItem->is_consignment) {
+                            $purchasePrice = $cashierItem->cost_price ?? 0;
+                        } else {
+                            $purchasePrice = $cashierItem->warehouseItem?->purchase_price ?? 0;
+                        }
+                    }
+
+                    TransactionDetail::create([
+                        'transaction_id' => $transaction->id,
+                        'item_id' => $bookingItem->cashier_item_id,
+                        'price' => $bookingItem->price,
+                        'original_price' => $bookingItem->price, // snapshot from booking
+                        'discount' => 0,
+                        'qty' => $bookingItem->qty,
+                        'subtotal' => $bookingItem->subtotal,
+                        'purchase_price' => $purchasePrice,
+                    ]);
+                }
+
+                $booking->update([
+                    'status' => 'ready',
+                    'payment_method' => $paymentMethod,
+                    'amount_paid' => $paidAmount,
+                ]);
+
+                return $transaction;
+            });
+
+            return back()->with('success', "Pesanan {$booking->booking_code} siap diantar! Struk telah dicetak untuk kurir.")
+                ->with('print_transaction_id', $transaction->id);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Complete booking → Just updates status to complete for Delivery, creates Transaction for Pickup
+     */
+    public function complete(Request $request, Booking $booking)
+    {
+        if (!$booking->canBeCompleted()) {
+            return back()->with('error', 'Pesanan belum siap untuk diselesaikan (status: ' . $booking->status_label . ')');
+        }
+
+        if ($booking->delivery_type === 'delivery') {
+            try {
+                $booking->update([
+                    'status' => 'completed',
+                ]);
+                return back()->with('success', "Pesanan {$booking->booking_code} telah diserahkan (Selesai).");
+            } catch (\Exception $e) {
+                return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            }
+        }
+
+        // Pickup Flow: Process Payment and Complete
         $request->validate([
             'payment_method' => 'required|in:cash,qris',
             'assignee_name' => 'required|string|max:100',
             'paid_amount' => 'required_if:payment_method,cash|numeric|min:' . $booking->total,
         ], [
-            'assignee_name.required' => $booking->delivery_type === 'delivery'
-                ? 'Nama pengantar pesanan harus diisi.'
-                : 'Nama kasir atau pelayan harus diisi.',
+            'assignee_name.required' => 'Nama kasir harus diisi.',
             'paid_amount.required_if' => 'Jumlah uang tunai wajib diisi jika metode pembayaran Cash.',
             'paid_amount.min' => 'Jumlah uang tunai tidak boleh kurang dari total pesanan.',
         ]);
@@ -147,8 +266,9 @@ class CashierBookingController extends Controller
                 // Find linked member via user
                 $member = $booking->user?->member;
 
-                $paidAmount = $request->payment_method === 'cash' ? $request->paid_amount : $booking->total;
-                $changeAmount = $request->payment_method === 'cash' ? ($paidAmount - $booking->total) : 0;
+                $paymentMethod = $request->payment_method;
+                $paidAmount = $paymentMethod === 'cash' ? $request->paid_amount : $booking->total;
+                $changeAmount = $paymentMethod === 'cash' ? ($paidAmount - $booking->total) : 0;
 
                 // Create Transaction record
                 $transaction = Transaction::create([
@@ -158,7 +278,7 @@ class CashierBookingController extends Controller
                     'total' => $booking->total,
                     'paid_amount' => $paidAmount, // Fully paid
                     'change_amount' => $changeAmount,
-                    'payment_method' => $request->payment_method,
+                    'payment_method' => $paymentMethod,
                     'discount_percent' => 0,
                     'discount_amount' => 0,
                     'user_id' => Auth::id(), // Kasir who completed it
@@ -192,36 +312,17 @@ class CashierBookingController extends Controller
                     ]);
                 }
 
-                // Mark booking as ready
                 $booking->update([
-                    'status' => 'ready',
-                    'payment_method' => $request->payment_method,
+                    'status' => 'completed',
+                    'payment_method' => $paymentMethod,
+                    'amount_paid' => $paidAmount,
                 ]);
 
                 return $transaction;
             });
 
-            return back()->with('success', "Pesanan {$booking->booking_code} siap! Transaksi otomatis tercatat.")
+            return back()->with('success', "Pesanan {$booking->booking_code} telah dibayar & selesai!")
                 ->with('print_transaction_id', $transaction->id);
-        } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Complete booking → Just updates status to complete
-     */
-    public function complete(Booking $booking)
-    {
-        if (!$booking->canBeCompleted()) {
-            return back()->with('error', 'Pesanan belum siap untuk diselesaikan (status: ' . $booking->status_label . ')');
-        }
-
-        try {
-            $booking->update([
-                'status' => 'completed',
-            ]);
-            return back()->with('success', "Pesanan {$booking->booking_code} telah diserahkan (Selesai).");
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
