@@ -51,8 +51,6 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::prefix('pelanggan')->name('pelanggan.')->group(function () {
     Route::get('/login', [CustomerAuthController::class, 'showLoginForm'])->name('login')->middleware('guest');
     Route::post('/login', [CustomerAuthController::class, 'login'])->name('login.submit')->middleware('guest');
-    Route::get('/register', [CustomerAuthController::class, 'showRegisterForm'])->name('register')->middleware('guest');
-    Route::post('/register', [CustomerAuthController::class, 'register'])->name('register.submit')->middleware('guest');
     Route::post('/logout', [CustomerAuthController::class, 'logout'])->name('logout');
 });
 
@@ -111,6 +109,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/reports/transfer-history', [ReportController::class, 'transferHistory'])->name('reports.transferHistory');
     Route::resource('users', UserController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::post('/users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
+    Route::get('/users-pelanggan/template', [UserController::class, 'exportTemplate'])->name('users.pelanggan.template');
+    Route::post('/users-pelanggan/import', [UserController::class, 'importPelanggan'])->name('users.pelanggan.import');
     Route::get('/about', [BusinessProfileController::class, 'index'])->name('about');
 });
 
@@ -152,6 +152,9 @@ Route::middleware(['auth', 'role:kasir'])->prefix('cashier')->name('cashier.')->
     Route::get('/stock/status', [CashierItemController::class, 'getStockStatus'])->name('stock.status');
     Route::post('/stock/warehouse', [CashierItemController::class, 'storeFromWarehouse'])->name('stock.storeFromWarehouse');
     Route::post('/stock/consignment', [CashierItemController::class, 'storeConsignment'])->name('stock.storeConsignment');
+    Route::get('/stock/{cashier_item}/edit', [CashierItemController::class, 'edit'])->name('stock.edit');
+    Route::put('/stock/{cashier_item}', [CashierItemController::class, 'update'])->name('stock.update');
+    Route::delete('/stock/{cashier_item}', [CashierItemController::class, 'destroy'])->name('stock.destroy');
 
     // Barang Titipan (Consignment)
     Route::get('/consignment', [CashierItemController::class, 'consignmentIndex'])->name('consignment.index');
@@ -181,4 +184,48 @@ Route::middleware(['auth', 'role:kasir'])->prefix('cashier')->name('cashier.')->
     Route::get('/settings', [ShopSettingController::class, 'edit'])->name('settings');
     Route::post('/settings/hours', [ShopSettingController::class, 'update'])->name('settings.hours');
     Route::post('/settings/toggle', [ShopSettingController::class, 'toggleOverride'])->name('settings.toggle');
+
+    // === GUDANG (same as admin) ===
+    Route::get('/warehouse', [WarehouseController::class, 'index'])->name('warehouse.index');
+    Route::get('/warehouse/status', [WarehouseController::class, 'getStockStatus'])->name('warehouse.status');
+    Route::get('/warehouse/create', [WarehouseController::class, 'create'])->name('warehouse.create');
+    Route::get('/warehouse/{warehouse}', [WarehouseController::class, 'show'])->name('warehouse.show');
+    Route::post('/warehouse', [WarehouseController::class, 'store'])->name('warehouse.store');
+    Route::get('/warehouse/{warehouse}/edit', [WarehouseController::class, 'edit'])->name('warehouse.edit');
+    Route::put('/warehouse/{warehouse}', [WarehouseController::class, 'update'])->name('warehouse.update');
+    Route::delete('/warehouse/{warehouse}', [WarehouseController::class, 'destroy'])->name('warehouse.destroy');
+
+    // === KATEGORI ===
+    Route::resource('categories', CategoryController::class)->names([
+        'index'   => 'categories.index',
+        'create'  => 'categories.create',
+        'store'   => 'categories.store',
+        'edit'    => 'categories.edit',
+        'update'  => 'categories.update',
+        'destroy' => 'categories.destroy',
+    ]);
+    Route::patch('/categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+
+    // === SUPPLIER ===
+    Route::resource('suppliers', SupplierController::class)->names([
+        'index'   => 'suppliers.index',
+        'create'  => 'suppliers.create',
+        'store'   => 'suppliers.store',
+        'edit'    => 'suppliers.edit',
+        'update'  => 'suppliers.update',
+        'destroy' => 'suppliers.destroy',
+    ]);
+    Route::patch('/suppliers/{id}/restore', [SupplierController::class, 'restore'])->name('suppliers.restore');
+
+    // === MEMBER ===
+    Route::resource('members', MemberController::class)->names([
+        'index'   => 'members.index',
+        'create'  => 'members.create',
+        'store'   => 'members.store',
+        'show'    => 'members.show',
+        'edit'    => 'members.edit',
+        'update'  => 'members.update',
+        'destroy' => 'members.destroy',
+    ]);
+    Route::post('/members/{id}/restore', [MemberController::class, 'restore'])->name('members.restore');
 });
