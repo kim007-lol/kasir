@@ -5,37 +5,33 @@
 @section('content')
 <div class="row">
     <div class="col-12 mb-4">
-        <!-- Search & Filter Card -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-3">
-                <div class="row g-2 align-items-center">
-                    <div class="col-md-8">
-                        <div class="d-flex gap-2 overflow-auto pb-1" style="white-space: nowrap;">
-                            <a href="{{ route('booking.menu', ['search' => request('search')]) }}"
-                               class="btn btn-sm {{ !request('category') ? 'btn-danger text-white' : 'btn-outline-secondary' }}">
-                                Semua
-                            </a>
-                            @foreach($categories as $cat)
-                                <a href="{{ route('booking.menu', ['category' => $cat->id, 'search' => request('search')]) }}"
-                                   class="btn btn-sm {{ request('category') == $cat->id ? 'btn-danger text-white' : 'btn-outline-secondary' }}">
-                                    {{ $cat->name }}
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <form action="{{ route('booking.menu') }}" method="GET">
-                            @if(request('category'))
-                                <input type="hidden" name="category" value="{{ request('category') }}">
-                            @endif
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                                <input type="text" name="search" class="form-control border-start-0 ps-0"
-                                    placeholder="Cari makanan..." value="{{ request('search') }}">
-                            </div>
-                        </form>
-                    </div>
+        <!-- Search & Filter Area -->
+        <div class="row g-3 align-items-center mb-2">
+            <div class="col-md-7 col-lg-8">
+                <div class="d-flex gap-2 overflow-auto pb-2 scroll-sm" style="white-space: nowrap;">
+                    <a href="{{ route('booking.menu', ['search' => request('search')]) }}"
+                       class="btn category-pill {{ !request('category') ? 'active' : '' }}">
+                        <i class="bi bi-grid-3x3-gap-fill me-1"></i> Semua
+                    </a>
+                    @foreach($categories as $cat)
+                        <a href="{{ route('booking.menu', ['category' => $cat->id, 'search' => request('search')]) }}"
+                           class="btn category-pill {{ request('category') == $cat->id ? 'active' : '' }}">
+                            {{ $cat->name }}
+                        </a>
+                    @endforeach
                 </div>
+            </div>
+            <div class="col-md-5 col-lg-4">
+                <form action="{{ route('booking.menu') }}" method="GET">
+                    @if(request('category'))
+                        <input type="hidden" name="category" value="{{ request('category') }}">
+                    @endif
+                    <div class="search-wrapper">
+                        <i class="bi bi-search search-icon"></i>
+                        <input type="text" name="search" class="form-control search-input"
+                            placeholder="Cari menu favorit Anda..." value="{{ request('search') }}">
+                    </div>
+                </form>
             </div>
         </div>
     </div>

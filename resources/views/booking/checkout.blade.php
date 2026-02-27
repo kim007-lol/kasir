@@ -56,129 +56,192 @@
             @csrf
 
             <!-- Delivery Type -->
-            <div class="card border-0 shadow-sm mb-4">
+            <div class="card border-0 shadow-sm mb-4 theme-card">
                 <div class="card-body">
-                    <h6 class="card-title fw-bold mb-3"><i class="bi bi-truck"></i> Metode Pengambilan</h6>
+                    <h6 class="card-title fw-bold mb-3"><i class="bi bi-truck text-primary"></i> Metode Pengambilan</h6>
 
-                    <div class="d-flex gap-2 mb-3">
-                        <div class="form-check flex-fill">
-                            <input class="form-check-input" type="radio" name="delivery_type" id="typePickup"
-                                   value="pickup" checked onchange="toggleDeliveryType()">
-                            <label class="form-check-label fw-medium" for="typePickup">
-                                <i class="bi bi-shop"></i> Ambil di Toko
-                            </label>
-                        </div>
-                        <div class="form-check flex-fill">
-                            <input class="form-check-input" type="radio" name="delivery_type" id="typeDelivery"
-                                   value="delivery" onchange="toggleDeliveryType()">
-                            <label class="form-check-label fw-medium" for="typeDelivery">
-                                <i class="bi bi-bicycle"></i> Pesan Antar
-                            </label>
-                        </div>
+                    <div class="delivery-selector">
+                        <input type="radio" name="delivery_type" id="typePickup" value="pickup" checked onchange="toggleDeliveryType()">
+                        <label for="typePickup" class="delivery-option">
+                            <i class="bi bi-shop fs-4"></i>
+                            <span>AMBIL SENDIRI</span>
+                        </label>
+
+                        <input type="radio" name="delivery_type" id="typeDelivery" value="delivery" onchange="toggleDeliveryType()">
+                        <label for="typeDelivery" class="delivery-option">
+                            <i class="bi bi-bicycle fs-4"></i>
+                            <span>PESAN ANTAR</span>
+                        </label>
                     </div>
 
-                    <!-- Pickup Time (shown for pickup) -->
-                    <div id="pickupSection">
+                    <!-- Pickup Time -->
+                    <div id="pickupSection" class="mt-3">
                         <div class="mb-3">
-                            <label class="form-label small">Jam Ambil (Hari Ini) <span class="text-danger">*</span></label>
-                            <input type="time" name="pickup_time" id="pickupTime" class="form-control"
+                            <label class="form-label small fw-bold">Jam Ambil (Hari Ini) <span class="text-danger">*</span></label>
+                            <input type="time" name="pickup_time" id="pickupTime" class="form-control premium-input"
                                 min="{{ now()->addMinutes(15)->format('H:i') }}"
                                 max="{{ App\Models\ShopSetting::get('close_hour', '15:00') }}" required>
-                            <div class="form-text text-muted small mb-2">
-                                Minimal 15 menit dari sekarang. Batas akhir {{ App\Models\ShopSetting::get('close_hour', '15:00') }}.
-                            </div>
-                            <div class="alert alert-warning small py-2 mb-0">
-                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                <strong>Penting:</strong> Harap ambil tepat waktu. Sistem akan membatalkan pesanan secara otomatis jika melewati batas waktu untuk menjaga kualitas makanan.
+                            <div class="form-text text-muted x-small mt-2">
+                                <i class="bi bi-info-circle"></i> Minimal 15 menit dari sekarang. Maks {{ App\Models\ShopSetting::get('close_hour', '15:00') }}.
                             </div>
                         </div>
                     </div>
 
-                    <!-- Delivery Address (shown for delivery) -->
-                    <div id="deliverySection" style="display: none;">
+                    <!-- Delivery Address -->
+                    <div id="deliverySection" class="mt-3" style="display: none;">
                         <div class="mb-3">
-                            <label class="form-label small">Alamat Pengiriman <span class="text-danger">*</span></label>
-                            <textarea name="delivery_address" id="deliveryAddress" class="form-control" rows="3"
-                                      placeholder="Contoh: Jl. Merdeka No. 10, RT 02/RW 03, Kel. Sukamaju..."></textarea>
-                            <div class="form-text text-muted small">
-                                Tuliskan alamat lengkap untuk pengiriman.
-                            </div>
+                            <label class="form-label small fw-bold">Alamat Pengiriman <span class="text-danger">*</span></label>
+                            <textarea name="delivery_address" id="deliveryAddress" class="form-control premium-input" rows="3"
+                                      placeholder="Contoh: Jl. Merdeka No. 10, RT 02/RW 03..."></textarea>
                         </div>
                     </div>
 
-                    @if($errors->any())
-                        <div class="alert alert-danger small py-2 mb-3">
-                            @foreach($errors->all() as $error)
-                                <div>{{ $error }}</div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    <div class="mb-3">
-                        <label class="form-label small">Catatan Tambahan (Opsional)</label>
-                        <textarea name="notes" class="form-control" rows="2" placeholder="Contoh: Tolong dibungkus terpisah...">{{ old('notes') }}</textarea>
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold">Catatan Pesanan</label>
+                        <textarea name="notes" class="form-control premium-input" rows="2" placeholder="Contoh: Pedas, tanpa bawang...">{{ old('notes') }}</textarea>
                     </div>
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm mb-4">
+            <!-- Payment -->
+            <div class="card border-0 shadow-sm mb-4 theme-card">
                 <div class="card-body">
-                    <h6 class="card-title fw-bold mb-3"><i class="bi bi-wallet2"></i> Pembayaran</h6>
-                    <div id="pickupPaymentInfo" class="alert alert-info small mb-0">
-                        <i class="bi bi-info-circle-fill me-1"></i>
-                        Pembayaran dilakukan langsung di Kasir (Tunai/QRIS) saat Anda mengambil pesanan.
+                    <h6 class="card-title fw-bold mb-3"><i class="bi bi-wallet2 text-primary"></i> Pembayaran</h6>
+                    
+                    <div id="pickupPaymentInfo" class="alert alert-soft-info mb-0">
+                        <div class="d-flex gap-2">
+                            <i class="bi bi-info-circle-fill pt-1"></i>
+                            <span>Pembayaran dilakukan di Kasir saat mengambil pesanan (Tunai/QRIS).</span>
+                        </div>
                     </div>
                     
                     <div id="deliveryPaymentInfo" style="display: none;">
-                        <div class="alert alert-primary small mb-3">
-                            <i class="bi bi-info-circle-fill me-1"></i>
-                            Kurir kami akan membawakan <strong>struk cetak (fisik)</strong> saat mengantarkan pesanan Anda.
-                        </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Metode Pembayaran</label>
-                            <div class="d-flex gap-2">
-                                <div class="form-check flex-fill">
-                                    <input class="form-check-input" type="radio" name="payment_method" id="payQris" value="qris" onchange="togglePaymentMethod()">
-                                    <label class="form-check-label" for="payQris">
-                                        <i class="bi bi-qr-code"></i> QRIS
-                                    </label>
-                                </div>
-                                <div class="form-check flex-fill">
-                                    <input class="form-check-input" type="radio" name="payment_method" id="payCash" value="cash" checked onchange="togglePaymentMethod()">
-                                    <label class="form-check-label" for="payCash">
-                                        <i class="bi bi-cash"></i> Tunai (Cash)
-                                    </label>
-                                </div>
+                            <div class="payment-selector">
+                                <input type="radio" name="payment_method" id="payCash" value="cash" checked onchange="togglePaymentMethod()">
+                                <label for="payCash" class="payment-option">
+                                    <i class="bi bi-cash-stack"></i> Tunai
+                                </label>
+
+                                <input type="radio" name="payment_method" id="payQris" value="qris" onchange="togglePaymentMethod()">
+                                <label for="payQris" class="payment-option">
+                                    <i class="bi bi-qr-code"></i> QRIS
+                                </label>
                             </div>
                         </div>
 
-                        <div id="cashInputContainer" class="mb-3">
-                            <label class="form-label small fw-bold">Nominal Uang Tunai yang Disiapkan <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rp</span>
-                                <input type="number" name="amount_paid" id="amountPaid" class="form-control" 
+                        <div id="cashInputContainer" class="mb-0">
+                            <label class="form-label small fw-bold">Siapkan Uang Tunai <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text border-0 bg-light fw-bold">Rp</span>
+                                <input type="number" name="amount_paid" id="amountPaid" class="form-control premium-input text-end fw-bold" 
                                     min="{{ $total }}" value="{{ $total }}" oninput="calculateChange()">
                             </div>
-                            <div class="form-text text-muted small mt-1">
-                                Minimal senilai total pesanan (<span class="fw-bold">Rp {{ number_format($total, 0, ',', '.') }}</span>) agar kurir bisa menyiapkan kembalian yang pas.
-                            </div>
-                            <div id="changeInfo" class="mt-2 fw-bold text-success" style="font-size: 0.9rem;">
+                            <div id="changeInfo" class="mt-2 small fw-bold text-success animate__animated animate__fadeIn">
                                 Kembalian: Pas
                             </div>
+                        </div>
+                        
+                        <div id="qrisInfo" class="alert alert-soft-primary small mt-3 mb-0" style="display:none;">
+                            <i class="bi bi-info-circle-fill"></i> Sediakan aplikasi QRIS (Gopay/OVO/Dana/Mobile Banking) saat kurir tiba.
                         </div>
                     </div>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-success w-100 btn-lg shadow fw-bold">
-                <i class="bi bi-check-circle-fill me-2"></i> Buat Pesanan
+            <button type="submit" class="btn btn-danger w-100 btn-lg shadow-lg fw-bold checkout-btn">
+                <span>Konfirmasi & Buat Pesanan</span>
+                <i class="bi bi-arrow-right-circle-fill ms-2"></i>
             </button>
-            <a href="{{ route('booking.cart') }}" class="btn btn-outline-secondary w-100 mt-2">
-                Kembali ke Keranjang
+            <a href="{{ route('booking.cart') }}" class="btn btn-link w-100 mt-2 text-muted text-decoration-none small">
+                <i class="bi bi-arrow-left"></i> Kembali ke Keranjang
             </a>
         </form>
     </div>
 </div>
+
+<style>
+    .theme-card {
+        border-radius: 1.25rem !important;
+        overflow: hidden;
+    }
+    .premium-input {
+        border-radius: 0.75rem;
+        padding: 0.6rem 0.85rem;
+        border: 1px solid #e9ecef;
+        background: #fdfdfe;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    .premium-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(255, 0, 0, 0.05);
+        background: white;
+    }
+    
+    .delivery-selector, .payment-selector {
+        display: flex;
+        gap: 0.75rem;
+    }
+    .delivery-selector input, .payment-selector input {
+        display: none;
+    }
+    .delivery-option, .payment-option {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 0.5rem;
+        background: white;
+        border: 2px solid #f1f3f5;
+        border-radius: 1rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: center;
+    }
+    .delivery-option span, .payment-option {
+        font-size: 0.75rem;
+        font-weight: 800;
+        margin-top: 0.4rem;
+        color: #6c757d;
+    }
+    .delivery-selector input:checked + .delivery-option,
+    .payment-selector input:checked + .payment-option {
+        border-color: var(--primary);
+        background: rgba(255, 0, 0, 0.02);
+    }
+    .delivery-selector input:checked + .delivery-option i,
+    .delivery-selector input:checked + .delivery-option span,
+    .payment-selector input:checked + .payment-option i,
+    .payment-selector input:checked + .payment-option {
+        color: var(--primary);
+    }
+
+    .alert-soft-info {
+        background: #e7f3ff;
+        color: #00529b;
+        border: none;
+        border-radius: 0.75rem;
+    }
+    .alert-soft-primary {
+        background: rgba(255, 0, 0, 0.05);
+        color: var(--primary);
+        border: none;
+        border-radius: 0.75rem;
+    }
+    .x-small { font-size: 0.75rem; }
+    
+    .checkout-btn {
+        border-radius: 1rem;
+        padding: 1rem;
+        transition: all 0.3s ease;
+    }
+    .checkout-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(255,0,0,0.3) !important;
+    }
+</style>
 
 <script>
     function toggleDeliveryType() {
@@ -214,14 +277,17 @@
     function togglePaymentMethod() {
         const isCash = document.getElementById('payCash').checked;
         const cashContainer = document.getElementById('cashInputContainer');
+        const qrisInfo = document.getElementById('qrisInfo');
         const amountPaid = document.getElementById('amountPaid');
 
         if (isCash) {
             cashContainer.style.display = 'block';
+            if (qrisInfo) qrisInfo.style.display = 'none';
             amountPaid.required = true;
             calculateChange();
         } else {
             cashContainer.style.display = 'none';
+            if (qrisInfo) qrisInfo.style.display = 'block';
             amountPaid.required = false;
         }
     }

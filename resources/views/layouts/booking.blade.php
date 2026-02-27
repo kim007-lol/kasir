@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" style="zoom: 80%; overflow: hidden;">
+<html lang="id" style="zoom: 70%;">
 
 <head>
     <meta charset="UTF-8">
@@ -25,41 +25,53 @@
             flex-direction: column;
         }
 
-        /* Navbar */
+        /* Navbar with Glassmorphism */
         .booking-nav {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: rgba(255, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 0.5rem 0;
+            padding: 0.75rem 0;
             position: sticky;
             top: 0;
             z-index: 1050;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .booking-nav .navbar-brand {
             font-weight: 800;
             color: white !important;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -0.5px;
         }
 
         .booking-nav .nav-link {
-            color: rgba(255, 255, 255, 0.85) !important;
-            font-weight: 500;
-            font-size: 0.9rem;
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.5rem;
-            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.5rem 1rem !important;
+            border-radius: 0.75rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
         }
 
         .booking-nav .nav-link:hover,
         .booking-nav .nav-link.active {
             color: white !important;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
         }
 
         .booking-nav .badge-cart {
-            position: relative;
-            top: -2px;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
+            padding: 0.25rem 0.4rem;
+            border-radius: 2rem;
+            font-weight: 700;
         }
 
         .booking-content {
