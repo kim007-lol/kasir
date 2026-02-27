@@ -252,6 +252,36 @@
                             </li>
                         </ul>
                     </li>
+                    {{-- Dropdown: Kelola --}}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('cashier.warehouse.*', 'cashier.categories.*', 'cashier.suppliers.*', 'cashier.members.*') ? 'active' : '' }}"
+                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            KELOLA
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('cashier.warehouse.*') ? 'active' : '' }}" href="{{ route('cashier.warehouse.index') }}">
+                                    <i class="bi bi-building me-2"></i>Gudang
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('cashier.categories.*') ? 'active' : '' }}" href="{{ route('cashier.categories.index') }}">
+                                    <i class="bi bi-list me-2"></i>Kategori
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('cashier.suppliers.*') ? 'active' : '' }}" href="{{ route('cashier.suppliers.index') }}">
+                                    <i class="bi bi-truck me-2"></i>Supplier
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('cashier.members.*') ? 'active' : '' }}" href="{{ route('cashier.members.index') }}">
+                                    <i class="bi bi-people me-2"></i>Member
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     {{-- Dropdown: Histori --}}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {{ request()->routeIs('cashier.history.*', 'cashier.bookings.history') ? 'active' : '' }}"
