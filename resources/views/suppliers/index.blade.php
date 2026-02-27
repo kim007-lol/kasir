@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@php
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+$layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
+@endphp
+@extends($layout)
 
 @section('title', 'Supplier')
 
@@ -8,7 +12,7 @@
         <h2 class="fw-bold mb-0">
             <i class="bi bi-truck"></i> Data Supplier
         </h2>
-        <a href="{{ route('suppliers.create') }}" class="btn btn-primary text-white fw-bold">
+        <a href="{{ route($routePrefix . 'suppliers.create') }}" class="btn btn-primary text-white fw-bold">
             <i class="bi bi-plus-circle"></i> Tambah Supplier
         </a>
     </div>
@@ -16,7 +20,7 @@
     <!-- Search Form -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('suppliers.index') }}" class="row g-3 align-items-end">
+            <form method="GET" action="{{ route($routePrefix . 'suppliers.index') }}" class="row g-3 align-items-end">
                 <div class="col-md-8">
                     <label for="search" class="form-label fw-semibold">Cari Supplier</label>
                     <input type="text" class="form-control" id="search" name="search" value="{{ $search ?? '' }}" placeholder="Cari berdasarkan nama, telepon, email, atau alamat...">
@@ -27,7 +31,7 @@
                             <i class="bi bi-search"></i> Cari
                         </button>
                         @if(isset($search) && $search)
-                        <a href="{{ route('suppliers.index') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route($routePrefix . 'suppliers.index') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-x-circle"></i> Reset
                         </a>
                         @endif
@@ -69,11 +73,11 @@
                             </td>
                             <td>
                                 <div class="d-flex gap-1 justify-content-center" role="group">
-                                    <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-warning btn-sm text-white" title="Edit">
+                                    <a href="{{ route($routePrefix . 'suppliers.edit', $supplier) }}" class="btn btn-warning btn-sm text-white" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     @if($supplier->trashed())
-                                    <form action="{{ route('suppliers.restore', $supplier->id) }}" method="POST" style="display:inline;">
+                                    <form action="{{ route($routePrefix . 'suppliers.restore', $supplier->id) }}" method="POST" style="display:inline;">
                                         @csrf
                                         @method('PATCH')
                                         <button type="submit" class="btn btn-success btn-sm text-white" title="Aktifkan">
@@ -81,7 +85,7 @@
                                         </button>
                                     </form>
                                     @else
-                                    <form action="{{ route('suppliers.destroy', $supplier) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Data supplier ini akan dihapus permanently!')">
+                                    <form action="{{ route($routePrefix . 'suppliers.destroy', $supplier) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Data supplier ini akan dihapus permanently!')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm text-white" title="Hapus">
