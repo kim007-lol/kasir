@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@php
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+$layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
+@endphp
+@extends($layout)
 
 @section('title', 'Tambah Barang Gudang')
 
@@ -10,7 +14,7 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body p-4">
-            <form action="{{ route('warehouse.store') }}" method="POST">
+            <form action="{{ route($routePrefix . 'warehouse.store') }}" method="POST">
                 @csrf
                 <div class="row">
                     <div class="col-md-6">
@@ -114,7 +118,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-save"></i> Simpan
                     </button>
-                    <a href="{{ route('warehouse.index') }}" class="btn btn-secondary">
+                    <a href="{{ route($routePrefix . 'warehouse.index') }}" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Kembali
                     </a>
                 </div>
