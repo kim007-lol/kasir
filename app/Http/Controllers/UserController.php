@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Member;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -43,36 +45,85 @@ class UserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
+        $rules = [
+            'name'     => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username',
-            'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,kasir,pelanggan',
-        ], [
-            'name.required' => 'Nama harus diisi',
-            'username.required' => 'Username harus diisi',
-            'username.unique' => 'Username sudah digunakan',
-            'email.required' => 'Email harus diisi',
-            'email.email' => 'Format email tidak valid',
-            'email.unique' => 'Email sudah terdaftar',
-            'password.required' => 'Password harus diisi',
-            'password.min' => 'Password minimal 8 karakter',
+            'role'     => 'required|in:admin,kasir,pelanggan',
+        ];
+        if ($request->input('role') === 'pelanggan') {
+            $rules['phone'] = 'required|string|max:20';
+        }
+
+        $validated = $request->validate($rules, [
+            'name.required'      => 'Nama harus diisi',
+            'username.required'  => 'Username harus diisi',
+            'username.unique'    => 'Username sudah digunakan',
+            'password.required'  => 'Password harus diisi',
+            'password.min'       => 'Password minimal 8 karakter',
             'password.confirmed' => 'Konfirmasi password tidak cocok',
-            'role.required' => 'Role harus dipilih',
-            'role.in' => 'Role tidak valid',
+            'role.required'      => 'Role harus dipilih',
+            'role.in'            => 'Role tidak valid',
+            'phone.required'     => 'Nomor telepon wajib diisi untuk akun pelanggan',
         ]);
 
-        User::create([
-            'name' => $validated['name'],
-            'username' => $validated['username'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => $validated['role'],
-        ]);
+        // Auto-generate a unique email based on username
+        $baseEmail = $validated['username'] . '@smegabiz.local';
+        $email = $baseEmail;
+        $counter = 1;
+        while (User::withTrashed()->where('email', $email)->exists()) {
+            $email = $validated['username'] . $counter . '@smegabiz.local';
+            $counter++;
+        }
+
+        try {
+            DB::transaction(function () use ($validated, $email) {
+                $user = User::create([
+                    'name'     => $validated['name'],
+                    'username' => $validated['username'],
+                    'email'    => $email,
+                    'password' => Hash::make($validated['password']),
+                    'role'     => $validated['role'],
+                ]);
+
+                if ($validated['role'] === 'pelanggan') {
+                    $phone = $validated['phone'];
+                    $name  = $validated['name'];
+
+                    // Cari member berdasarkan nama (case-insensitive) DAN nomor telepon
+                    $existingMember = Member::withTrashed()
+                        ->whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower(trim($name))])
+                        ->where('phone', $phone)
+                        ->first();
+
+                    if ($existingMember) {
+                        // Member sudah punya akun lain → tolak
+                        if ($existingMember->user_id && $existingMember->user_id !== $user->id) {
+                            throw new \Exception(
+                                "Member dengan nama '{$name}' dan nomor '{$phone}' sudah memiliki akun login. Gunakan nama atau nomor yang berbeda."
+                            );
+                        }
+                        // Tautkan user ke member yang sudah ada
+                        $existingMember->restore();
+                        $existingMember->update(['user_id' => $user->id]);
+                    } else {
+                        // Tidak ada cocok → buat member baru
+                        Member::create([
+                            'name'    => $name,
+                            'phone'   => $phone,
+                            'address' => '-',
+                            'user_id' => $user->id,
+                        ]);
+                    }
+                }
+            });
+        } catch (\Exception $e) {
+            return back()->withInput()->withErrors(['phone' => $e->getMessage()]);
+        }
 
         return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan');
     }
+
 
     public function edit(User $user): View
     {
@@ -84,27 +135,25 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|in:admin,kasir,pelanggan',
         ], [
             'name.required' => 'Nama harus diisi',
             'username.required' => 'Username harus diisi',
             'username.unique' => 'Username sudah digunakan',
-            'email.required' => 'Email harus diisi',
-            'email.email' => 'Format email tidak valid',
-            'email.unique' => 'Email sudah terdaftar',
             'password.min' => 'Password minimal 8 karakter',
             'password.confirmed' => 'Konfirmasi password tidak cocok',
             'role.required' => 'Role harus dipilih',
             'role.in' => 'Role tidak valid',
         ]);
 
+        $oldRole = $user->role;
+        $newRole = $validated['role'];
+
         $updateData = [
-            'name' => $validated['name'],
+            'name'     => $validated['name'],
             'username' => $validated['username'],
-            'email' => $validated['email'],
-            'role' => $validated['role'],
+            'role'     => $newRole,
         ];
 
         // Hanya update password jika diisi
@@ -112,7 +161,29 @@ class UserController extends Controller
             $updateData['password'] = Hash::make($validated['password']);
         }
 
-        $user->update($updateData);
+        DB::transaction(function () use ($user, $updateData, $oldRole, $newRole, $validated) {
+            $user->update($updateData);
+
+            // Jika role baru pelanggan dan belum punya member → buat member
+            if ($newRole === 'pelanggan' && !$user->member()->withTrashed()->exists()) {
+                Member::create([
+                    'name'    => $validated['name'],
+                    'phone'   => '-',
+                    'address' => '-',
+                    'user_id' => $user->id,
+                ]);
+            }
+
+            // Jika role lama pelanggan dan diganti bukan pelanggan → hapus member
+            if ($oldRole === 'pelanggan' && $newRole !== 'pelanggan') {
+                $user->member()->delete();
+            }
+
+            // Sinkronkan nama member jika masih pelanggan
+            if ($newRole === 'pelanggan' && $user->member) {
+                $user->member->update(['name' => $validated['name']]);
+            }
+        });
 
         return redirect()->route('users.index')->with('success', 'User berhasil diperbarui');
     }
@@ -135,5 +206,50 @@ class UserController extends Controller
         $user->restore();
 
         return redirect()->route('users.index')->with('success', 'User berhasil dipulihkan (Aktif)');
+    }
+
+    public function exportTemplate()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\PelangganTemplateExport(),
+            'template-import-pelanggan.xlsx'
+        );
+    }
+
+    public function importPelanggan(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:2048',
+        ], [
+            'file.required' => 'File Excel wajib dipilih',
+            'file.mimes'    => 'File harus berformat .xlsx, .xls, atau .csv',
+            'file.max'      => 'Ukuran file maksimal 2 MB',
+        ]);
+
+        $import = new \App\Imports\PelangganImport();
+
+        try {
+            \Maatwebsite\Excel\Facades\Excel::import($import, $request->file('file'));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal import: ' . $e->getMessage());
+        }
+
+        $message = "Import selesai! {$import->imported} user dibuat";
+        if ($import->linked > 0) {
+            $message .= ", {$import->linked} ditautkan ke member yang sudah ada";
+        }
+        if ($import->skipped > 0) {
+            $message .= ", {$import->skipped} dilewati";
+        }
+        $message .= '.';
+
+        if (!empty($import->errors)) {
+            $message .= ' Detail: ' . implode(' | ', array_slice($import->errors, 0, 5));
+            if (count($import->errors) > 5) {
+                $message .= ' ... dan ' . (count($import->errors) - 5) . ' error lainnya.';
+            }
+        }
+
+        return redirect()->route('users.index')->with($import->skipped > 0 ? 'warning' : 'success', $message);
     }
 }
