@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@php
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+$layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
+@endphp
+@extends($layout)
 
 @section('title', 'Item Kategori')
 
@@ -8,7 +12,7 @@
         <h2 class="fw-bold mb-0">
             <i class="bi bi-list"></i> Item Kategori
         </h2>
-        <a href="{{ route('categories.create') }}" class="btn btn-primary text-white fw-bold">
+        <a href="{{ route($routePrefix . 'categories.create') }}" class="btn btn-primary text-white fw-bold">
             <i class="bi bi-plus-circle"></i> Tambah Kategori
         </a>
     </div>
@@ -16,14 +20,14 @@
     <!-- Search Form -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
-            <form action="{{ route('categories.index') }}" method="GET">
+            <form action="{{ route($routePrefix . 'categories.index') }}" method="GET">
                 <div class="input-group">
                     <input type="text" name="search" class="form-control" placeholder="Cari kategori..." value="{{ $search ?? '' }}">
                     <button class="btn btn-primary" type="submit">
                         <i class="bi bi-search"></i> Cari
                     </button>
                     @if(request('search'))
-                    <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary">Reset</a>
+                    <a href="{{ route($routePrefix . 'categories.index') }}" class="btn btn-outline-secondary">Reset</a>
                     @endif
                 </div>
             </form>
@@ -56,11 +60,11 @@
                             </td>
                             <td>
                                 <div class="d-flex gap-1 justify-content-center" role="group">
-                                    <a href="{{ route('categories.edit', $category) }}" class="btn btn-warning btn-sm text-white" title="Edit">
+                                    <a href="{{ route($routePrefix . 'categories.edit', $category) }}" class="btn btn-warning btn-sm text-white" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     @if($category->trashed())
-                                    <form action="{{ route('categories.restore', $category->id) }}" method="POST" style="display:inline;">
+                                    <form action="{{ route($routePrefix . 'categories.restore', $category->id) }}" method="POST" style="display:inline;">
                                         @csrf
                                         @method('PATCH')
                                         <button type="submit" class="btn btn-success btn-sm text-white" title="Aktifkan">
@@ -68,7 +72,7 @@
                                         </button>
                                     </form>
                                     @else
-                                    <form action="{{ route('categories.destroy', $category) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Kategori ini akan dihapus!')">
+                                    <form action="{{ route($routePrefix . 'categories.destroy', $category) }}" method="POST" style="display:inline;" onsubmit="confirmDelete(event, 'Kategori ini akan dihapus!')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm text-white" title="Hapus">
