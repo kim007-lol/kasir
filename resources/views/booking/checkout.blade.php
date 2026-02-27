@@ -80,12 +80,16 @@
                     <!-- Pickup Time (shown for pickup) -->
                     <div id="pickupSection">
                         <div class="mb-3">
-                            <label class="form-label small">Jam Ambil (Hari Ini)</label>
+                            <label class="form-label small">Jam Ambil (Hari Ini) <span class="text-danger">*</span></label>
                             <input type="time" name="pickup_time" id="pickupTime" class="form-control"
                                 min="{{ now()->addMinutes(15)->format('H:i') }}"
-                                max="{{ App\Models\ShopSetting::get('close_hour', '15:00') }}">
-                            <div class="form-text text-muted small">
+                                max="{{ App\Models\ShopSetting::get('close_hour', '15:00') }}" required>
+                            <div class="form-text text-muted small mb-2">
                                 Minimal 15 menit dari sekarang. Batas akhir {{ App\Models\ShopSetting::get('close_hour', '15:00') }}.
+                            </div>
+                            <div class="alert alert-warning small py-2 mb-0">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                <strong>Penting:</strong> Harap ambil tepat waktu. Sistem akan membatalkan pesanan secara otomatis jika melewati batas waktu untuk menjaga kualitas makanan.
                             </div>
                         </div>
                     </div>
@@ -122,12 +126,46 @@
                     <h6 class="card-title fw-bold mb-3"><i class="bi bi-wallet2"></i> Pembayaran</h6>
                     <div id="pickupPaymentInfo" class="alert alert-info small mb-0">
                         <i class="bi bi-info-circle-fill me-1"></i>
-                        Pembayaran dilakukan di Kasir (Tunai/QRIS) saat mengambil pesanan.
+                        Pembayaran dilakukan langsung di Kasir (Tunai/QRIS) saat Anda mengambil pesanan.
                     </div>
                     
-                    <div id="deliveryPaymentInfo" class="alert alert-warning small mb-0" style="display: none;">
-                        <i class="bi bi-exclamation-square-fill me-1"></i>
-                        Pembayaran dilakukan di tempat (COD). <strong>Mohon siapkan Uang Pas</strong> untuk mempermudah driver kami menyerahkan pesanan.
+                    <div id="deliveryPaymentInfo" style="display: none;">
+                        <div class="alert alert-primary small mb-3">
+                            <i class="bi bi-info-circle-fill me-1"></i>
+                            Kurir kami akan membawakan <strong>struk cetak (fisik)</strong> saat mengantarkan pesanan Anda.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Metode Pembayaran</label>
+                            <div class="d-flex gap-2">
+                                <div class="form-check flex-fill">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="payQris" value="qris" onchange="togglePaymentMethod()">
+                                    <label class="form-check-label" for="payQris">
+                                        <i class="bi bi-qr-code"></i> QRIS
+                                    </label>
+                                </div>
+                                <div class="form-check flex-fill">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="payCash" value="cash" checked onchange="togglePaymentMethod()">
+                                    <label class="form-check-label" for="payCash">
+                                        <i class="bi bi-cash"></i> Tunai (Cash)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="cashInputContainer" class="mb-3">
+                            <label class="form-label small fw-bold">Nominal Uang Tunai yang Disiapkan <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" name="amount_paid" id="amountPaid" class="form-control" 
+                                    min="{{ $total }}" value="{{ $total }}" oninput="calculateChange()">
+                            </div>
+                            <div class="form-text text-muted small mt-1">
+                                Minimal senilai total pesanan (<span class="fw-bold">Rp {{ number_format($total, 0, ',', '.') }}</span>) agar kurir bisa menyiapkan kembalian yang pas.
+                            </div>
+                            <div id="changeInfo" class="mt-2 fw-bold text-success" style="font-size: 0.9rem;">
+                                Kembalian: Pas
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -172,5 +210,42 @@
             if (deliveryPaymentInfo) deliveryPaymentInfo.style.display = 'block';
         }
     }
+
+    function togglePaymentMethod() {
+        const isCash = document.getElementById('payCash').checked;
+        const cashContainer = document.getElementById('cashInputContainer');
+        const amountPaid = document.getElementById('amountPaid');
+
+        if (isCash) {
+            cashContainer.style.display = 'block';
+            amountPaid.required = true;
+            calculateChange();
+        } else {
+            cashContainer.style.display = 'none';
+            amountPaid.required = false;
+        }
+    }
+
+    function calculateChange() {
+        const total = {{ $total }};
+        const paid = parseFloat(document.getElementById('amountPaid').value) || 0;
+        const changeInfo = document.getElementById('changeInfo');
+        
+        if (paid < total) {
+            changeInfo.className = 'mt-2 fw-bold text-danger';
+            changeInfo.innerHTML = '<i class="bi bi-exclamation-circle"></i> Uang kurang: Rp ' + new Intl.NumberFormat('id-ID').format(total - paid);
+        } else if (paid === total) {
+            changeInfo.className = 'mt-2 fw-bold text-success';
+            changeInfo.innerHTML = '<i class="bi bi-check-circle"></i> Kembalian: Pas';
+        } else {
+            changeInfo.className = 'mt-2 fw-bold text-success';
+            changeInfo.innerHTML = '<i class="bi bi-check-circle"></i> Kembalian: Rp ' + new Intl.NumberFormat('id-ID').format(paid - total);
+        }
+    }
+
+    // Panggil saat load untuk setting default
+    document.addEventListener('DOMContentLoaded', function() {
+        togglePaymentMethod();
+    });
 </script>
 @endsection
