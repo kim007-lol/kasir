@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@php
+$routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.' : '';
+$layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
+@endphp
+@extends($layout)
 
 @section('title', 'Kelola Member')
 
@@ -8,7 +12,7 @@
         <h2 class="fw-bold mb-0">
             <i class="bi bi-people"></i> Kelola Member
         </h2>
-        <a href="{{ route('members.create') }}" class="btn btn-primary btn-sm fw-bold text-white">
+        <a href="{{ route($routePrefix . 'members.create') }}" class="btn btn-primary btn-sm fw-bold text-white">
             <i class="bi bi-plus-circle"></i> Tambah Member
         </a>
     </div>
@@ -16,14 +20,14 @@
     <!-- Search Form -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
-            <form action="{{ route('members.index') }}" method="GET">
+            <form action="{{ route($routePrefix . 'members.index') }}" method="GET">
                 <div class="input-group">
                     <input type="text" name="search" class="form-control" placeholder="Cari nama, telepon, atau alamat..." value="{{ $search ?? '' }}">
                     <button class="btn btn-primary" type="submit">
                         <i class="bi bi-search"></i> Cari
                     </button>
                     @if(request('search'))
-                    <a href="{{ route('members.index') }}" class="btn btn-outline-secondary">Reset</a>
+                    <a href="{{ route($routePrefix . 'members.index') }}" class="btn btn-outline-secondary">Reset</a>
                     @endif
                 </div>
             </form>
@@ -91,17 +95,17 @@
                             <td>
                                 <div class="d-flex gap-1 justify-content-center" role="group">
                                     @if($member->deleted_at)
-                                    <form action="{{ route('members.restore', $member->id) }}" method="POST">
+                                    <form action="{{ route($routePrefix . 'members.restore', $member->id) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="btn btn-success btn-sm text-white" title="Restore (Aktifkan Kembali)">
                                             <i class="bi bi-arrow-counterclockwise"></i> Pulihkan
                                         </button>
                                     </form>
                                     @else
-                                    <a href="{{ route('members.edit', $member) }}" class="btn btn-warning btn-sm text-white" title="Edit">
+                                    <a href="{{ route($routePrefix . 'members.edit', $member) }}" class="btn btn-warning btn-sm text-white" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form action="{{ route('members.destroy', $member) }}" method="POST" style="display: inline;" onsubmit="confirmDelete(event, 'Data member ini akan dinonaktifkan!')">
+                                    <form action="{{ route($routePrefix . 'members.destroy', $member) }}" method="POST" style="display: inline;" onsubmit="confirmDelete(event, 'Data member ini akan dinonaktifkan!')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm text-white" title="Nonaktifkan">
