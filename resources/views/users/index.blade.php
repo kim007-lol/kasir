@@ -33,10 +33,13 @@
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-info py-2 mb-3" style="font-size: 0.85rem;">
-                            <i class="bi bi-lightbulb-fill me-1"></i>
-                            Download <strong>Template Excel</strong> terlebih dahulu, isi data pelanggan, lalu upload di sini.
-                            Format kolom: <code>nama</code>, <code>no_telepon</code>. <br>
-                            <em>(Username dan kata sandi otomatis dibuat dari nama depan pelanggan)</em>
+                            <p class="mb-2 fw-bold"><i class="bi bi-info-circle-fill me-1"></i> Aturan Pengisian Template Excel:</p>
+                            <ol class="ps-3 mb-0">
+                                <li class="mb-1"><strong>Nama & No. Telp:</strong> Wajib diisi (tidak boleh kosong). Nama minimal 2 huruf.</li>
+                                <li class="mb-1"><strong>Format Nomor:</strong> Harus 8-15 digit angka (boleh diawali <code>+</code>, tidak boleh ada spasi/- dan Huruf.).</li>
+                                <li class="mb-1"><strong>Anti Duplikat:</strong> Nomor telepon tidak boleh kembar di dalam satu file.</li>
+                                <li><strong>Auto Akun:</strong> Username (min 5 char) & katasandi (<code>username123</code>) otomatis dibuat sistem dari nama.</li>
+                            </ol>
                         </div>
                         <div class="mb-3">
                             <label for="importFile" class="form-label fw-bold">Pilih File Excel</label>
@@ -120,7 +123,10 @@
                                 <code>{{ $user->username }}</code>
                                 @if($user->role === 'pelanggan')
                                 <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
-                                    <i class="bi bi-info-circle"></i> Default Pass: <code>{{ $user->username }}123</code> (min 8 char)
+                                    <i class="bi bi-info-circle"></i> Pass Import: <code>{{ $user->username }}123</code>
+                                    <span class="d-block mt-1 text-danger fst-italic" style="font-size: 0.7rem;">
+                                        (Hanya berlaku jika user ditambahkan lewat Import Excel)
+                                    </span>
                                 </small>
                                 @endif
                             </td>

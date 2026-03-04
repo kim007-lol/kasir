@@ -45,7 +45,7 @@
                         @error('password')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted"><i class="bi bi-info-circle"></i> Minimal 8 karakter. Kosongkan jika tidak ingin mengubah password.</small>
+                        <small id="password-hint" class="text-muted mt-1 d-block"><i class="bi bi-info-circle"></i> Minimal 8 karakter. Kosongkan jika tidak ingin diubah.</small>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="password_confirmation" class="form-label fw-bold">Konfirmasi Password Baru</label>
@@ -79,6 +79,26 @@
                         <i class="bi bi-x-circle"></i> Batal
                     </a>
                 </div>
+
+                <script>
+                    document.getElementById('role').addEventListener('change', function () {
+                        const passHint = document.getElementById('password-hint');
+
+                        if (this.value === 'pelanggan') {
+                            if(passHint) passHint.innerHTML = '<i class="bi bi-info-circle"></i> <strong class="text-success">Minimal 5 karakter</strong> khusus role pelanggan. (Kosongkan jika tidak diubah)';
+                        } else {
+                            if(passHint) passHint.innerHTML = '<i class="bi bi-info-circle"></i> Minimal <strong>8 karakter</strong> untuk admin/kasir. (Kosongkan jika tidak diubah)';
+                        }
+                    });
+
+                    // Trigger on load
+                    window.onload = () => {
+                        const roleSelect = document.getElementById('role');
+                        if (roleSelect.value) {
+                            roleSelect.dispatchEvent(new Event('change'));
+                        }
+                    };
+                </script>
             </form>
         </div>
     </div>

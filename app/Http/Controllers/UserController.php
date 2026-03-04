@@ -45,10 +45,12 @@ class UserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $minPasswordLength = $request->input('role') === 'pelanggan' ? 5 : 8;
+
         $rules = [
             'name'     => 'required|string|max:255',
             'username' => 'required|string|min:5|max:255|unique:users,username',
-            'password' => 'required|string|min:5|confirmed',
+            'password' => 'required|string|min:' . $minPasswordLength . '|confirmed',
             'role'     => 'required|in:admin,kasir,pelanggan',
         ];
         if ($request->input('role') === 'pelanggan') {
@@ -61,7 +63,7 @@ class UserController extends Controller
             'username.min'       => 'Username minimal 5 karakter',
             'username.unique'    => 'Username sudah digunakan',
             'password.required'  => 'Password harus diisi',
-            'password.min'       => 'Password minimal 5 karakter',
+            'password.min'       => "Password minimal $minPasswordLength karakter untuk role ini",
             'password.confirmed' => 'Konfirmasi password tidak cocok',
             'role.required'      => 'Role harus dipilih',
             'role.in'            => 'Role tidak valid',
@@ -133,17 +135,19 @@ class UserController extends Controller
 
     public function update(Request $request, User $user): RedirectResponse
     {
+        $minPasswordLength = $request->input('role') === 'pelanggan' ? 5 : 8;
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|min:5|max:255|unique:users,username,' . $user->id,
-            'password' => 'nullable|string|min:5|confirmed',
+            'password' => 'nullable|string|min:' . $minPasswordLength . '|confirmed',
             'role' => 'required|in:admin,kasir,pelanggan',
         ], [
             'name.required' => 'Nama harus diisi',
             'username.required' => 'Username harus diisi',
             'username.min' => 'Username minimal 5 karakter',
             'username.unique' => 'Username sudah digunakan',
-            'password.min' => 'Password minimal 5 karakter',
+            'password.min' => "Password minimal $minPasswordLength karakter untuk role ini",
             'password.confirmed' => 'Konfirmasi password tidak cocok',
             'role.required' => 'Role harus dipilih',
             'role.in' => 'Role tidak valid',

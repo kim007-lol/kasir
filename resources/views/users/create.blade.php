@@ -40,7 +40,8 @@
                     <div class="col-md-6 mb-3">
                         <label for="password" class="form-label fw-bold">Password <span class="text-danger">*</span></label>
                         <input type="password" class="form-control @error('password') is-invalid @enderror"
-                            id="password" name="password" placeholder="Minimal 8 karakter" required>
+                            id="password" name="password" placeholder="Masukkan password" required>
+                        <small id="password-hint" class="text-muted mt-1 d-block"><i class="bi bi-info-circle"></i> Minimal 8 karakter (Admin/Kasir).</small>
                         @error('password')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -101,13 +102,26 @@
                     document.getElementById('role').addEventListener('change', function () {
                         const phoneField = document.getElementById('phone-field');
                         const phoneInput = document.getElementById('phone');
+                        const passHint = document.getElementById('password-hint');
+
                         if (this.value === 'pelanggan') {
                             phoneField.style.display = '';
+                            if(passHint) passHint.innerHTML = '<i class="bi bi-info-circle"></i> <strong class="text-success">Minimal 5 karakter</strong> khusus role pelanggan.';
                         } else {
                             phoneField.style.display = 'none';
                             phoneInput.value = '';
+                            if(passHint) passHint.innerHTML = '<i class="bi bi-info-circle"></i> Minimal <strong>8 karakter</strong> untuk admin/kasir.';
                         }
                     });
+
+                    // Trigger on load if already selected
+                    document.dispatchEvent(new Event('DOMContentLoaded'));
+                    window.onload = () => {
+                        const roleSelect = document.getElementById('role');
+                        if (roleSelect.value) {
+                            roleSelect.dispatchEvent(new Event('change'));
+                        }
+                    };
                 </script>
             </form>
         </div>
