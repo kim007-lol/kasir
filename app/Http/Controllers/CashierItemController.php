@@ -16,7 +16,7 @@ class CashierItemController extends Controller
         $search = $request->get('search');
         $categoryId = $request->get('category_id');
 
-        $query = CashierItem::select('id', 'code', 'name', 'stock', 'selling_price', 'discount', 'category_id', 'warehouse_item_id', 'is_consignment')
+        $query = CashierItem::select('id', 'code', 'name', 'stock', 'selling_price', 'discount', 'category_id', 'warehouse_item_id', 'is_consignment', 'expiry_date')
             ->with(['category:id,name', 'warehouseItem:id,stock'])
             ->where(function ($q) {
                 // Non-consignment items: always show
@@ -43,13 +43,19 @@ class CashierItemController extends Controller
         $cashierItems = $query->paginate(15);
         $categories = \App\Models\Category::orderBy('name')->get();
 
+        // Get warehouse items with stock > 0 for transfer modal
+        $warehouseItems = WarehouseItem::with(['category', 'supplier'])
+            ->where('stock', '>', 0)
+            ->orderBy('name', 'asc')
+            ->get();
+
         if ($request->ajax()) {
             /** @var \Illuminate\View\View $view */
-            $view = view('cashier-items.index', compact('cashierItems', 'search', 'categories', 'categoryId'));
+            $view = view('cashier-items.index', compact('cashierItems', 'search', 'categories', 'categoryId', 'warehouseItems'));
             return $view->fragment('data-container');
         }
 
-        return view('cashier-items.index', compact('cashierItems', 'search', 'categories', 'categoryId'));
+        return view('cashier-items.index', compact('cashierItems', 'search', 'categories', 'categoryId', 'warehouseItems'));
     }
 
     public function create(): View
@@ -89,10 +95,14 @@ class CashierItemController extends Controller
                 // Kurangi stok gudang
                 $warehouse->decrement('stock', $validated['quantity']);
 
-                // Cek apakah item sudah ada di kasir
-                $cashierItem = CashierItem::where('warehouse_item_id', $warehouse->id)->first();
+                // Cek apakah item sudah ada di kasir (termasuk yang soft-deleted)
+                $cashierItem = CashierItem::withTrashed()->where('warehouse_item_id', $warehouse->id)->first();
 
                 if ($cashierItem) {
+                    // Restore jika soft-deleted
+                    if ($cashierItem->trashed()) {
+                        $cashierItem->restore();
+                    }
                     // Update stok kasir yang sudah ada
                     $cashierItem->increment('stock', $validated['quantity']);
 
@@ -362,10 +372,14 @@ class CashierItemController extends Controller
                 // Reduce warehouse stock
                 $warehouse->decrement('stock', $validated['quantity']);
 
-                // Check if item already exists in cashier
-                $cashierItem = CashierItem::where('warehouse_item_id', $warehouse->id)->first();
+                // Check if item already exists in cashier (including soft-deleted)
+                $cashierItem = CashierItem::withTrashed()->where('warehouse_item_id', $warehouse->id)->first();
 
                 if ($cashierItem) {
+                    // Restore jika soft-deleted
+                    if ($cashierItem->trashed()) {
+                        $cashierItem->restore();
+                    }
                     // Update existing cashier stock
                     $cashierItem->increment('stock', $validated['quantity']);
 
