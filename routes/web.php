@@ -179,6 +179,8 @@ Route::middleware(['auth', 'role:kasir'])->prefix('cashier')->name('cashier.')->
     Route::get('/booking-history', [CashierBookingController::class, 'history'])->name('bookings.history');
     // API: pending count for badge polling
     Route::get('/api/bookings/pending-count', [CashierBookingController::class, 'pendingCount'])->name('bookings.pendingCount');
+    // Manual Trigger Auto Cancel Expired
+    Route::post('/bookings/auto-cancel', [CashierBookingController::class, 'runAutoCancel'])->name('bookings.autoCancel');
 
     // === PENGATURAN TOKO ===
     Route::get('/settings', [ShopSettingController::class, 'edit'])->name('settings');
