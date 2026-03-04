@@ -173,53 +173,63 @@
         </div>
     </div>
 </div>
+@endsection
 
+@push('modals')
 <!-- Modal Tambah Barang Titipan -->
 <div class="modal fade" id="addConsignmentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: #ff0000; color: white;">
-                <h5 class="modal-title fw-bold">Tambah Barang Titipan</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light border-bottom-0 pb-3">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-bag-plus text-primary me-2"></i> Tambah Barang Titipan
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('cashier.consignment.store') }}" method="POST">
                 @csrf
-                <div class="modal-body">
+                <div class="modal-body px-4 py-3">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Nama Barang *</label>
-                        <input type="text" class="form-control" name="name" required placeholder="Nama barang titipan">
+                        <label class="form-label fw-semibold">Nama Barang <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-sm" name="name" required placeholder="Nama barang titipan">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Sumber Titipan *</label>
-                        <input type="text" class="form-control" name="consignment_source" required placeholder="Contoh: Bu Ani / Kantin A">
+                        <label class="form-label fw-semibold">Sumber Titipan <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-sm" name="consignment_source" required placeholder="Contoh: Bu Ani / Kantin A">
                     </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Harga Awal (Rp) *</label>
-                            <input type="number" class="form-control" name="cost_price" required min="0" placeholder="Harga beli/modal">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold">Harga Awal <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light">Rp</span>
+                                <input type="number" class="form-control" name="cost_price" required min="0" placeholder="Modal">
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Harga Jual (Rp) *</label>
-                            <input type="number" class="form-control" name="selling_price" required min="0" placeholder="Harga jual ke pelanggan">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold">Harga Jual <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light">Rp</span>
+                                <input type="number" class="form-control" name="selling_price" required min="0" placeholder="Jual">
+                            </div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Stok *</label>
-                        <input type="number" class="form-control" name="stock" required min="1" placeholder="Jumlah barang">
+                        <label class="form-label fw-semibold">Stok <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control form-control-sm" name="stock" required min="1" placeholder="Jumlah barang">
                     </div>
-                    <div class="alert alert-warning mb-0">
+                    <div class="alert alert-warning py-2 mb-0 small">
                         <i class="bi bi-exclamation-triangle"></i> Barang titipan bersifat <strong>harian</strong>.
-                        Besok stok akan otomatis hilang dari daftar transaksi dan harus ditambahkan ulang.
+                        Besok stok otomatis hilang dan harus ditambahkan ulang.
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Tambah
+                <div class="modal-footer border-top-0 bg-light py-3 px-4 rounded-bottom">
+                    <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-3">
+                        <i class="bi bi-plus-circle me-1"></i> Tambah
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-@endsection
+@endpush

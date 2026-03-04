@@ -8,9 +8,9 @@
         <h2 class="fw-bold mb-0">
             <i class="bi bi-cart-check"></i> Stok Item Kasir (Display)
         </h2>
-        <a href="{{ route('cashier-items.create') }}" class="btn btn-primary text-white fw-bold">
+        <button class="btn btn-primary text-white fw-bold" data-bs-toggle="modal" data-bs-target="#warehouseStockModal">
             <i class="bi bi-plus-circle"></i> Tambah dari Gudang
-        </a>
+        </button>
     </div>
 
     <!-- Search Form -->
@@ -61,6 +61,7 @@
                             <th class="d-none d-md-table-cell">Harga Jual</th>
                             <th class="d-none d-md-table-cell">Potongan (Rp)</th>
                             <th class="d-none d-sm-table-cell">Stok</th>
+                            <th class="d-none d-md-table-cell text-center">Exp Date</th>
                             <th style="width: 140px;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -109,6 +110,26 @@
                                         @endphp
                                         <span class="badge {{ $stockClass }}">{{ $item->stock }}</span>
                             </td>
+                            <td class="d-none d-md-table-cell text-center">
+                                @if($item->expiry_date)
+                                    @php
+                                        $daysUntilExpiry = now()->diffInDays($item->expiry_date, false);
+                                    @endphp
+                                    @if($daysUntilExpiry < 0)
+                                        <span class="badge bg-dark text-white" title="Sudah Kadaluarsa">
+                                            <i class="bi bi-x-circle"></i> EXPIRED
+                                        </span>
+                                    @elseif($daysUntilExpiry <= 30)
+                                        <span class="badge bg-danger" title="Hampir Kadaluarsa">
+                                            <i class="bi bi-exclamation-triangle"></i> {{ $item->expiry_date->format('d/m/Y') }}
+                                        </span>
+                                    @else
+                                        <span class="badge bg-light text-dark border">{{ $item->expiry_date->format('d/m/Y') }}</span>
+                                    @endif
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
                             <td class="text-center">
                                 @if($item->is_consignment)
                                 <span class="badge bg-info">Titipan</span>
@@ -130,7 +151,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">
+                            <td colspan="9" class="text-center py-4 text-muted">
                                 <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                                 <p>Tidak ada data item kasir</p>
                             </td>
@@ -150,12 +171,113 @@
     .select2-container--bootstrap-5 .select2-selection {
         border-radius: 0.5rem;
     }
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+    }
+    @media (max-width: 576px) {
+        .btn-sm {
+            padding: 0.15rem 0.3rem;
+            font-size: 0.7rem;
+        }
+        table { font-size: 0.8rem; }
+        th, td { padding: 0.5rem 0.3rem !important; }
+        .badge { font-size: 0.7rem; }
+        small { font-size: 0.7rem; }
+    }
+    .table-responsive { border-radius: 0.5rem; }
+    .card { border-radius: 0.75rem; }
+    .badge { padding: 0.4rem 0.6rem; }
 </style>
+
+@push('modals')
+<!-- Modal Tambah Stok dari Gudang -->
+<div class="modal fade" id="warehouseStockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light border-bottom-0 pb-3">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-box-arrow-down text-success me-2"></i> Tambah Stok dari Gudang
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="{{ route('cashier-items.store') }}" method="POST" id="warehouseStockForm">
+                    @csrf
+
+                    <div class="mb-4 position-relative">
+                        <label class="form-label fw-semibold text-dark">Pilih Barang dari Gudang <span class="text-danger">*</span></label>
+                        <select class="form-select select2-basic" name="warehouse_item_id" id="warehouse_item_select" required>
+                            <option value="">-- Cari dan Pilih Barang --</option>
+                            @foreach($warehouseItems as $wItem)
+                            <option value="{{ $wItem->id }}"
+                                data-stock="{{ $wItem->stock }}"
+                                data-name="{{ $wItem->name }}"
+                                data-price="{{ $wItem->final_price }}">
+                                {{ $wItem->code }} - {{ $wItem->name }} (Stok Gudang: {{ $wItem->stock }})
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div id="selectedItemInfo" class="alert alert-info border-0 shadow-sm d-none mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                             <i class="bi bi-info-circle-fill me-2 fs-5 text-info"></i>
+                             <strong class="text-dark">Informasi Barang Terpilih</strong>
+                        </div>
+                        <div class="row g-2 small">
+                            <div class="col-sm-4">
+                                <strong class="text-muted d-block mb-1">Nama Barang</strong>
+                                <span id="infoName" class="fw-medium text-dark">-</span>
+                            </div>
+                            <div class="col-sm-4 border-start border-info border-opacity-25 px-3">
+                                <strong class="text-muted d-block mb-1">Stok Tersedia</strong>
+                                <span id="infoStock" class="fw-bold text-success fs-6">-</span>
+                            </div>
+                            <div class="col-sm-4 border-start border-info border-opacity-25 px-3">
+                                <strong class="text-muted d-block mb-1">Harga Jual</strong>
+                                <span class="fw-medium text-dark d-flex align-items-center">
+                                    <span class="text-secondary me-1">Rp</span>
+                                    <span id="infoPrice">-</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label fw-semibold text-dark">Jumlah yang Ditambahkan <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-plus-slash-minus text-muted"></i></span>
+                                <input type="number" class="form-control border-start-0 ps-0 text-dark fw-medium" name="quantity" id="quantity_input" required min="1" placeholder="Masukkan jumlah">
+                            </div>
+                            <div class="form-text text-muted"><i class="bi bi-arrow-right-short"></i> Stok akan dipindah dari gudang ke kasir</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark">Diskon Jual (Rp) <span class="badge bg-light text-secondary fw-normal ms-1 border border-secondary border-opacity-25">Opsional</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">Rp</span>
+                                <input type="number" min="0" class="form-control border-start-0 ps-0 text-dark fw-medium" name="discount" placeholder="Contoh: 1500 / 0">
+                            </div>
+                            <div class="form-text text-muted"><i class="bi bi-tag"></i> Diskon khusus etalase penjualan</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 bg-light py-3 px-4 rounded-bottom">
+                <button type="button" class="btn btn-outline-secondary px-4 fw-medium" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" form="warehouseStockForm" class="btn btn-success px-4 fw-medium"><i class="bi bi-check-circle me-1"></i> Tambahkan ke Kasir</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endpush
 
 @push('scripts')
 <script>
     $(document).ready(function() {
-        $('.select2-basic').each(function() {
+        // Generic initialization for static filters
+        $('.select2-basic:not(#warehouse_item_select)').each(function() {
             $(this).select2({
                 theme: 'bootstrap-5',
                 width: '100%',
@@ -164,50 +286,43 @@
                 allowClear: true
             });
         });
+
+        // Specific initialization for Modal item selection
+        $('#warehouse_item_select').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '-- Pilih Barang --',
+            allowClear: true,
+            dropdownParent: $('#warehouse_item_select').parent()
+        });
+    });
+
+    // Warehouse Stock Modal Logic
+    document.getElementById('warehouse_item_select').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const stock = selectedOption.dataset.stock;
+        const name = selectedOption.dataset.name;
+        const price = selectedOption.dataset.price;
+
+        if (this.value) {
+            document.getElementById('selectedItemInfo').classList.remove('d-none');
+            document.getElementById('infoName').textContent = name;
+            document.getElementById('infoStock').textContent = stock;
+            document.getElementById('infoPrice').textContent = Number(price).toLocaleString('id-ID');
+            document.getElementById('quantity_input').max = stock;
+            const discountInput = document.querySelector('input[name="discount"]');
+            if (discountInput) {
+                discountInput.max = Math.max(0, parseInt(price) - 1);
+            }
+        } else {
+            document.getElementById('selectedItemInfo').classList.add('d-none');
+            document.getElementById('quantity_input').max = '';
+            const discountInput = document.querySelector('input[name="discount"]');
+            if (discountInput) {
+                discountInput.max = '';
+            }
+        }
     });
 </script>
 @endpush
-
-<style>
-    .btn-sm {
-        padding: 0.2rem 0.4rem;
-        font-size: 0.75rem;
-    }
-
-    @media (max-width: 576px) {
-        .btn-sm {
-            padding: 0.15rem 0.3rem;
-            font-size: 0.7rem;
-        }
-
-        table {
-            font-size: 0.8rem;
-        }
-
-        th,
-        td {
-            padding: 0.5rem 0.3rem !important;
-        }
-
-        .badge {
-            font-size: 0.7rem;
-        }
-
-        small {
-            font-size: 0.7rem;
-        }
-    }
-
-    .table-responsive {
-        border-radius: 0.5rem;
-    }
-
-    .card {
-        border-radius: 0.75rem;
-    }
-
-    .badge {
-        padding: 0.4rem 0.6rem;
-    }
-</style>
 @endsection

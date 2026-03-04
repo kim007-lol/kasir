@@ -4,47 +4,44 @@
 
 @section('content')
 <div class="mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-md-items-center gap-3 mb-4">
         <h2 class="fw-bold mb-0">
-            <i class="bi bi-box-seam"></i> Stok Item Kasir
+            <i class="bi bi-cart-check"></i> Stok Item Kasir
         </h2>
-        <div class="btn-group">
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#warehouseStockModal">
-                <i class="bi bi-box-arrow-down"></i> Tambah Stok dari Gudang
-            </button>
-        </div>
+        <button class="btn btn-primary text-white fw-bold" data-bs-toggle="modal" data-bs-target="#warehouseStockModal">
+            <i class="bi bi-plus-circle"></i> Tambah dari Gudang
+        </button>
     </div>
 
-    <!-- Search Box -->
+    <!-- Search Form -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('cashier.stock.index') }}">
-                <div class="row g-2">
-                    <div class="col-md-5">
-                        <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0">
-                                <i class="bi bi-search text-muted"></i>
-                            </span>
-                            <input type="text" class="form-control border-start-0 ps-0" name="search" value="{{ $search ?? '' }}" placeholder="Cari Kode atau Nama Barang...">
-                        </div>
-                    </div>
-                    <div class="col-md-4 position-relative">
-                        <select name="category_id" class="form-select select2-basic">
-                            <option value="">-- Semua Kategori --</option>
-                            @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}" {{ (isset($categoryId) && $categoryId == $cat->id) ? 'selected' : '' }}>
-                                {{ $cat->name }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-primary w-100" type="submit">Cari</button>
-                            @if((isset($search) && $search) || (isset($categoryId) && $categoryId))
-                            <a href="{{ route('cashier.stock.index') }}" class="btn btn-outline-secondary">Reset</a>
-                            @endif
-                        </div>
+            <form method="GET" action="{{ route('cashier.stock.index') }}" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold">Cari Stok Kasir</label>
+                    <input type="text" class="form-control" name="search" value="{{ $search ?? '' }}" placeholder="Cari berdasarkan nama atau kode barang...">
+                </div>
+                <div class="col-md-3 position-relative">
+                    <label class="form-label fw-semibold">Kategori</label>
+                    <select name="category_id" class="form-select select2-basic">
+                        <option value="">-- Semua Kategori --</option>
+                        @foreach($categories as $cat)
+                        <option value="{{ $cat->id }}" {{ (isset($categoryId) && $categoryId == $cat->id) ? 'selected' : '' }}>
+                            {{ $cat->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Cari
+                        </button>
+                        @if((isset($search) && $search) || (isset($categoryId) && $categoryId))
+                        <a href="{{ route('cashier.stock.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Reset
+                        </a>
+                        @endif
                     </div>
                 </div>
             </form>
@@ -161,22 +158,27 @@
         </div>
     </div>
 </div>
+@endsection
 
+@push('modals')
 <!-- Modal Tambah Stok dari Gudang -->
 <div class="modal fade" id="warehouseStockModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">Tambah Stok dari Gudang</h5>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light border-bottom-0 pb-3">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-box-arrow-down text-success me-2"></i> Tambah Stok dari Gudang
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <form action="{{ route('cashier.stock.storeFromWarehouse') }}" method="POST" id="warehouseStockForm">
                     @csrf
-                    <div class="mb-3 position-relative">
-                        <label class="form-label">Pilih Barang dari Gudang</label>
+                    
+                    <div class="mb-4 position-relative">
+                        <label class="form-label fw-semibold text-dark">Pilih Barang dari Gudang <span class="text-danger">*</span></label>
                         <select class="form-select select2-basic" name="warehouse_item_id" id="warehouse_item_select" required>
-                            <option value="">-- Pilih Barang --</option>
+                            <option value="">-- Cari dan Pilih Barang --</option>
                             @foreach($warehouseItems as $wItem)
                             <option value="{{ $wItem->id }}"
                                 data-stock="{{ $wItem->stock }}"
@@ -187,34 +189,59 @@
                             @endforeach
                         </select>
                     </div>
-                    <div id="selectedItemInfo" class="alert alert-light d-none">
-                        <small class="text-muted">
-                            <strong>Barang:</strong> <span id="infoName">-</span><br>
-                            <strong>Stok Tersedia di Gudang:</strong> <span id="infoStock">-</span><br>
-                            <strong>Harga Jual:</strong> Rp <span id="infoPrice">-</span>
-                        </small>
+
+                    <div id="selectedItemInfo" class="alert alert-info border-0 shadow-sm d-none mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                             <i class="bi bi-info-circle-fill me-2 fs-5 text-info"></i>
+                             <strong class="text-dark">Informasi Barang Terpilih</strong>
+                        </div>
+                        <div class="row g-2 small">
+                            <div class="col-sm-4">
+                                <strong class="text-muted d-block mb-1">Nama Barang</strong>
+                                <span id="infoName" class="fw-medium text-dark">-</span>
+                            </div>
+                            <div class="col-sm-4 border-start border-info border-opacity-25 px-3">
+                                <strong class="text-muted d-block mb-1">Stok Tersedia</strong>
+                                <span id="infoStock" class="fw-bold text-success fs-6">-</span>
+                            </div>
+                            <div class="col-sm-4 border-start border-info border-opacity-25 px-3">
+                                <strong class="text-muted d-block mb-1">Harga Jual</strong>
+                                <span class="fw-medium text-dark d-flex align-items-center">
+                                    <span class="text-secondary me-1">Rp</span> 
+                                    <span id="infoPrice">-</span>
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Jumlah yang Ditambahkan</label>
-                        <input type="number" class="form-control" name="quantity" id="quantity_input" required min="1" placeholder="Masukkan jumlah">
-                        <small class="text-muted d-block">Stok akan dikurangi dari gudang dan ditambahkan ke kasir</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Potongan Harga / Diskon Kasir (Rp) <small class="text-muted fw-normal">(Opsional)</small></label>
-                        <input type="number" min="0" class="form-control" name="discount" placeholder="Contoh: 1500 (kosongkan jika tidak ingin diubah)">
-                        <small class="text-muted d-block fst-italic"><i class="bi bi-info-circle"></i> Input ini akan mengatur nilai diskon barang di etalase kasir.</small>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-success">Tambahkan ke Kasir</button>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label fw-semibold text-dark">Jumlah yang Ditambahkan <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-plus-slash-minus text-muted"></i></span>
+                                <input type="number" class="form-control border-start-0 ps-0 text-dark fw-medium" name="quantity" id="quantity_input" required min="1" placeholder="Masukkan jumlah">
+                            </div>
+                            <div class="form-text text-muted"><i class="bi bi-arrow-right-short"></i> Stok akan dipindah dari gudang ke kasir</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark">Diskon Jual (Rp) <span class="badge bg-light text-secondary fw-normal ms-1 border border-secondary border-opacity-25">Opsional</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">Rp</span>
+                                <input type="number" min="0" class="form-control border-start-0 ps-0 text-dark fw-medium" name="discount" placeholder="Contoh: 1500 / 0">
+                            </div>
+                            <div class="form-text text-muted"><i class="bi bi-tag"></i> Diskon khusus etalase penjualan</div>
+                        </div>
                     </div>
                 </form>
+            </div>
+            <div class="modal-footer border-top-0 bg-light py-3 px-4 rounded-bottom">
+                <button type="button" class="btn btn-outline-secondary px-4 fw-medium" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" form="warehouseStockForm" class="btn btn-success px-4 fw-medium"><i class="bi bi-check-circle me-1"></i> Tambahkan ke Kasir</button>
             </div>
         </div>
     </div>
 </div>
-
-@endsection
+@endpush
 
 @section('styles')
 <style>

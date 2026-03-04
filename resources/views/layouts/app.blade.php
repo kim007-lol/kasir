@@ -5,9 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* Apply 80% zoom only on Desktop screens (width > 991px) */
+        /* Apply 80% zoom via wrapper so modals can escape stacking context */
+        .admin-wrapper {
+            min-height: 100vh;
+            display: flex;
+        }
         @media (min-width: 992px) {
-            html {
+            .admin-wrapper {
                 zoom: 80%;
             }
         }
@@ -74,7 +78,6 @@
         }
 
         body {
-            display: flex;
             min-height: 100vh;
             background-color: var(--content-bg);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -448,6 +451,7 @@
 </head>
 
 <body>
+    <div class="admin-wrapper">
     @auth
     <!-- Sidebar Overlay untuk Mobile -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -471,6 +475,7 @@
         </div>
     </div>
     @endauth
+    </div><!-- /.admin-wrapper -->
 
     <!-- jQuery (Required for Toastr) -->
     <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
@@ -595,6 +600,7 @@
         });
     </script>
     @stack('scripts')
+    @stack('modals')
 </body>
 
 </html>

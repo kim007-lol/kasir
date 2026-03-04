@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" style="zoom: 80%;">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
@@ -35,8 +35,13 @@
             background-color: var(--content-bg);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
+        }
+
+        .cashier-wrapper {
+            zoom: 80%;
             display: flex;
             flex-direction: column;
+            min-height: 100vh;
         }
 
         /* Navbar Customization */
@@ -232,6 +237,7 @@
 </head>
 
 <body>
+    <div class="cashier-wrapper">
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{{ route('cashier.dashboard') }}">
@@ -353,6 +359,7 @@
             @yield('content')
         </div>
     </div>
+    </div><!-- /.cashier-wrapper -->
 
     <!-- jQuery -->
     <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
@@ -550,6 +557,7 @@
     </script>
     
     @stack('scripts')
+    @stack('modals')
 </body>
 
 </html>
