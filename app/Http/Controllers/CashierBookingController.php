@@ -8,6 +8,7 @@ use App\Models\Member;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -388,5 +389,21 @@ class CashierBookingController extends Controller
             'pending_count' => Booking::pending()->count(),
             'active_count' => Booking::active()->count(),
         ]);
+    }
+
+    /**
+     * Manually trigger the auto-cancel command
+     */
+    public function runAutoCancel()
+    {
+        try {
+            Artisan::call('bookings:auto-cancel');
+            $output = Artisan::output();
+
+            // Perintah mengembalikan teks seperti "Successfully auto-cancelled 0 expired pickup bookings."
+            return back()->with('success', 'Pengecekan selesai! ' . trim($output));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menjalankan pembersihan otomatis: ' . $e->getMessage());
+        }
     }
 }

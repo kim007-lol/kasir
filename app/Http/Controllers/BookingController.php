@@ -234,28 +234,9 @@ class BookingController extends Controller
 
             $user = Auth::user();
             $total = 0;
-
-            // Calculate total first for amount_paid validation
-            foreach ($cart as $cartItem) {
-                $item = CashierItem::find($cartItem['cashier_item_id']);
-                if ($item) {
-                    $total += $item->final_price * $cartItem['qty'];
-                }
-            }
-
-            if ($request->delivery_type === 'delivery' && $request->payment_method === 'cash') {
-                $request->validate([
-                    'amount_paid' => 'required|numeric|min:' . $total,
-                ], [
-                    'amount_paid.required' => 'Nominal uang tunai harus diisi',
-                    'amount_paid.min' => 'Nominal uang tunai minimal Rp ' . number_format($total, 0, ',', '.'),
-                ]);
-            }
-
-            $total = 0; // Reset for actual calculation with lock
-
-            // SEC-05 + BUG-03: Validasi stok & harga dari DB dengan lock
             $validatedCart = [];
+
+            // SEC-05 + BUG-03: Validasi stok & harga dari DB dengan lock LAKUKAN PALING AWAL
             foreach ($cart as $cartItem) {
                 $item = CashierItem::where('id', $cartItem['cashier_item_id'])
                     ->lockForUpdate()
@@ -266,7 +247,7 @@ class BookingController extends Controller
                     return back()->with('error', "Stok {$cartItem['name']} tidak mencukupi. Tersedia: " . ($item->stock ?? 0));
                 }
 
-                // SEC-05: Gunakan harga terkini dari database
+                // Gunakan harga terkini yang DILOCK dari database
                 $currentPrice = $item->final_price;
                 $subtotal = $currentPrice * $cartItem['qty'];
                 $total += $subtotal;
@@ -279,9 +260,20 @@ class BookingController extends Controller
                     'subtotal' => $subtotal,
                     'notes' => $cartItem['notes'] ?? null,
                 ];
+            }
 
-                // BUG-04: Stok HANYA dikurangi saat kasir mengonfirmasi pesanan, bukan saat dibuat.
-                // $item->decrement('stock', $cartItem['qty']);
+            // Validasi uang tunai secara manual SETELAH semua harga dilock untuk menghindari race condition (perubahan harga dadakan)
+            if ($request->delivery_type === 'delivery' && $request->payment_method === 'cash') {
+                $amountPaid = (float) $request->amount_paid;
+                if (!$request->has('amount_paid') || trim($request->amount_paid) === '') {
+                    DB::rollBack();
+                    return back()->withErrors(['amount_paid' => 'Nominal uang tunai harus diisi'])->withInput();
+                }
+
+                if ($amountPaid < $total) {
+                    DB::rollBack();
+                    return back()->withErrors(['amount_paid' => 'Nominal uang tunai minimal Rp ' . number_format($total, 0, ',', '.')])->withInput();
+                }
             }
 
             // Prepare notes with time info

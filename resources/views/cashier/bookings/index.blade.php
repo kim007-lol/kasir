@@ -11,6 +11,13 @@
             <span class="badge bg-danger" id="header-pending-badge">{{ $pendingCount }}</span>
             @endif
         </h2>
+        
+        <form action="{{ route('cashier.bookings.autoCancel') }}" method="POST" id="autoCancelForm">
+            @csrf
+            <button type="submit" class="btn btn-warning btn-sm shadow-sm" style="border-radius: 0.5rem;" onclick="this.innerHTML = '<i class=\'spinner-border spinner-border-sm\'></i> Memeriksa...'; this.disabled = true; document.getElementById('autoCancelForm').submit();">
+                <i class="bi bi-arrow-repeat"></i> Bersihkan Kedaluwarsa
+            </button>
+        </form>
     </div>
 
     <!-- Status Tabs -->

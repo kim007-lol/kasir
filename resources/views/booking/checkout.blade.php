@@ -84,6 +84,13 @@
                             <div class="form-text text-muted x-small mt-2">
                                 <i class="bi bi-info-circle"></i> Minimal 15 menit dari sekarang. Maks {{ App\Models\ShopSetting::get('close_hour', '15:00') }}.
                             </div>
+                            <div class="alert alert-danger mt-3 mb-0 py-2 d-flex align-items-center" style="font-size: 0.8rem; border-radius: 0.75rem;">
+                                <i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i>
+                                <div>
+                                    <strong>Peringatan Penting!</strong><br>
+                                    Pesanan akan <strong>dibatalkan otomatis</strong> oleh sistem jika Anda tidak datang mengambil / membayar melebihi batas waktu jam yang ditentukan.
+                                </div>
+                            </div>
                         </div>
                     </div>
 
