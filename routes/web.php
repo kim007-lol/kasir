@@ -189,7 +189,7 @@ Route::middleware(['auth', 'role:kasir'])->prefix('cashier')->name('cashier.')->
     Route::get('/warehouse', [WarehouseController::class, 'index'])->name('warehouse.index');
     Route::get('/warehouse/status', [WarehouseController::class, 'getStockStatus'])->name('warehouse.status');
     Route::get('/warehouse/create', [WarehouseController::class, 'create'])->name('warehouse.create');
-    Route::get('/warehouse/{warehouse}', [WarehouseController::class, 'show'])->name('warehouse.show');
+
     Route::post('/warehouse', [WarehouseController::class, 'store'])->name('warehouse.store');
     Route::get('/warehouse/{warehouse}/edit', [WarehouseController::class, 'edit'])->name('warehouse.edit');
     Route::put('/warehouse/{warehouse}', [WarehouseController::class, 'update'])->name('warehouse.update');

@@ -214,7 +214,7 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                         <input type="text" name="cashier_name" id="cashier_name" class="form-control form-control-sm" required placeholder="Ketik nama kasir..." value="">
                     </div>
 
-                    <div class="mb-2">
+                    <div class="mb-2 position-relative">
                         <label for="member_id" class="form-label small fw-bold mb-1">Pilih Member</label>
                         <select
                             name="member_id"
@@ -448,11 +448,14 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
         // Initialize Select2
         function initSelect2() {
             if (typeof $.fn.select2 !== 'undefined') {
-                $('.select2-basic').select2({
-                    theme: 'bootstrap-5',
-                    width: '100%',
-                    placeholder: '-- Pilih Member --',
-                    allowClear: true
+                $('.select2-basic').each(function() {
+                    $(this).select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                        dropdownParent: $(this).parent(),
+                        placeholder: '-- Pilih Member --',
+                        allowClear: true
+                    });
                 });
             }
         }

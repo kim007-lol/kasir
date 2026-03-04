@@ -22,6 +22,7 @@ class Booking extends Model
         'delivery_address',
         'status',
         'total',
+        'notes',
         'payment_method',
         'amount_paid',
         'cancel_reason',
@@ -55,7 +56,7 @@ class Booking extends Model
      */
     public function member()
     {
-        return $this->user?->member();
+        return $this->hasOneThrough(Member::class, User::class, 'id', 'user_id', 'user_id', 'id');
     }
 
     // ===== SCOPES =====

@@ -534,7 +534,7 @@ class TransactionController extends Controller
         $total = 0;
         foreach ($cart as &$item) {
             // BUG-05: Validasi harga dari database untuk konsistensi tampilan
-            $dbItem = \App\Models\CashierItem::find($item['id'] ?? null);
+            $dbItem = \App\Models\CashierItem::find($item['item_id'] ?? null);
             if ($dbItem) {
                 $item['price'] = $dbItem->final_price;
             }

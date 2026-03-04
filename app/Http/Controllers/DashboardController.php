@@ -51,8 +51,8 @@ class DashboardController extends Controller
             $date = now()->subDays($i)->format('Y-m-d');
             $salesChart->push([
                 'date' => $date,
-                'count' => $salesData->get($date)->count ?? 0,
-                'total' => $salesData->get($date)->total ?? 0,
+                'count' => $salesData->get($date)?->count ?? 0,
+                'total' => $salesData->get($date)?->total ?? 0,
             ]);
         }
 

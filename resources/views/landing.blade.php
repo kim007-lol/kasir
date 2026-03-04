@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SMEGABIZ — Sistem Kasir & Booking Makanan</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/bootstrap-icons.min.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -147,6 +147,7 @@
             font-size: 1.05rem;
         }
 
+        /* ===== FEATURE CARDS ===== */
         .feature-card {
             background: white;
             border-radius: 1rem;
@@ -182,6 +183,208 @@
             color: #6c757d;
             font-size: 0.92rem;
             line-height: 1.6;
+        }
+
+        /* ===== TEAM FLIP CARDS (MYSTERIOUS) ===== */
+        .team-card-container {
+            perspective: 1000px;
+            height: 420px;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        .team-card-flipper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        .team-card-container.flipped .team-card-flipper {
+            transform: rotateY(180deg);
+        }
+
+        .team-card-container:hover .team-card-flipper {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+            border-radius: 1.5rem;
+        }
+
+        .team-card-front, .team-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .team-card-front::before, .team-card-back::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: var(--card-color, var(--primary));
+            z-index: 0;
+        }
+
+        /* Front specific */
+        .team-card-front {
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            z-index: 2;
+        }
+
+        .team-avatar {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: var(--card-color, var(--primary));
+            background: white;
+            box-shadow: 0 10px 30px rgba(var(--card-rgb, 13, 110, 253), 0.15);
+            border: 4px solid white;
+            transition: all 0.5s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .team-avatar::after {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            border-radius: 50%;
+            border: 2px dashed rgba(var(--card-rgb, 13, 110, 253), 0.4);
+            animation: spin 20s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .team-card-container:hover .team-avatar {
+            transform: scale(1.05);
+            color: white;
+            background: var(--card-color, var(--primary));
+        }
+
+        .team-role-main {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #2b3452;
+            margin-top: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .click-hint {
+            position: absolute;
+            bottom: 1.5rem;
+            font-size: 0.85rem;
+            color: #a0a0a0;
+            animation: pulse-hint 2s infinite;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        @keyframes pulse-hint { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* Back specific */
+        .team-card-back {
+            transform: rotateY(180deg);
+            padding: 2rem;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .team-name {
+            font-weight: 800;
+            font-size: 1.3rem;
+            margin-bottom: 0.25rem;
+            color: #2b3452;
+        }
+
+        .team-role {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--card-color, var(--primary));
+            margin-bottom: 1rem;
+            display: inline-block;
+            padding: 0.25rem 0.8rem;
+            border-radius: 2rem;
+            background: rgba(var(--card-rgb, 13, 110, 253), 0.1);
+        }
+
+        .team-desc {
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .team-skills {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 1.5rem;
+        }
+
+        .team-skill-badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.7rem;
+            border-radius: 1rem;
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #e9ecef;
+        }
+
+        .team-quote {
+            font-size: 0.8rem;
+            font-style: italic;
+            color: #adb5bd;
+            position: relative;
+        }
+
+        .team-social {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .team-social-link {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            text-decoration: none !important;
+        }
+
+        .team-social-link:hover {
+            background: var(--card-color, var(--primary));
+            color: white;
+            transform: translateY(-2px);
         }
 
         /* ===== LOGIN SECTION ===== */
@@ -527,268 +730,153 @@
         </div>
     </section>
 
-    <!-- Operating Hours -->
-    <section class="hours-section">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="hours-card">
-                        <i class="bi bi-clock-fill text-primary" style="font-size: 2.5rem;"></i>
-                        <h4 class="mt-3 fw-bold" data-i18n="hours.title">Jam Operasional</h4>
-                        <p class="text-muted mb-2" data-i18n="hours.desc">Pemesanan online hanya tersedia pada:</p>
-                        <h3 class="fw-bold" style="color: var(--primary);">
-                            <i class="bi bi-sun-fill"></i> 07:00 — 15:00 WIB
-                        </h3>
-                        <p class="text-muted small mt-2 mb-0" data-i18n="hours.days">Senin — Jumat</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Tentang / About Section -->
+    <!-- About Us — Tim Pengembang -->
     <section class="features" id="tentang" style="background: white;">
         <div class="container">
-            <h2 class="section-title" data-i18n="about.title">Tentang Kami</h2>
-            <p class="section-subtitle" data-i18n="about.subtitle">Mengenal lebih dekat SMEGABIZ, SMKN 10 Surabaya &amp; Alfamart Class</p>
+            <h2 class="section-title" data-i18n="about.title">Tim Pengembang</h2>
+            <p class="section-subtitle" data-i18n="about.subtitle">Kami adalah 4 siswa dari konsentrasi Rekayasa Perangkat Lunak (RPL) SMKN 10 Surabaya yang berkolaborasi membangun sistem ini sebagai proyek nyata. Setiap anggota membawa peran dan keahlian masing-masing untuk mewujudkan SMEGABIZ.</p>
 
-            <!-- Tab Navigation -->
-            <ul class="nav nav-pills nav-fill mb-4 mx-auto" style="max-width: 700px;" id="aboutTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active fw-bold" id="sekolah-tab" data-bs-toggle="tab" data-bs-target="#sekolah-profile" type="button" role="tab">
-                        <i class="bi bi-building me-1"></i> <span data-i18n="about.tab_sekolah">Profile Sekolah</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link fw-bold" id="smegabiz-tab" data-bs-toggle="tab" data-bs-target="#smegabiz-profile" type="button" role="tab">
-                        <i class="bi bi-shop me-1"></i> <span data-i18n="about.tab_smegabiz">SMEGABIZ</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link fw-bold" id="alfamart-tab" data-bs-toggle="tab" data-bs-target="#alfamart-profile" type="button" role="tab">
-                        <i class="bi bi-mortarboard me-1"></i> <span data-i18n="about.tab_alfamart">Alfamart Class</span>
-                    </button>
-                </li>
-            </ul>
+            <div class="row g-4 justify-content-center">
 
-            <!-- Tab Content -->
-            <div class="tab-content" id="aboutTabsContent">
-
-                <!-- ==================== TAB 1: PROFILE SEKOLAH ==================== -->
-                <div class="tab-pane fade show active" id="sekolah-profile" role="tabpanel">
-                    <div class="row align-items-center mb-4">
-                        <div class="col-lg-8">
-                            <h3 class="fw-bold mb-3" style="color: var(--primary);">SMK Negeri 10 Surabaya</h3>
-                            <p class="lead text-muted" data-i18n="sch.lead">Sekolah vokasi unggulan di kawasan pendidikan Keputih – Sukolilo – Surabaya. Berorientasi pada prestasi akademik dan pembentukan lulusan yang kompeten, berakhlak mulia, serta siap menghadapi tantangan global.</p>
-                            <p class="text-secondary" data-i18n="sch.desc1">Sekolah ini memiliki akreditasi <strong>A</strong> dan berdiri sejak tahun <strong>1970</strong> dengan nama awal SMEA 3 Surabaya. Seiring perkembangan zaman, sekolah ini bertransformasi menjadi institusi vokasi yang adaptif dan berdaya saing tinggi. Berstatus <strong>Pusat Keunggulan</strong> dan <strong>BLUD</strong> (Badan Layanan Umum Daerah).</p>
-                        </div>
-                        <div class="col-lg-4 text-center d-none d-lg-block">
-                            <div class="p-4 bg-light rounded shadow-sm" style="color: var(--primary);">
-                                <i class="bi bi-building" style="font-size: 3rem;"></i>
-                                <h4 class="fw-bold mt-2 mb-0">SMKN 10</h4>
-                                <p class="small mb-0 opacity-75">Surabaya</p>
-                                <hr class="my-2 mx-auto" style="width: 50px;">
-                                <p class="small mb-0 fst-italic" data-i18n="sch.accred_badge">Akreditasi A • Sejak 1970</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Visi & Misi -->
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-5">
-                            <div class="feature-card text-start" style="border-left: 4px solid var(--primary);">
-                                <h5 class="fw-bold mb-2"><i class="bi bi-eye-fill text-primary me-2"></i> <span data-i18n="sch.visi_title">Visi</span></h5>
-                                <p class="text-secondary mb-0 fst-italic" data-i18n="sch.visi">Terwujudnya SMK Negeri 10 Surabaya yang HEBAT.</p>
-                            </div>
-                        </div>
-                        <div class="col-md-7">
-                            <div class="feature-card text-start" style="border-left: 4px solid #28a745;">
-                                <h5 class="fw-bold mb-2"><i class="bi bi-list-check text-success me-2"></i> <span data-i18n="sch.misi_title">Misi</span></h5>
-                                <ol class="small text-secondary mb-0 ps-3">
-                                    <li data-i18n="sch.misi1">Mewujudkan sekolah ramah anak, menyenangkan, berwawasan lingkungan, serta memberikan pelayanan kepada stakeholder.</li>
-                                    <li data-i18n="sch.misi2">Meningkatkan keunggulan SDM dan kompetensi peserta didik sesuai standar kelulusan.</li>
-                                    <li data-i18n="sch.misi3">Mewujudkan SDM berkarakter mulia.</li>
-                                    <li data-i18n="sch.misi4">Menjalankan ISO menuju sekolah adaptif dan akuntabel.</li>
-                                    <li data-i18n="sch.misi5">Memperkuat link and match dengan stakeholder untuk meningkatkan daya saing.</li>
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Konsentrasi Keahlian -->
-                    <h5 class="fw-bold mb-3"><i class="bi bi-bookmark-star-fill text-warning me-2"></i> <span data-i18n="sch.keahlian_title">Konsentrasi Keahlian</span></h5>
-                    <div class="row g-3 mb-4">
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-palette-fill text-danger" style="font-size:1.5rem;"></i><p class="small fw-bold mb-0 mt-1">DKV</p><p class="small text-muted mb-0" data-i18n="sch.k1">Desain Komunikasi Visual</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-code-slash text-primary" style="font-size:1.5rem;"></i><p class="small fw-bold mb-0 mt-1">RPL</p><p class="small text-muted mb-0" data-i18n="sch.k2">Rekayasa Perangkat Lunak</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-capsule text-info" style="font-size:1.5rem;"></i><p class="small fw-bold mb-0 mt-1">LPK3</p><p class="small text-muted mb-0" data-i18n="sch.k3">Layanan Kefarmasian</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-airplane-fill text-success" style="font-size:1.5rem;"></i><p class="small fw-bold mb-0 mt-1">ULW</p><p class="small text-muted mb-0" data-i18n="sch.k4">Usaha Layanan Wisata</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-file-earmark-text-fill text-secondary" style="font-size:1.5rem;"></i><p class="small fw-bold mb-0 mt-1">MP</p><p class="small text-muted mb-0" data-i18n="sch.k5">Manajemen Perkantoran</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-cart4 text-warning" style="font-size:1.5rem;"></i><p class="small fw-bold mb-0 mt-1">BD</p><p class="small text-muted mb-0" data-i18n="sch.k6">Bisnis Digital</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-calculator-fill text-dark" style="font-size:1.5rem;"></i><p class="small fw-bold mb-0 mt-1">AK</p><p class="small text-muted mb-0" data-i18n="sch.k7">Akuntansi</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-bank text-primary" style="font-size:1.5rem;"></i><p class="small fw-bold mb-0 mt-1">PBK</p><p class="small text-muted mb-0" data-i18n="sch.k8">Perbankan</p></div></div>
-                    </div>
-
-
-
-                    <!-- Kontak -->
-                    <div class="border-top pt-4">
-                        <h5 class="fw-bold mb-3"><i class="bi bi-geo-alt-fill text-danger me-2"></i> <span data-i18n="sch.contact_title">Kontak SMKN 10 Surabaya</span></h5>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p class="small text-secondary mb-1"><strong><span data-i18n="sch.addr">Alamat</span>:</strong> Jl. Keputih Tegal, Sukolilo, Surabaya</p>
-                                <p class="small text-secondary mb-1"><strong><span data-i18n="sch.phone">Telepon</span>:</strong> (031) 5937654</p>
-                            </div>
-                            <div class="col-md-6 text-md-end">
-                                <p class="small text-secondary mb-1"><strong>Email:</strong> info@smkn10sby.sch.id</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ==================== TAB 2: SMEGABIZ BUSINESS CENTRE ==================== -->
-                <div class="tab-pane fade" id="smegabiz-profile" role="tabpanel">
-                    <div class="row align-items-center mb-4">
-                        <div class="col-lg-8">
-                            <h3 class="fw-bold text-success mb-3">SMEGABIZ Business Centre</h3>
-                            <p class="lead text-muted" data-i18n="sme.lead">Business center, unit produksi, dan laboratorium bisnis nyata di lingkungan sekolah — khususnya untuk konsentrasi keahlian Bisnis Digital.</p>
-                            <p class="text-secondary" data-i18n="sme.desc1">SMEGABIZ menjadi jembatan antara teori dan praktik. Siswa dilatih untuk mengelola toko, melayani pelanggan, mengatur stok, display barang, melakukan transaksi, pembukuan, hingga strategi pemasaran.</p>
-                        </div>
-                        <div class="col-lg-4 text-center d-none d-lg-block">
-                            <div class="p-4 bg-light rounded text-success shadow-sm">
-                                <h2 class="fw-bold mb-0">SMEGABIZ</h2>
-                                <p class="small mb-0 opacity-75 text-uppercase">Business Centre</p>
-                                <hr class="my-2 mx-auto" style="width: 50px;">
-                                <p class="small mb-0 fst-italic" data-i18n="sme.est_badge">Didirikan 19 Juli 2010</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sejarah & Tujuan -->
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-6">
-                            <div class="feature-card text-start" style="border-left: 4px solid #28a745;">
-                                <h5 class="fw-bold mb-3"><i class="bi bi-history text-success me-2"></i> <span data-i18n="sme.hist_title">Sejarah</span></h5>
-                                <p class="small text-secondary mb-0" data-i18n="sme.hist_desc">Didirikan pada 19 Juli 2010 dengan modal awal Rp 100.000.000, berfokus pada perdagangan ritel (minimarket). Pada tahun 2015, dilakukan kerja sama dengan Alfamart meliputi renovasi toko, dukungan manajemen operasional, dan standarisasi sistem kerja retail modern.</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="feature-card text-start" style="border-left: 4px solid var(--primary);">
-                                <h5 class="fw-bold mb-3"><i class="bi bi-bullseye text-primary me-2"></i> <span data-i18n="sme.goal_title">Tujuan</span></h5>
-                                <ul class="small text-secondary mb-0 ps-3">
-                                    <li data-i18n="sme.goal1">Meningkatkan kompetensi siswa</li>
-                                    <li data-i18n="sme.goal2">Media pra-magang sebelum PKL</li>
-                                    <li data-i18n="sme.goal3">Memberikan pengalaman industri nyata</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Jam Operasional -->
-                    <div class="mb-4">
-                        <div class="feature-card d-inline-flex align-items-center gap-3 text-start px-4 py-3" style="border-left: 4px solid var(--primary);">
-                            <i class="bi bi-clock-fill text-primary" style="font-size: 1.6rem;"></i>
-                            <div>
-                                <p class="fw-bold mb-0" style="color: var(--primary);">06.30 – 15.00 WIB</p>
-                                <p class="small text-muted mb-0">Senin – Jumat</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Aktivitas Siswa -->
-                    <h5 class="fw-bold mb-3"><i class="bi bi-people-fill text-success me-2"></i> <span data-i18n="sme.activity_title">Aktivitas Siswa di SMEGABIZ</span></h5>
-                    <div class="row g-3 mb-4">
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-basket3-fill text-primary" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="sme.a1">Melayani Konsumen</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-upc-scan text-success" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="sme.a2">Transaksi Kasir</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-boxes text-warning" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="sme.a3">Stock Opname</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-grid-fill text-info" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="sme.a4">Display Barang</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-truck text-danger" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="sme.a5">Menerima Barang</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-journal-text text-dark" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="sme.a6">Pembukuan</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-droplet-half text-secondary" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="sme.a7">Kebersihan Toko</p></div></div>
-                        <div class="col-6 col-md-3"><div class="feature-card text-center py-3"><i class="bi bi-archive-fill text-primary" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="sme.a8">Pengelolaan Gudang</p></div></div>
-                    </div>
-
-                    <!-- Struktur Organisasi -->
-                    <div class="border-top pt-4">
-                        <h5 class="fw-bold mb-3"><i class="bi bi-diagram-3-fill text-primary me-2"></i> <span data-i18n="sme.org_title">Struktur Organisasi 2024/2025</span></h5>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="small text-secondary">
-                                    <p class="mb-1"><strong><span data-i18n="sme.org_pj">Penanggung Jawab</span>:</strong> Imam Soetopo, S.Pd., M.Pd</p>
-                                    <p class="mb-1"><strong><span data-i18n="sme.org_mitra">Mitra Usaha</span>:</strong> PT. Sumber Alfaria Trijaya, Tbk</p>
-                                    <p class="mb-1"><strong><span data-i18n="sme.org_ketua">Ketua Pengelola</span>:</strong> Devi Diana Safitri, S.Pd</p>
+                    {{-- Member 1: Engineer --}}
+                <div class="col-md-6 col-lg-3">
+                    <div class="team-card-container" onclick="this.classList.toggle('flipped')">
+                        <div class="team-card-flipper" style="--card-color: #6f42c1; --card-rgb: 111, 66, 193;">
+                            <div class="team-card-front">
+                                <div class="team-avatar">
+                                    <i class="bi bi-code-slash"></i>
                                 </div>
+                                <div class="team-role-main">Programmer</div>
+                                <div class="click-hint"><i class="bi bi-hand-index-thumb"></i> Ketuk untuk detail</div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="small text-secondary">
-                                    <p class="mb-1"><strong><span data-i18n="sme.org_pembina">Pembina</span>:</strong> Zaima Faiza Hakim, S.Pd &amp; Roro Hami H.W, S.Pd</p>
-                                    <p class="mb-1"><strong><span data-i18n="sme.org_pendamping">Pendamping</span>:</strong> Achmad Syaifudin Zuhri</p>
-                                    <p class="mb-1"><strong><span data-i18n="sme.org_pelaksana">Pelaksana Harian</span>:</strong> <span data-i18n="sme.org_pelaksana_val">Siswa kelas X dan XI</span></p>
+                            <div class="team-card-back">
+                                <h5 class="team-name">Ngabdullah Hakim</h5>
+                                <div class="team-role">Programmer</div>
+                                <p class="team-desc" data-i18n="team.eng_desc">Seseorang yang suka ngoding</p>
+                                
+                                <div class="team-skills">
+                                    <span class="team-skill-badge">Laravel</span>
+                                    <span class="team-skill-badge">JavaScript</span>
+                                    <span class="team-skill-badge">Bootstrap</span>
+                                    <span class="team-skill-badge">PostgreSQL</span>
+                                </div>
+                                
+                                <div class="team-quote">"Selalu belajar dan berkembang"</div>
+                                
+                                <div class="team-social">
+                                    <a href="https://github.com/kim007-lol" target="_blank" class="team-social-link" title="GitHub"><i class="bi bi-github"></i></a>
+                                    <a href="mailto:ngabdullahhakim99@gmail.com" class="team-social-link" title="Email"><i class="bi bi-envelope-fill"></i></a>
+                                    <a href="https://www.linkedin.com/in/ngabdullah-hakim-121ab0292" target="_blank" class="team-social-link" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ==================== TAB 3: ALFAMART CLASS ==================== -->
-                <div class="tab-pane fade" id="alfamart-profile" role="tabpanel">
-                    <div class="row align-items-center mb-4">
-                        <div class="col-lg-8">
-                            <h3 class="fw-bold mb-3" style="color: #e41e2d;">Alfamart Class</h3>
-                            <p class="lead text-muted" data-i18n="alfa.lead">Sejak tahun 2015, SMKN 10 Surabaya menjalin kerja sama dengan PT. Sumber Alfaria Trijaya, Tbk (Alfamart).</p>
-                            <p class="text-secondary" data-i18n="alfa.desc1">Alfamart Class merupakan kelas industri berbasis <em>teaching factory</em> yang bertujuan mencetak tenaga kerja profesional dan adaptif, siap terjun ke dunia usaha dan dunia industri (DUDI) — khususnya sektor ritel modern berbasis digital.</p>
-                        </div>
-                        <div class="col-lg-4 text-center d-none d-lg-block">
-                            <div class="p-4 bg-light rounded shadow-sm" style="color: #e41e2d;">
-                                <i class="bi bi-mortarboard-fill" style="font-size: 3rem;"></i>
-                                <h4 class="fw-bold mt-2 mb-0">Alfamart Class</h4>
-                                <p class="small mb-0 opacity-75" data-i18n="alfa.badge">Kelas Industri Berbasis Teaching Factory</p>
+                {{-- Member 2: Project Manager --}}
+                <div class="col-md-6 col-lg-3">
+                    <div class="team-card-container" onclick="this.classList.toggle('flipped')">
+                        <div class="team-card-flipper" style="--card-color: #dc3545; --card-rgb: 220, 53, 69;">
+                            <div class="team-card-front">
+                                <div class="team-avatar">
+                                    <i class="bi bi-diagram-3-fill"></i>
+                                </div>
+                                <div class="team-role-main text-center">Project<br>Manager</div>
+                                <div class="click-hint"><i class="bi bi-hand-index-thumb"></i> Ketuk untuk detail</div>
+                            </div>
+                            <div class="team-card-back">
+                                <h5 class="team-name">[Nama Lengkap]</h5>
+                                <div class="team-role">Project Manager</div>
+                                <p class="team-desc" data-i18n="team.pm_desc">[Deskripsi singkat tentang diri — 1-2 kalimat]</p>
+                                
+                                <div class="team-skills">
+                                    <span class="team-skill-badge">Leadership</span>
+                                    <span class="team-skill-badge">Planning</span>
+                                    <span class="team-skill-badge">Communication</span>
+                                </div>
+                                
+                                <div class="team-quote">"[Motto / Tagline]"</div>
+                                
+                                <div class="team-social">
+                                    <a href="#" class="team-social-link"><i class="bi bi-instagram"></i></a>
+                                    <a href="#" class="team-social-link"><i class="bi bi-envelope-fill"></i></a>
+                                    <a href="#" class="team-social-link"><i class="bi bi-linkedin"></i></a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Ruang Lingkup -->
-                    <h5 class="fw-bold mb-3"><i class="bi bi-list-task text-danger me-2"></i> <span data-i18n="alfa.scope_title">Ruang Lingkup Kegiatan</span></h5>
-                    <div class="row g-3 mb-4">
-                        <div class="col-6 col-md-4"><div class="feature-card text-center py-3" style="border-top: 3px solid #e41e2d;"><i class="bi bi-book text-danger" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="alfa.s1">Sinkronisasi Kurikulum</p></div></div>
-                        <div class="col-6 col-md-4"><div class="feature-card text-center py-3" style="border-top: 3px solid #e41e2d;"><i class="bi bi-person-check text-danger" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="alfa.s2">Seleksi Siswa</p></div></div>
-                        <div class="col-6 col-md-4"><div class="feature-card text-center py-3" style="border-top: 3px solid #e41e2d;"><i class="bi bi-camera-video text-danger" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="alfa.s3">Pembelajaran Daring & Luring</p></div></div>
-                        <div class="col-6 col-md-4"><div class="feature-card text-center py-3" style="border-top: 3px solid #e41e2d;"><i class="bi bi-person-badge text-danger" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="alfa.s4">Instruktur Tamu Alfamart</p></div></div>
-                        <div class="col-6 col-md-4"><div class="feature-card text-center py-3" style="border-top: 3px solid #e41e2d;"><i class="bi bi-tools text-danger" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="alfa.s5">Pelatihan Softskills & Hardskills</p></div></div>
-                        <div class="col-6 col-md-4"><div class="feature-card text-center py-3" style="border-top: 3px solid #e41e2d;"><i class="bi bi-briefcase-fill text-danger" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="alfa.s6">Praktik Kerja Lapangan</p></div></div>
-                        <div class="col-6 col-md-4"><div class="feature-card text-center py-3" style="border-top: 3px solid #e41e2d;"><i class="bi bi-clipboard-data text-danger" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="alfa.s7">Monitoring & Evaluasi</p></div></div>
-                        <div class="col-6 col-md-4"><div class="feature-card text-center py-3" style="border-top: 3px solid #e41e2d;"><i class="bi bi-building text-danger" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="alfa.s8">Visitasi Business Center</p></div></div>
-                        <div class="col-6 col-md-4"><div class="feature-card text-center py-3" style="border-top: 3px solid #e41e2d;"><i class="bi bi-people text-danger" style="font-size:1.3rem;"></i><p class="small fw-bold mb-0 mt-1" data-i18n="alfa.s9">Perekrutan Siswa</p></div></div>
-                    </div>
-
-
-
-                    <!-- Implementasi Kurikulum -->
-                    <h5 class="fw-bold mb-3"><i class="bi bi-journal-bookmark-fill text-danger me-2"></i> <span data-i18n="alfa.kur_title">Implementasi Kurikulum</span></h5>
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-6">
-                            <div class="feature-card text-start" style="border-left: 4px solid #e41e2d;">
-                                <h6 class="fw-bold"><span data-i18n="alfa.fase_e">Fase E (Kelas X)</span></h6>
-                                <ul class="small text-secondary mb-0 ps-3">
-                                    <li data-i18n="alfa.fase_e1">Dasar-Dasar Pemasaran</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="feature-card text-start" style="border-left: 4px solid #e41e2d;">
-                                <h6 class="fw-bold"><span data-i18n="alfa.fase_f">Fase F (Kelas XI & XII)</span></h6>
-                                <ul class="small text-secondary mb-0 ps-3">
-                                    <li>Visual Merchandising</li>
-                                    <li data-i18n="alfa.fase_f2">Administrasi Transaksi</li>
-                                    <li data-i18n="alfa.fase_f3">Konsentrasi Bisnis Digital</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="alert alert-light border text-center small mb-0">
-                        <i class="bi bi-award-fill text-danger me-1"></i>
-                        <span data-i18n="alfa.closing">Tujuan akhir: Menghasilkan lulusan dengan hardskills dan softskills yang sesuai kebutuhan DUDI (Dunia Usaha dan Dunia Industri), khususnya sektor ritel modern berbasis digital.</span>
                     </div>
                 </div>
+
+                {{-- Member 3: System Analyst --}}
+                <div class="col-md-6 col-lg-3">
+                    <div class="team-card-container" onclick="this.classList.toggle('flipped')">
+                        <div class="team-card-flipper" style="--card-color: #0d6efd; --card-rgb: 13, 110, 253;">
+                            <div class="team-card-front">
+                                <div class="team-avatar">
+                                    <i class="bi bi-laptop"></i>
+                                </div>
+                                <div class="team-role-main text-center">System<br>Analyst</div>
+                                <div class="click-hint"><i class="bi bi-hand-index-thumb"></i> Ketuk untuk detail</div>
+                            </div>
+                            <div class="team-card-back">
+                                <h5 class="team-name">[Nama Lengkap]</h5>
+                                <div class="team-role">System Analyst</div>
+                                <p class="team-desc" data-i18n="team.sa_desc">[Deskripsi singkat tentang diri — 1-2 kalimat]</p>
+                                
+                                <div class="team-skills">
+                                    <span class="team-skill-badge">Analysis</span>
+                                    <span class="team-skill-badge">Documentation</span>
+                                    <span class="team-skill-badge">UML</span>
+                                </div>
+                                
+                                <div class="team-quote">"[Motto / Tagline]"</div>
+                                
+                                <div class="team-social">
+                                    <a href="#" class="team-social-link"><i class="bi bi-instagram"></i></a>
+                                    <a href="#" class="team-social-link"><i class="bi bi-envelope-fill"></i></a>
+                                    <a href="#" class="team-social-link"><i class="bi bi-linkedin"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Member 4: Report Manager --}}
+                <div class="col-md-6 col-lg-3">
+                    <div class="team-card-container" onclick="this.classList.toggle('flipped')">
+                        <div class="team-card-flipper" style="--card-color: #ffc107; --card-rgb: 255, 193, 7;">
+                            <div class="team-card-front">
+                                <div class="team-avatar">
+                                    <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                                </div>
+                                <div class="team-role-main text-center">Report<br>Manager</div>
+                                <div class="click-hint"><i class="bi bi-hand-index-thumb"></i> Ketuk untuk detail</div>
+                            </div>
+                            <div class="team-card-back">
+                                <h5 class="team-name">[Nama Lengkap]</h5>
+                                <div class="team-role" style="color: #d39e00; background: rgba(255, 193, 7, 0.15);">Report Manager</div>
+                                <p class="team-desc" data-i18n="team.rm_desc">[Deskripsi singkat tentang diri — 1-2 kalimat]</p>
+                                
+                                <div class="team-skills">
+                                    <span class="team-skill-badge">Reporting</span>
+                                    <span class="team-skill-badge">Data Analysis</span>
+                                    <span class="team-skill-badge">Documentation</span>
+                                </div>
+                                
+                                <div class="team-quote">"[Motto / Tagline]"</div>
+                                
+                                <div class="team-social">
+                                    <a href="#" class="team-social-link"><i class="bi bi-instagram"></i></a>
+                                    <a href="#" class="team-social-link"><i class="bi bi-envelope-fill"></i></a>
+                                    <a href="#" class="team-social-link"><i class="bi bi-linkedin"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            
 
             </div>
         </div>
@@ -837,8 +925,8 @@
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/i18next@23.5.1/dist/umd/i18next.min.js"></script>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('js/i18next.min.js') }}"></script>
     <script>
         // Smooth scroll
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -879,71 +967,15 @@
                     display_title: "Layar Pelanggan",
                     display_desc: "Tingkatkan kepercayaan dengan monitor khusus untuk transparansi rincian belanja pelanggan."
                 },
-                hours: {
-                    title: "Jam Operasional",
-                    desc: "Pemesanan online hanya tersedia pada:",
-                    days: "Senin — Jumat"
-                },
                 about: {
-                    title: "Tentang Kami",
-                    subtitle: "Mengenal lebih dekat SMEGABIZ, SMKN 10 Surabaya & Alfamart Class",
-                    tab_sekolah: "Profile Sekolah",
-                    tab_smegabiz: "SMEGABIZ",
-                    tab_alfamart: "Alfamart Class"
+                    title: "Tim Pengembang",
+                    subtitle: "Kami adalah 4 siswa dari konsentrasi Rekayasa Perangkat Lunak (RPL) SMKN 10 Surabaya yang berkolaborasi membangun sistem ini sebagai proyek nyata. Setiap anggota membawa peran dan keahlian masing-masing untuk mewujudkan SMEGABIZ."
                 },
-                sch: {
-                    lead: "Sekolah vokasi unggulan di kawasan pendidikan Keputih – Sukolilo – Surabaya. Berorientasi pada prestasi akademik dan pembentukan lulusan yang kompeten, berakhlak mulia, serta siap menghadapi tantangan global.",
-                    desc1: "Sekolah ini memiliki akreditasi <strong>A</strong> dan berdiri sejak tahun <strong>1970</strong> dengan nama awal SMEA 3 Surabaya. Seiring perkembangan zaman, sekolah ini bertransformasi menjadi institusi vokasi yang adaptif dan berdaya saing tinggi. Berstatus <strong>Pusat Keunggulan</strong> dan <strong>BLUD</strong> (Badan Layanan Umum Daerah).",
-                    accred_badge: "Akreditasi A • Sejak 1970",
-                    visi_title: "Visi", visi: "Terwujudnya SMK Negeri 10 Surabaya yang HEBAT.",
-                    misi_title: "Misi",
-                    misi1: "Mewujudkan sekolah ramah anak, menyenangkan, berwawasan lingkungan, serta memberikan pelayanan kepada stakeholder.",
-                    misi2: "Meningkatkan keunggulan SDM dan kompetensi peserta didik sesuai standar kelulusan.",
-                    misi3: "Mewujudkan SDM berkarakter mulia.",
-                    misi4: "Menjalankan ISO menuju sekolah adaptif dan akuntabel.",
-                    misi5: "Memperkuat link and match dengan stakeholder untuk meningkatkan daya saing.",
-                    keahlian_title: "Konsentrasi Keahlian",
-                    k1: "Desain Komunikasi Visual", k2: "Rekayasa Perangkat Lunak",
-                    k3: "Layanan Kefarmasian", k4: "Usaha Layanan Wisata",
-                    k5: "Manajemen Perkantoran", k6: "Bisnis Digital",
-                    k7: "Akuntansi", k8: "Perbankan",
-                    stat_luas: "Luas Lahan", stat_siswa: "Jumlah Siswa", stat_ptk: "Jumlah PTK",
-                    contact_title: "Kontak SMKN 10 Surabaya", addr: "Alamat", phone: "Telepon"
-                },
-                sme: {
-                    lead: "Business center, unit produksi, dan laboratorium bisnis nyata di lingkungan sekolah — khususnya untuk konsentrasi keahlian Bisnis Digital.",
-                    desc1: "SMEGABIZ menjadi jembatan antara teori dan praktik. Siswa dilatih untuk mengelola toko, melayani pelanggan, mengatur stok, display barang, melakukan transaksi, pembukuan, hingga strategi pemasaran.",
-                    est_badge: "Didirikan 19 Juli 2010",
-                    hist_title: "Sejarah",
-                    hist_desc: "Didirikan pada 19 Juli 2010 dengan modal awal Rp 100.000.000, berfokus pada perdagangan ritel (minimarket). Pada tahun 2015, dilakukan kerja sama dengan Alfamart meliputi renovasi toko, dukungan manajemen operasional, dan standarisasi sistem kerja retail modern.",
-                    goal_title: "Tujuan",
-                    goal1: "Meningkatkan kompetensi siswa",
-                    goal2: "Media pra-magang sebelum PKL",
-                    goal3: "Memberikan pengalaman industri nyata",
-                    hours_title: "Jam Operasional", hours_days: "Senin – Jumat",
-                    omset_title: "Total Omset", profit_title: "Laba Bersih",
-                    activity_title: "Aktivitas Siswa di SMEGABIZ",
-                    a1: "Melayani Konsumen", a2: "Transaksi Kasir", a3: "Stock Opname", a4: "Display Barang",
-                    a5: "Menerima Barang", a6: "Pembukuan", a7: "Kebersihan Toko", a8: "Pengelolaan Gudang",
-                    org_title: "Struktur Organisasi 2024/2025",
-                    org_pj: "Penanggung Jawab", org_mitra: "Mitra Usaha", org_ketua: "Ketua Pengelola",
-                    org_pembina: "Pembina", org_pendamping: "Pendamping", org_pelaksana: "Pelaksana Harian",
-                    org_pelaksana_val: "Siswa kelas X dan XI"
-                },
-                alfa: {
-                    lead: "Sejak tahun 2015, SMKN 10 Surabaya menjalin kerja sama dengan PT. Sumber Alfaria Trijaya, Tbk (Alfamart).",
-                    desc1: "Alfamart Class merupakan kelas industri berbasis <em>teaching factory</em> yang bertujuan mencetak tenaga kerja profesional dan adaptif, siap terjun ke dunia usaha dan dunia industri (DUDI) — khususnya sektor ritel modern berbasis digital.",
-                    badge: "Kelas Industri Berbasis Teaching Factory",
-                    scope_title: "Ruang Lingkup Kegiatan",
-                    s1: "Sinkronisasi Kurikulum", s2: "Seleksi Siswa", s3: "Pembelajaran Daring & Luring",
-                    s4: "Instruktur Tamu Alfamart", s5: "Pelatihan Softskills & Hardskills", s6: "Praktik Kerja Lapangan",
-                    s7: "Monitoring & Evaluasi", s8: "Visitasi Business Center", s9: "Perekrutan Siswa",
-                    data_title: "Jumlah Siswa Alfamart Class (5 Tahun Terakhir)",
-                    th_tahun: "Tahun Ajaran", th_total: "Jumlah",
-                    kur_title: "Implementasi Kurikulum",
-                    fase_e: "Fase E (Kelas X)", fase_e1: "Dasar-Dasar Pemasaran",
-                    fase_f: "Fase F (Kelas XI & XII)", fase_f2: "Administrasi Transaksi", fase_f3: "Konsentrasi Bisnis Digital",
-                    closing: "Tujuan akhir: Menghasilkan lulusan dengan hardskills dan softskills yang sesuai kebutuhan DUDI (Dunia Usaha dan Dunia Industri), khususnya sektor ritel modern berbasis digital."
+                team: {
+                    pm_desc: "[Deskripsi Project Manager]",
+                    sa_desc: "[Deskripsi System Analyst]",
+                    rm_desc: "[Deskripsi Report Manager]",
+                    eng_desc: "Seseorang yang suka ngoding dan terus berkembang dalam dunia pengembangan web."
                 },
                 login: {
                     title: "Masuk ke Sistem",
@@ -982,71 +1014,15 @@
                     display_title: "Customer Display",
                     display_desc: "Boost trust with a dedicated monitor for real-time transaction detail transparency."
                 },
-                hours: {
-                    title: "Operating Hours",
-                    desc: "Online ordering is only available during:",
-                    days: "Monday — Friday"
-                },
                 about: {
-                    title: "About Us",
-                    subtitle: "Get to know SMEGABIZ, SMKN 10 Surabaya & Alfamart Class",
-                    tab_sekolah: "School Profile",
-                    tab_smegabiz: "SMEGABIZ",
-                    tab_alfamart: "Alfamart Class"
+                    title: "Development Team",
+                    subtitle: "We are 4 students from the Software Engineering (RPL) major at SMKN 10 Surabaya who collaborated to build this system as a real-world project. Each member brings their own role and expertise to bring SMEGABIZ to life."
                 },
-                sch: {
-                    lead: "A leading vocational school in the Keputih – Sukolilo – Surabaya educational area. Oriented towards academic achievement and producing competent, noble, and globally-ready graduates.",
-                    desc1: "The school holds <strong>A accreditation</strong> and was established in <strong>1970</strong> under the name SMEA 3 Surabaya. Over time, it has transformed into an adaptive and highly competitive vocational institution. It holds the status of <strong>Center of Excellence</strong> and <strong>BLUD</strong> (Regional Public Service Agency).",
-                    accred_badge: "A Accreditation • Since 1970",
-                    visi_title: "Vision", visi: "The realization of SMKN 10 Surabaya as a GREAT school.",
-                    misi_title: "Mission",
-                    misi1: "Creating a child-friendly, enjoyable, environmentally-conscious school that serves stakeholders.",
-                    misi2: "Enhancing HR excellence and student competencies according to graduation standards.",
-                    misi3: "Developing noble character in human resources.",
-                    misi4: "Implementing ISO towards an adaptive and accountable school.",
-                    misi5: "Strengthening link and match with stakeholders to increase competitiveness.",
-                    keahlian_title: "Fields of Expertise",
-                    k1: "Visual Communication Design", k2: "Software Engineering",
-                    k3: "Pharmaceutical Services", k4: "Tourism Services",
-                    k5: "Office Management", k6: "Digital Business",
-                    k7: "Accounting", k8: "Banking",
-                    stat_luas: "Land Area", stat_siswa: "Total Students", stat_ptk: "Total Staff",
-                    contact_title: "Contact SMKN 10 Surabaya", addr: "Address", phone: "Phone"
-                },
-                sme: {
-                    lead: "A business center, production unit, and real business laboratory within the school — specifically for the Digital Business concentration.",
-                    desc1: "SMEGABIZ bridges theory and practice. Students are trained to manage stores, serve customers, manage stock, display products, process transactions, bookkeeping, and marketing strategies.",
-                    est_badge: "Established July 19, 2010",
-                    hist_title: "History",
-                    hist_desc: "Established on July 19, 2010 with an initial capital of Rp 100,000,000, focusing on retail trade (minimarket). In 2015, a partnership with Alfamart was formed, including store renovation, operational management support, and standardization of modern retail work systems.",
-                    goal_title: "Objectives",
-                    goal1: "Improving student competencies",
-                    goal2: "Pre-internship preparation before PKL",
-                    goal3: "Providing real industry experience",
-                    hours_title: "Operating Hours", hours_days: "Monday – Friday",
-                    omset_title: "Total Revenue", profit_title: "Net Profit",
-                    activity_title: "Student Activities at SMEGABIZ",
-                    a1: "Serving Customers", a2: "Cashier Transactions", a3: "Stock Taking", a4: "Product Display",
-                    a5: "Receiving Goods", a6: "Bookkeeping", a7: "Store Cleaning", a8: "Warehouse Management",
-                    org_title: "Organizational Structure 2024/2025",
-                    org_pj: "Person in Charge", org_mitra: "Business Partner", org_ketua: "Head Manager",
-                    org_pembina: "Supervisor", org_pendamping: "Companion", org_pelaksana: "Daily Operations",
-                    org_pelaksana_val: "Grade X and XI Students"
-                },
-                alfa: {
-                    lead: "Since 2015, SMKN 10 Surabaya has partnered with PT. Sumber Alfaria Trijaya, Tbk (Alfamart).",
-                    desc1: "Alfamart Class is an industry-based <em>teaching factory</em> class aimed at producing professional and adaptive workers, ready to enter the business and industrial world (DUDI) — especially in the digital-based modern retail sector.",
-                    badge: "Industry Class Based on Teaching Factory",
-                    scope_title: "Scope of Activities",
-                    s1: "Curriculum Synchronization", s2: "Student Selection", s3: "Online & Offline Learning",
-                    s4: "Alfamart Guest Instructors", s5: "Soft & Hard Skills Training", s6: "Field Work Practice",
-                    s7: "Monitoring & Evaluation", s8: "Business Center Visits", s9: "Student Recruitment",
-                    data_title: "Alfamart Class Students (Last 5 Years)",
-                    th_tahun: "Academic Year", th_total: "Total",
-                    kur_title: "Curriculum Implementation",
-                    fase_e: "Phase E (Grade X)", fase_e1: "Marketing Fundamentals",
-                    fase_f: "Phase F (Grade XI & XII)", fase_f2: "Transaction Administration", fase_f3: "Digital Business Concentration",
-                    closing: "Ultimate goal: Producing graduates with hard skills and soft skills that meet the needs of DUDI (Business and Industrial World), especially the digital-based modern retail sector."
+                team: {
+                    pm_desc: "[Project Manager description]",
+                    sa_desc: "[System Analyst description]",
+                    rm_desc: "[Report Manager description]",
+                    eng_desc: "Someone who loves coding and keeps growing in the world of web development."
                 },
                 login: {
                     title: "Sign In",

@@ -21,7 +21,7 @@
                     <label for="search" class="form-label fw-semibold">Cari Stok Kasir</label>
                     <input type="text" class="form-control" id="search" name="search" value="{{ $search ?? '' }}" placeholder="Cari berdasarkan nama atau kode barang...">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 position-relative">
                     <label for="category_id" class="form-label fw-semibold">Kategori</label>
                     <select name="category_id" id="category_id" class="form-select select2-basic">
                         <option value="">-- Semua Kategori --</option>
@@ -155,11 +155,14 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        $('.select2-basic').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: '-- Pilih Kategori --',
-            allowClear: true
+        $('.select2-basic').each(function() {
+            $(this).select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                dropdownParent: $(this).parent(),
+                placeholder: '-- Pilih Kategori --',
+                allowClear: true
+            });
         });
     });
 </script>

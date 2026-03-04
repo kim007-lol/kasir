@@ -180,7 +180,7 @@
 </div>
 
 <!-- i18next Library -->
-<script src="https://unpkg.com/i18next@23.5.1/dist/umd/i18next.min.js"></script>
+<script src="{{ asset('js/i18next.min.js') }}"></script>
 
 <script>
     /** @type {Object} Translation dictionary */

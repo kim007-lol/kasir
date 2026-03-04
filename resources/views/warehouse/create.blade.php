@@ -35,7 +35,7 @@ $layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
                             @enderror
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-3 position-relative">
                             <label for="category_id" class="form-label">Kategori *</label>
                             <select name="category_id" id="category_id" class="form-select select2-basic @error('category_id') is-invalid @enderror" required>
                                 <option value="">-- Pilih Kategori --</option>
@@ -48,7 +48,7 @@ $layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
                             @enderror
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-3 position-relative">
                             <label for="supplier_id" class="form-label">Supplier *</label>
                             <select name="supplier_id" id="supplier_id" class="form-select select2-basic @error('supplier_id') is-invalid @enderror" required>
                                 <option value="">-- Pilih Supplier --</option>
@@ -130,9 +130,14 @@ $layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
 @push('scripts')
 <script>
     $(document).ready(function() {
-        $('.select2-basic').select2({
-            theme: 'bootstrap-5',
-            width: '100%'
+        $('.select2-basic').each(function() {
+            $(this).select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                dropdownParent: $(this).parent(),
+                placeholder: $(this).find('option:first').text(),
+                allowClear: false
+            });
         });
     });
 

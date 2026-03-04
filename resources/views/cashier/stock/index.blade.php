@@ -28,7 +28,7 @@
                             <input type="text" class="form-control border-start-0 ps-0" name="search" value="{{ $search ?? '' }}" placeholder="Cari Kode atau Nama Barang...">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4 position-relative">
                         <select name="category_id" class="form-select select2-basic">
                             <option value="">-- Semua Kategori --</option>
                             @foreach($categories as $cat)
@@ -173,7 +173,7 @@
             <div class="modal-body">
                 <form action="{{ route('cashier.stock.storeFromWarehouse') }}" method="POST" id="warehouseStockForm">
                     @csrf
-                    <div class="mb-3">
+                    <div class="mb-3 position-relative">
                         <label class="form-label">Pilih Barang dari Gudang</label>
                         <select class="form-select select2-basic" name="warehouse_item_id" id="warehouse_item_select" required>
                             <option value="">-- Pilih Barang --</option>
@@ -232,11 +232,14 @@
 <script>
     $(document).ready(function() {
         // Generic initialization for static filters
-        $('.select2-basic:not(#warehouse_item_select)').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: '-- Pilih Kategori --',
-            allowClear: true
+        $('.select2-basic:not(#warehouse_item_select)').each(function() {
+            $(this).select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                dropdownParent: $(this).parent(),
+                placeholder: '-- Pilih Kategori --',
+                allowClear: true
+            });
         });
 
         // Specific initialization for Modal item selection to fix search focus
@@ -245,7 +248,7 @@
             width: '100%',
             placeholder: '-- Pilih Barang --',
             allowClear: true,
-            dropdownParent: $('#warehouseStockModal')
+            dropdownParent: $('#warehouse_item_select').parent()
         });
     });
 

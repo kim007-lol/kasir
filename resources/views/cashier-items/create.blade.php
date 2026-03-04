@@ -17,7 +17,7 @@
         <div class="card-body p-4">
             <form action="{{ route('cashier-items.store') }}" method="POST" id="transferForm">
                 @csrf
-                <div class="mb-3">
+                <div class="mb-3 position-relative">
                     <label for="warehouse_item_id" class="form-label">Pilih Barang dari Gudang *</label>
                     <select name="warehouse_item_id" id="warehouse_item_id" class="form-select select2-basic @error('warehouse_item_id') is-invalid @enderror" required>
                         <option value="">-- Pilih Barang --</option>
@@ -106,11 +106,14 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        $('.select2-basic').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: '-- Pilih Barang --',
-            allowClear: true
+        $('.select2-basic').each(function() {
+            $(this).select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                dropdownParent: $(this).parent(),
+                placeholder: '-- Pilih Barang --',
+                allowClear: true
+            });
         });
 
         const warehouseSelect = document.getElementById('warehouse_item_id');

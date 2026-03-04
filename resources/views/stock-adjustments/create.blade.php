@@ -24,7 +24,7 @@
                         @csrf
 
                         {{-- Select Item --}}
-                        <div class="mb-3">
+                        <div class="mb-3 position-relative">
                             <label class="form-label fw-semibold">Pilih Item <span class="text-danger">*</span></label>
                             <select name="cashier_item_id" id="itemSelect" class="form-select @error('cashier_item_id') is-invalid @enderror" required>
                                 <option value="">-- Cari dan pilih item --</option>
@@ -154,6 +154,7 @@
         if (typeof $ !== 'undefined' && $.fn.select2) {
             $('#itemSelect').select2({
                 theme: 'bootstrap-5',
+                dropdownParent: $('#itemSelect').parent(),
                 placeholder: '-- Cari dan pilih item --',
                 allowClear: true,
             }).on('change', function () {
