@@ -20,9 +20,13 @@ class StockAdjustmentController extends Controller
 
         $adjustments = StockAdjustment::with(['cashierItem', 'user'])
             ->when($search, function ($query) use ($search) {
-                $query->whereHas('cashierItem', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('code', 'like', "%{$search}%");
+                $searchLower = '%' . mb_strtolower($search) . '%';
+                $query->whereHas('cashierItem', function ($q) use ($searchLower) {
+                    $q->withTrashed()
+                        ->where(function ($sub) use ($searchLower) {
+                            $sub->whereRaw('LOWER(name) LIKE ?', [$searchLower])
+                                ->orWhereRaw('LOWER(code) LIKE ?', [$searchLower]);
+                        });
                 });
             })
             ->when($startDate, fn($q) => $q->whereDate('created_at', '>=', $startDate))

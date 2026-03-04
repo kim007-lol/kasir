@@ -742,7 +742,7 @@
                     {{-- Member 1: Engineer --}}
                 <div class="col-md-6 col-lg-3">
                     <div class="team-card-container" onclick="this.classList.toggle('flipped')">
-                        <div class="team-card-flipper" style="--card-color: #6f42c1; --card-rgb: 111, 66, 193;">
+                        <div class="team-card-flipper" style="--card-color: #ff0000; --card-rgb: 111, 66, 193;">
                             <div class="team-card-front">
                                 <div class="team-avatar">
                                     <i class="bi bi-code-slash"></i>
@@ -777,7 +777,7 @@
                 {{-- Member 2: Project Manager --}}
                 <div class="col-md-6 col-lg-3">
                     <div class="team-card-container" onclick="this.classList.toggle('flipped')">
-                        <div class="team-card-flipper" style="--card-color: #dc3545; --card-rgb: 220, 53, 69;">
+                        <div class="team-card-flipper" style="--card-color: #cd6beb; --card-rgb: 220, 53, 69;">
                             <div class="team-card-front">
                                 <div class="team-avatar">
                                     <i class="bi bi-diagram-3-fill"></i>
@@ -786,9 +786,9 @@
                                 <div class="click-hint"><i class="bi bi-hand-index-thumb"></i> Ketuk untuk detail</div>
                             </div>
                             <div class="team-card-back">
-                                <h5 class="team-name">[Nama Lengkap]</h5>
+                                <h5 class="team-name">Syifa Rizka Angeli</h5>
                                 <div class="team-role">Project Manager</div>
-                                <p class="team-desc" data-i18n="team.pm_desc">[Deskripsi singkat tentang diri — 1-2 kalimat]</p>
+                                <p class="team-desc" data-i18n="team.pm_desc"></p>
                                 
                                 <div class="team-skills">
                                     <span class="team-skill-badge">Leadership</span>
@@ -814,28 +814,30 @@
                         <div class="team-card-flipper" style="--card-color: #0d6efd; --card-rgb: 13, 110, 253;">
                             <div class="team-card-front">
                                 <div class="team-avatar">
-                                    <i class="bi bi-laptop"></i>
+                                    {{-- <i class="bi bi-laptop"></i> --}}
+                                    <i><img class="img-fluid rounded-circle" src="{{ asset('img/BAYU.jpg') }}"></i>
                                 </div>
                                 <div class="team-role-main text-center">System<br>Analyst</div>
                                 <div class="click-hint"><i class="bi bi-hand-index-thumb"></i> Ketuk untuk detail</div>
                             </div>
                             <div class="team-card-back">
-                                <h5 class="team-name">[Nama Lengkap]</h5>
+                                <h5 class="team-name">Bayu Bramasta</h5>
                                 <div class="team-role">System Analyst</div>
-                                <p class="team-desc" data-i18n="team.sa_desc">[Deskripsi singkat tentang diri — 1-2 kalimat]</p>
+                                {{-- <p class="team-desc" data-i18n="team.sa_desc">Lorem ipsum dolor sit amet consectetur adipisicing elit. Est perspiciatis possimus eveniet omnis cumque! Architecto, animi veritatis vitae rem blanditiis harum a tempora saepe accusantium, ab expedita odit aliquid? Corporis?</p> --}}
+                                <p class="team-desc">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Nihil, qui.</p>
                                 
                                 <div class="team-skills">
                                     <span class="team-skill-badge">Analysis</span>
                                     <span class="team-skill-badge">Documentation</span>
-                                    <span class="team-skill-badge">UML</span>
+                                    {{-- <span class="team-skill-badge">UML</span> --}}
                                 </div>
                                 
-                                <div class="team-quote">"[Motto / Tagline]"</div>
+                                <div class="team-quote"><marquee behavior="" onmouseover="this.stop();" onmouseout="this.start();" direction="left">I'm 18 Y.O an <b>Electrical Engineering Student</b> 😎</marquee></div>
                                 
                                 <div class="team-social">
-                                    <a href="#" class="team-social-link"><i class="bi bi-instagram"></i></a>
+                                    <a href="https://github.com/BayuBramasta" class="team-social-link"><i class="bi bi-github"></i></a>
                                     <a href="#" class="team-social-link"><i class="bi bi-envelope-fill"></i></a>
-                                    <a href="#" class="team-social-link"><i class="bi bi-linkedin"></i></a>
+                                    <a href="https://www.facebook.com/share/1E46oyY1m8/" class="team-social-link"><i class="bi bi-facebook"></i></a>
                                 </div>
                             </div>
                         </div>
@@ -850,21 +852,22 @@
                                 <div class="team-avatar">
                                     <i class="bi bi-file-earmark-bar-graph-fill"></i>
                                 </div>
-                                <div class="team-role-main text-center">Report<br>Manager</div>
+                                <div class="team-role-main text-center">UI/UX<br>Designer</div>
                                 <div class="click-hint"><i class="bi bi-hand-index-thumb"></i> Ketuk untuk detail</div>
                             </div>
                             <div class="team-card-back">
-                                <h5 class="team-name">[Nama Lengkap]</h5>
-                                <div class="team-role" style="color: #d39e00; background: rgba(255, 193, 7, 0.15);">Report Manager</div>
-                                <p class="team-desc" data-i18n="team.rm_desc">[Deskripsi singkat tentang diri — 1-2 kalimat]</p>
+                                <h5 class="team-name">M. Iqbal Fathyyatan</h5>
+                                <div class="team-role" style="color: #d39e00; background: rgba(255, 193, 7, 0.15);">UI/UX Designer</div>
+                                {{-- <p class="team-desc" data-i18n="team.rm_desc">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Maiores, excepturi?</p> --}}
+                                <p class="team-desc">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Maiores, excepturi?</p>
                                 
                                 <div class="team-skills">
-                                    <span class="team-skill-badge">Reporting</span>
-                                    <span class="team-skill-badge">Data Analysis</span>
-                                    <span class="team-skill-badge">Documentation</span>
+                                    <span class="team-skill-badge">Design</span>
+                                    <span class="team-skill-badge">Prototyping</span>
+                                    <span class="team-skill-badge">User Research</span>
                                 </div>
                                 
-                                <div class="team-quote">"[Motto / Tagline]"</div>
+                                <div class="team-quote">Iqbal breathing</div>
                                 
                                 <div class="team-social">
                                     <a href="#" class="team-social-link"><i class="bi bi-instagram"></i></a>
@@ -974,7 +977,7 @@
                 team: {
                     pm_desc: "[Deskripsi Project Manager]",
                     sa_desc: "[Deskripsi System Analyst]",
-                    rm_desc: "[Deskripsi Report Manager]",
+                    rm_desc: "[Deskripsi UI/UX Designer]",
                     eng_desc: "Seseorang yang suka ngoding dan terus berkembang dalam dunia pengembangan web."
                 },
                 login: {
@@ -1021,7 +1024,7 @@
                 team: {
                     pm_desc: "[Project Manager description]",
                     sa_desc: "[System Analyst description]",
-                    rm_desc: "[Report Manager description]",
+                    rm_desc: "[UI/UX Designer description]",
                     eng_desc: "Someone who loves coding and keeps growing in the world of web development."
                 },
                 login: {
