@@ -4,13 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMEGABIZ — Sistem Kasir & Booking Makanan</title>
+    <title>SmegaMart — Sistem Kasir & Booking Makanan</title>
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/bootstrap-icons.min.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Animasi Eksternal Ringan -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- Animasi Lokal Ringan -->
+    <link href="{{ asset('css/aos.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/animate.min.css') }}">
     <style>
         :root {
             --primary: #ff0000;
@@ -687,7 +686,7 @@
     <nav class="landing-nav">
         <div class="container d-flex justify-content-between align-items-center">
             <a href="/" class="brand">
-                <i class="bi bi-shop"></i> SMEGABIZ
+                <i class="bi bi-shop"></i> SmegaMart
             </a>
             <div class="d-flex gap-2 align-items-center">
                 <div class="btn-group btn-group-sm me-2" role="group" aria-label="Language">
@@ -713,7 +712,7 @@
                         <i class="bi bi-lightning-charge-fill text-warning"></i> <span data-i18n="hero.badge">Sistem Terintegrasi</span>
                     </div>
                     <h1 class="text-gradient" data-i18n="hero.title" style="font-size: 3.2rem; letter-spacing: -1px;">Kelola Toko & Pemesanan dalam Satu Platform</h1>
-                    <p data-i18n="hero.desc" style="font-size: 1.2rem; font-weight: 400;">SMEGABIZ menggabungkan sistem kasir (POS) canggih dengan pemesanan makanan online. Pelanggan bisa pesan dari mana saja, kasir terima pesanan secara real-time.</p>
+                    <p data-i18n="hero.desc" style="font-size: 1.2rem; font-weight: 400;">SmegaMart menggabungkan sistem kasir (POS) canggih dengan pemesanan makanan online. Pelanggan bisa pesan dari mana saja, kasir terima pesanan secara real-time.</p>
                     <div class="d-flex gap-3 mt-5 flex-wrap" data-aos="fade-up" data-aos-delay="300">
                         <a href="{{ route('pelanggan.login') }}" class="btn-login-primary" style="background: white; color: var(--primary);">
                             <i class="bi bi-bag-heart-fill"></i> <span data-i18n="hero.cta_order">Pesan Sekarang</span>
@@ -804,7 +803,7 @@
         <div class="container" style="position: relative; z-index: 2;">
             <div class="text-center" data-aos="fade-up">
                 <h2 class="section-title text-gradient-dark" data-i18n="about.title" style="font-size: 2.5rem; letter-spacing: -1px; font-weight:800;">Tim Pengembang</h2>
-                <p class="section-subtitle mb-2" data-i18n="about.subtitle" style="font-size: 1.1rem; color: #64748b; max-width: 800px; margin: 0 auto;">Kami adalah 4 siswa dari konsentrasi Rekayasa Perangkat Lunak (RPL) SMKN 10 Surabaya yang berkolaborasi dalam satu tim untuk mewujudkan SMEGABIZ.</p>
+                <p class="section-subtitle mb-2" data-i18n="about.subtitle" style="font-size: 1.1rem; color: #64748b; max-width: 800px; margin: 0 auto;">Kami adalah 4 siswa dari konsentrasi Rekayasa Perangkat Lunak (RPL) SMKN 10 Surabaya yang berkolaborasi dalam satu tim untuk mewujudkan SmegaMart.</p>
             </div>
             
             <div class="lanyard-team-container">
@@ -929,16 +928,16 @@
     <!-- Footer -->
     <footer class="landing-footer">
         <div class="container">
-            <p class="mb-0" data-i18n="footer.text">&copy; {{ date('Y') }} SMEGABIZ — Rekayasa Perangkat Lunak Project 2026</p>
+            <p class="mb-0" data-i18n="footer.text">&copy; {{ date('Y') }} SmegaMart — Rekayasa Perangkat Lunak Project 2026</p>
         </div>
     </footer>
 
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/i18next.min.js') }}"></script>
     <!-- AOS Animate On Scroll JS -->
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="{{ asset('js/aos.js') }}"></script>
     <!-- VanillaTilt JS (Efek 3D Apple-like) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+    <script src="{{ asset('js/vanilla-tilt.min.js') }}"></script>
     <script>
         // Init AOS
         document.addEventListener('DOMContentLoaded', function() {
@@ -993,7 +992,7 @@
                 },
                 about: {
                     title: "Tim Pengembang",
-                    subtitle: "Kami adalah 4 siswa dari konsentrasi Rekayasa Perangkat Lunak (RPL) SMKN 10 Surabaya yang berkolaborasi membangun sistem ini sebagai proyek nyata. Setiap anggota membawa peran dan keahlian masing-masing untuk mewujudkan SMEGABIZ."
+                    subtitle: "Kami adalah 4 siswa dari konsentrasi Rekayasa Perangkat Lunak (RPL) SMKN 10 Surabaya yang berkolaborasi membangun sistem ini sebagai proyek nyata. Setiap anggota membawa peran dan keahlian masing-masing untuk mewujudkan SmegaMart."
                 },
                 team: {
                     pm_desc: "[Deskripsi Project Manager]",
@@ -1011,7 +1010,7 @@
                     cust_desc: "Untuk memesan makanan secara online. Akun diberikan oleh kasir toko.",
                     cust_btn: "Login Pelanggan"
                 },
-                footer: { text: "© 2026 SMEGABIZ — Rekayasa Perangkat Lunak Project 2026" }
+                footer: { text: "© 2026 SmegaMart — Rekayasa Perangkat Lunak Project 2026" }
             },
             en: {
                 nav: { login_staff: "Staff Login", order_food: "Order Food" },
@@ -1040,7 +1039,7 @@
                 },
                 about: {
                     title: "Development Team",
-                    subtitle: "We are 4 students from the Software Engineering (RPL) major at SMKN 10 Surabaya who collaborated to build this system as a real-world project. Each member brings their own role and expertise to bring SMEGABIZ to life."
+                    subtitle: "We are 4 students from the Software Engineering (RPL) major at SMKN 10 Surabaya who collaborated to build this system as a real-world project. Each member brings their own role and expertise to bring SmegaMart to life."
                 },
                 team: {
                     pm_desc: "[Project Manager description]",
@@ -1058,7 +1057,7 @@
                     cust_desc: "To order food online. Account is provided by the store cashier.",
                     cust_btn: "Customer Login"
                 },
-                footer: { text: "© 2026 SMEGABIZ — Software Engineering Project 2026" }
+                footer: { text: "© 2026 SmegaMart — Software Engineering Project 2026" }
             }
         };
 

@@ -4,10 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Login Pelanggan — SMEGABIZ')</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>@yield('title', 'Login Pelanggan — SmegaMart')</title>
+    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/bootstrap-icons.min.css') }}">
     <style>
         :root {
             --primary: #ff0000;
@@ -16,7 +15,7 @@
         }
 
         body {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: linear-gradient(135deg, #f8f9fc 0%, #ffe0e0 100%);
             min-height: 100vh;
             display: flex;
@@ -161,7 +160,7 @@
         <div class="auth-logo">
             <div class="icon"><i class="bi bi-bag-heart-fill"></i></div>
             <h3>Login Pelanggan</h3>
-            <p>Masuk untuk memesan makanan</p>
+            <p>Masuk untuk memesan makanan di SmeGo. </p>
         </div>
 
         @if($errors->any())
@@ -216,7 +215,7 @@
         </p>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const passwordInput = document.getElementById('password');
