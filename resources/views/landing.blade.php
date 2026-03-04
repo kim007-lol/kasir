@@ -217,206 +217,227 @@
             transform: translateZ(10px);
         }
 
-        /* ===== TEAM FLIP CARDS (MYSTERIOUS) ===== */
-        .team-card-container {
-            perspective: 1000px;
-            height: 420px;
-            cursor: pointer;
-            z-index: 1;
-        }
-
-        .team-card-flipper {
+        /* ===== LANYARD TEAM CARDS ===== */
+        .team-section {
+            padding: 5rem 0;
+            background: white;
             position: relative;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transform-style: preserve-3d;
-        }
-
-        .team-card-container.flipped .team-card-flipper {
-            transform: rotateY(180deg);
-        }
-
-        .team-card-container:hover .team-card-flipper {
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
-            border-radius: 1.5rem;
-        }
-
-        .team-card-front, .team-card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 1.5rem;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
-            display: flex;
-            flex-direction: column;
             overflow: hidden;
         }
 
-        .team-card-front::before, .team-card-back::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 6px;
-            background: var(--card-color, var(--primary));
-            z-index: 0;
+        .lanyard-team-container {
+            display: grid;
+            grid-template-columns: repeat(3, 250px);
+            justify-content: center;
+            row-gap: 0;
+            column-gap: 3rem;
+            padding-top: 2rem;
+            padding-bottom: 3rem;
         }
 
-        /* Front specific */
-        .team-card-front {
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
+        .lanyard-wrapper.pm { grid-column: 2; grid-row: 1; z-index: 4; }
+        .lanyard-wrapper.prog { grid-column: 1; grid-row: 1; margin-top: 220px; z-index: 3; }
+        .lanyard-wrapper.sa { grid-column: 3; grid-row: 1; margin-top: 220px; z-index: 3; }
+        .lanyard-wrapper.ux { grid-column: 2; grid-row: 2; margin-top: -180px; z-index: 2; }
+
+        @media (max-width: 991px) {
+            .lanyard-team-container {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 2.5rem;
+                padding-top: 2rem;
+                padding-bottom: 2rem;
+            }
+            .lanyard-wrapper.pm, .lanyard-wrapper.prog, .lanyard-wrapper.sa, .lanyard-wrapper.ux {
+                margin-top: 0;
+            }
+        }
+
+        .lanyard-wrapper {
+            perspective: 1000px;
+            position: relative;
+            width: 250px;
+            animation: lanyard-swing 4s ease-in-out infinite;
+            transform-origin: top center;
             z-index: 2;
         }
 
-        .team-avatar {
-            width: 130px;
-            height: 130px;
+        /* Stagger the swings */
+        .lanyard-wrapper:nth-child(1) { animation-delay: 0s; }
+        .lanyard-wrapper:nth-child(2) { animation-delay: -1s; }
+        .lanyard-wrapper:nth-child(3) { animation-delay: -2s; }
+        .lanyard-wrapper:nth-child(4) { animation-delay: -3s; }
+
+        .lanyard-wrapper:hover {
+            animation-play-state: paused;
+            z-index: 10;
+        }
+
+        .lanyard-string {
+            width: 6px;
+            height: 90px;
+            background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+            margin: 0 auto;
+            border-radius: 3px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .lanyard-string::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 20px;
+            background: #64748b;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+
+        .lanyard-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 1.25rem;
+            padding: 2.5rem 1.5rem 1.5rem;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform-style: preserve-3d;
+            position: relative;
+            z-index: 2;
+            margin-top: -5px; 
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .lanyard-card::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 8px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .lanyard-avatar {
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
+            margin: 0 auto 1.25rem;
+            background: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 3.5rem;
-            color: var(--card-color, var(--primary));
-            background: white;
-            box-shadow: 0 10px 30px rgba(var(--card-rgb, 13, 110, 253), 0.15);
+            color: var(--card-color);
+            box-shadow: 0 10px 25px rgba(var(--card-rgb), 0.15);
             border: 4px solid white;
-            transition: all 0.5s ease;
+            transform: translateZ(40px);
             position: relative;
-            z-index: 1;
         }
-
-        .team-avatar::after {
+        
+        .lanyard-avatar::after {
             content: '';
             position: absolute;
-            inset: -10px;
+            inset: -5px;
             border-radius: 50%;
-            border: 2px dashed rgba(var(--card-rgb, 13, 110, 253), 0.4);
-            animation: spin 20s linear infinite;
+            border: 2px dashed rgba(var(--card-rgb), 0.4);
+            animation: spin 15s linear infinite;
+            z-index: 1;
         }
-
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .team-card-container:hover .team-avatar {
-            transform: scale(1.05);
-            color: white;
-            background: var(--card-color, var(--primary));
-        }
-
-        .team-role-main {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #2b3452;
-            margin-top: 2rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .click-hint {
-            position: absolute;
-            bottom: 1.5rem;
-            font-size: 0.85rem;
-            color: #a0a0a0;
-            animation: pulse-hint 2s infinite;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        @keyframes pulse-hint { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-
-        /* Back specific */
-        .team-card-back {
-            transform: rotateY(180deg);
-            padding: 2rem;
-            justify-content: center;
-            text-align: center;
-        }
-
-        .team-name {
-            font-weight: 800;
-            font-size: 1.3rem;
-            margin-bottom: 0.25rem;
-            color: #2b3452;
-        }
-
-        .team-role {
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--card-color, var(--primary));
-            margin-bottom: 1rem;
-            display: inline-block;
-            padding: 0.25rem 0.8rem;
-            border-radius: 2rem;
-            background: rgba(var(--card-rgb, 13, 110, 253), 0.1);
-        }
-
-        .team-desc {
-            color: #6c757d;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            margin-bottom: 1rem;
-        }
-
-        .team-skills {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 5px;
-            margin-bottom: 1.5rem;
-        }
-
-        .team-skill-badge {
-            font-size: 0.7rem;
-            padding: 0.25rem 0.7rem;
-            border-radius: 1rem;
-            background: #f8f9fa;
-            color: #495057;
-            border: 1px solid #e9ecef;
-        }
-
-        .team-quote {
-            font-size: 0.8rem;
-            font-style: italic;
-            color: #adb5bd;
+        .lanyard-avatar i, 
+        .lanyard-avatar img {
             position: relative;
+            z-index: 2;
         }
 
-        .team-social {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(0,0,0,0.05);
+        .lanyard-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .lanyard-name {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: #1e293b;
+            margin-bottom: 0.2rem;
+            transform: translateZ(30px);
+        }
+
+        .lanyard-role {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--card-color);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 1rem;
+            transform: translateZ(25px);
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 2rem;
+            background: rgba(var(--card-rgb), 0.1);
+        }
+
+        .lanyard-desc {
+            font-size: 0.85rem;
+            color: #64748b;
+            line-height: 1.5;
+            transform: translateZ(20px);
+            margin-bottom: 1.5rem;
+            height: 60px; /* Fixed height for uniformity */
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-line-clamp: 3; /* Duplicated for compatibility */
+            -webkit-box-orient: vertical;
+        }
+
+        .lanyard-social {
             display: flex;
             justify-content: center;
             gap: 10px;
+            transform: translateZ(25px);
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0,0,0,0.05);
         }
 
-        .team-social-link {
-            width: 32px;
-            height: 32px;
+        .lanyard-social a {
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
+            background: #f1f5f9;
+            color: #64748b;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f8f9fa;
-            color: #6c757d;
             transition: all 0.3s ease;
-            text-decoration: none !important;
+            text-decoration: none;
         }
 
-        .team-social-link:hover {
-            background: var(--card-color, var(--primary));
+        .lanyard-social a:hover {
+            background: var(--card-color);
             color: white;
-            transform: translateY(-2px);
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 5px 15px rgba(var(--card-rgb), 0.3);
+        }
+
+        @keyframes lanyard-swing {
+            0%, 100% { transform: rotateZ(-5deg); }
+            50% { transform: rotateZ(5deg); }
         }
 
         /* ===== LOGIN SECTION ===== */
@@ -774,159 +795,88 @@
     </section>
 
 
-    <!-- About Us — Tim Pengembang -->
-    <section class="features" id="tentang" style="background: white; position: relative; overflow: hidden;">
+    <!-- About Us — Tim Pengembang (Lanyard Edition) -->
+    <section class="team-section" id="tentang">
         <!-- Decorative blobs -->
-        <div style="position: absolute; top: -50px; left: 10%; width: 250px; height: 250px; background: rgba(0,255,100,0.05); filter: blur(60px); border-radius: 50%;"></div>
-        <div style="position: absolute; bottom: 50px; right: 5%; width: 300px; height: 300px; background: rgba(255,200,0,0.05); filter: blur(60px); border-radius: 50%;"></div>
+        <div style="position: absolute; top: -50px; left: 10%; width: 250px; height: 250px; background: rgba(0,255,100,0.05); filter: blur(60px); border-radius: 50%; z-index:0;"></div>
+        <div style="position: absolute; bottom: 50px; right: 5%; width: 300px; height: 300px; background: rgba(255,200,0,0.05); filter: blur(60px); border-radius: 50%; z-index:0;"></div>
 
         <div class="container" style="position: relative; z-index: 2;">
-            <h2 class="section-title text-gradient-dark" data-i18n="about.title" data-aos="fade-up" style="font-size: 2.5rem; letter-spacing: -1px;">Tim Pengembang</h2>
-            <p class="section-subtitle mb-5" data-i18n="about.subtitle" data-aos="fade-up" data-aos-delay="100" style="font-size: 1.1rem;">Kami adalah 4 siswa dari konsentrasi Rekayasa Perangkat Lunak (RPL) SMKN 10 Surabaya yang berkolaborasi membangun sistem ini sebagai proyek nyata. Setiap anggota membawa peran dan keahlian masing-masing untuk mewujudkan SMEGABIZ.</p>
+            <div class="text-center" data-aos="fade-up">
+                <h2 class="section-title text-gradient-dark" data-i18n="about.title" style="font-size: 2.5rem; letter-spacing: -1px; font-weight:800;">Tim Pengembang</h2>
+                <p class="section-subtitle mb-2" data-i18n="about.subtitle" style="font-size: 1.1rem; color: #64748b; max-width: 800px; margin: 0 auto;">Kami adalah 4 siswa dari konsentrasi Rekayasa Perangkat Lunak (RPL) SMKN 10 Surabaya yang berkolaborasi dalam satu tim untuk mewujudkan SMEGABIZ.</p>
+            </div>
+            
+            <div class="lanyard-team-container">
 
-            <div class="row g-4 justify-content-center">
-
-                    {{-- Member 1: Engineer --}}
-                <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="150">
-                    <div class="team-card-container" onclick="this.classList.toggle('flipped')">
-                        <div class="team-card-flipper" style="--card-color: #ff0000; --card-rgb: 111, 66, 193;">
-                            <div class="team-card-front">
-                                <div class="team-avatar">
-                                    <i class="bi bi-code-slash"></i>
-                                </div>
-                                <div class="team-role-main">Programmer</div>
-                                <div class="click-hint"><i class="bi bi-hand-index-thumb"></i> Ketuk untuk detail</div>
-                            </div>
-                            <div class="team-card-back">
-                                <h5 class="team-name">Ngabdullah Hakim</h5>
-                                <div class="team-role">Programmer</div>
-                                <p class="team-desc" data-i18n="team.eng_desc">Seseorang yang suka ngoding</p>
-                                
-                                <div class="team-skills">
-                                    <span class="team-skill-badge">Laravel</span>
-                                    <span class="team-skill-badge">JavaScript</span>
-                                    <span class="team-skill-badge">Bootstrap</span>
-                                    <span class="team-skill-badge">PostgreSQL</span>
-                                </div>
-                                
-                                <div class="team-quote">"Selalu belajar dan berkembang"</div>
-                                
-                                <div class="team-social">
-                                    <a href="https://github.com/kim007-lol" target="_blank" class="team-social-link" title="GitHub"><i class="bi bi-github"></i></a>
-                                    <a href="mailto:ngabdullahhakim99@gmail.com" class="team-social-link" title="Email"><i class="bi bi-envelope-fill"></i></a>
-                                    <a href="https://www.linkedin.com/in/ngabdullah-hakim-121ab0292" target="_blank" class="team-social-link" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
-                                </div>
-                            </div>
+                {{-- Member 1: Engineer --}}
+                <div class="lanyard-wrapper prog" data-aos="zoom-in" data-aos-delay="150" data-aos-offset="0">
+                    <div class="lanyard-string"></div>
+                    <div class="lanyard-card" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2" style="--card-color: #e60000; --card-rgb: 230, 0, 0;">
+                        <div class="lanyard-avatar">
+                            <i class="bi bi-code-slash"></i>
+                        </div>
+                        <h5 class="lanyard-name">Ngabdullah Hakim</h5>
+                        <div class="lanyard-role">Programmer</div>
+                        <p class="lanyard-desc" data-i18n="team.eng_desc">Seseorang yang suka ngoding dan selalu belajar berkembang. Mengurus flow Backend & Frontend.</p>
+                        <div class="lanyard-social">
+                            <a href="https://github.com/kim007-lol" target="_blank" title="GitHub"><i class="bi bi-github"></i></a>
+                            <a href="mailto:ngabdullahhakim99@gmail.com" title="Email"><i class="bi bi-envelope-fill"></i></a>
+                            <a href="https://www.linkedin.com/in/ngabdullah-hakim-121ab0292" target="_blank" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
                         </div>
                     </div>
                 </div>
 
                 {{-- Member 2: Project Manager --}}
-                <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="250">
-                    <div class="team-card-container" onclick="this.classList.toggle('flipped')" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-perspective="1000" data-tilt-scale="1.05">
-                        <div class="team-card-flipper" style="--card-color: #cd6beb; --card-rgb: 220, 53, 69;">
-                            <div class="team-card-front">
-                                <div class="team-avatar">
-                                    <i class="bi bi-diagram-3-fill"></i>
-                                </div>
-                                <div class="team-role-main text-center">Project<br>Manager</div>
-                                <div class="click-hint"><i class="bi bi-hand-index-thumb"></i> Ketuk untuk detail</div>
-                            </div>
-                            <div class="team-card-back">
-                                <h5 class="team-name">Syifa Rizka Angeli</h5>
-                                <div class="team-role">Project Manager</div>
-                                <p class="team-desc" data-i18n="team.pm_desc"></p>
-                                
-                                <div class="team-skills">
-                                    <span class="team-skill-badge">Leadership</span>
-                                    <span class="team-skill-badge">Planning</span>
-                                    <span class="team-skill-badge">Communication</span>
-                                </div>
-                                
-                                <div class="team-quote">"[Motto / Tagline]"</div>
-                                
-                                <div class="team-social">
-                                    <a href="#" class="team-social-link"><i class="bi bi-instagram"></i></a>
-                                    <a href="#" class="team-social-link"><i class="bi bi-envelope-fill"></i></a>
-                                    <a href="#" class="team-social-link"><i class="bi bi-linkedin"></i></a>
-                                </div>
-                            </div>
+                <div class="lanyard-wrapper pm" data-aos="zoom-in" data-aos-delay="250" data-aos-offset="0">
+                    <div class="lanyard-string"></div>
+                    <div class="lanyard-card" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2" style="--card-color: #6f42c1; --card-rgb: 111, 66, 193;">
+                        <div class="lanyard-avatar">
+                            <i class="bi bi-diagram-3-fill"></i>
+                        </div>
+                        <h5 class="lanyard-name">Syifa Rizka Angeli</h5>
+                        <div class="lanyard-role">Project Manager</div>
+                        <p class="lanyard-desc" data-i18n="team.pm_desc">Mengatur timeline, komunikasi tim, dan memastikan project rilis tepat pada waktunya.</p>
+                        <div class="lanyard-social">
+                            <a href="#" title="Instagram"><i class="bi bi-instagram"></i></a>
+                            <a href="#" title="Email"><i class="bi bi-envelope-fill"></i></a>
                         </div>
                     </div>
                 </div>
 
                 {{-- Member 3: System Analyst --}}
-                <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="350">
-                    <div class="team-card-container" onclick="this.classList.toggle('flipped')" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-perspective="1000" data-tilt-scale="1.05">
-                        <div class="team-card-flipper" style="--card-color: #0d6efd; --card-rgb: 13, 110, 253;">
-                            <div class="team-card-front">
-                                <div class="team-avatar">
-                                    {{-- <i class="bi bi-laptop"></i> --}}
-                                    <i><img class="img-fluid rounded-circle" src="{{ asset('img/BAYU.jpg') }}"></i>
-                                </div>
-                                <div class="team-role-main text-center">System<br>Analyst</div>
-                                <div class="click-hint"><i class="bi bi-hand-index-thumb"></i> Ketuk untuk detail</div>
-                            </div>
-                            <div class="team-card-back">
-                                <h5 class="team-name">Bayu Bramasta</h5>
-                                <div class="team-role">System Analyst</div>
-                                {{-- <p class="team-desc" data-i18n="team.sa_desc">Lorem ipsum dolor sit amet consectetur adipisicing elit. Est perspiciatis possimus eveniet omnis cumque! Architecto, animi veritatis vitae rem blanditiis harum a tempora saepe accusantium, ab expedita odit aliquid? Corporis?</p> --}}
-                                <p class="team-desc">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Nihil, qui.</p>
-                                
-                                <div class="team-skills">
-                                    <span class="team-skill-badge">Analysis</span>
-                                    <span class="team-skill-badge">Documentation</span>
-                                    {{-- <span class="team-skill-badge">UML</span> --}}
-                                </div>
-                                
-                                <div class="team-quote"><marquee behavior="" onmouseover="this.stop();" onmouseout="this.start();" direction="left">I'm 18 Y.O an <b>Electrical Engineering Student</b> 😎</marquee></div>
-                                
-                                <div class="team-social">
-                                    <a href="https://github.com/BayuBramasta" class="team-social-link"><i class="bi bi-github"></i></a>
-                                    <a href="#" class="team-social-link"><i class="bi bi-envelope-fill"></i></a>
-                                    <a href="https://www.facebook.com/share/1E46oyY1m8/" class="team-social-link"><i class="bi bi-facebook"></i></a>
-                                </div>
-                            </div>
+                <div class="lanyard-wrapper sa" data-aos="zoom-in" data-aos-delay="350" data-aos-offset="0">
+                    <div class="lanyard-string"></div>
+                    <div class="lanyard-card" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2" style="--card-color: #0d6efd; --card-rgb: 13, 110, 253;">
+                        <div class="lanyard-avatar">
+                            <img src="{{ asset('img/BAYU.jpg') }}" alt="Bayu">
+                        </div>
+                        <h5 class="lanyard-name">Bayu Bramasta</h5>
+                        <div class="lanyard-role">System Analyst</div>
+                        <p class="lanyard-desc">I'm 18 Y.O an Electrical Engineering Student 😎.</p>
+                        <div class="lanyard-social">
+                            <a href="https://github.com/BayuBramasta" target="_blank" title="GitHub"><i class="bi bi-github"></i></a>
+                            <a href="https://www.facebook.com/share/1E46oyY1m8/" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
                         </div>
                     </div>
                 </div>
 
-                {{-- Member 4: Report Manager --}}
-                <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="450">
-                    <div class="team-card-container" onclick="this.classList.toggle('flipped')" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-perspective="1000" data-tilt-scale="1.05">
-                        <div class="team-card-flipper" style="--card-color: #ffc107; --card-rgb: 255, 193, 7;">
-                            <div class="team-card-front">
-                                <div class="team-avatar">
-                                    <i class="bi bi-file-earmark-bar-graph-fill"></i>
-                                </div>
-                                <div class="team-role-main text-center">UI/UX<br>Designer</div>
-                                <div class="click-hint"><i class="bi bi-hand-index-thumb"></i> Ketuk untuk detail</div>
-                            </div>
-                            <div class="team-card-back">
-                                <h5 class="team-name">M. Iqbal Fathyyatan</h5>
-                                <div class="team-role" style="color: #d39e00; background: rgba(255, 193, 7, 0.15);">UI/UX Designer</div>
-                                {{-- <p class="team-desc" data-i18n="team.rm_desc">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Maiores, excepturi?</p> --}}
-                                <p class="team-desc">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Maiores, excepturi?</p>
-                                
-                                <div class="team-skills">
-                                    <span class="team-skill-badge">Design</span>
-                                    <span class="team-skill-badge">Prototyping</span>
-                                    <span class="team-skill-badge">User Research</span>
-                                </div>
-                                
-                                <div class="team-quote">Iqbal breathing</div>
-                                
-                                <div class="team-social">
-                                    <a href="#" class="team-social-link"><i class="bi bi-instagram"></i></a>
-                                    <a href="#" class="team-social-link"><i class="bi bi-envelope-fill"></i></a>
-                                    <a href="#" class="team-social-link"><i class="bi bi-linkedin"></i></a>
-                                </div>
-                            </div>
+                {{-- Member 4: UI/UX Designer --}}
+                <div class="lanyard-wrapper ux" data-aos="zoom-in" data-aos-delay="450" data-aos-offset="0">
+                    <div class="lanyard-string"></div>
+                    <div class="lanyard-card" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2" style="--card-color: #ffc107; --card-rgb: 255, 193, 7;">
+                        <div class="lanyard-avatar" style="color: #d39e00;">
+                            <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                        </div>
+                        <h5 class="lanyard-name">M. Iqbal Fathyyatan</h5>
+                        <div class="lanyard-role" style="color: #d39e00;">UI/UX Designer</div>
+                        <p class="lanyard-desc">Lorem ipsum dolor sit amet consectetur adipisicing elit. Iqbal breathing.</p>
+                        <div class="lanyard-social">
+                            <a href="#" title="Instagram"><i class="bi bi-instagram"></i></a>
+                            <a href="#" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
                         </div>
                     </div>
                 </div>
-
-            
 
             </div>
         </div>
