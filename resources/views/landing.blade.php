@@ -8,14 +8,19 @@
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/bootstrap-icons.min.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Animasi Eksternal Ringan -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
         :root {
             --primary: #ff0000;
             --primary-dark: #cc0000;
             --secondary: #ff2222;
             --accent: #ffe0e0;
-            --dark: #2c3e50;
-            --light-bg: #f8f9fc;
+            --dark: #1a1a2e;
+            --light-bg: #f4f7f6;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.5);
         }
 
         * {
@@ -55,65 +60,77 @@
             font-size: 1.6rem;
         }
 
-        /* ===== HERO ===== */
+        /* ===== LEGENDARY TYPOGRAPHY ===== */
+        .text-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #ffcccc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .text-gradient-dark {
+            background: linear-gradient(135deg, var(--primary) 0%, #4a0000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== HERO EMPOWERED ===== */
         .hero {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, #bb0000 100%);
+            background: linear-gradient(-45deg, #ff0000, #cc0000, #a00000, #d91c1c);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             color: white;
-            padding: 4rem 0 3rem;
+            padding: 7rem 0 6rem;
             position: relative;
             overflow: hidden;
+            z-index: 1;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .hero::before, .hero::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(60px);
+        }
+
+        .hero::before {
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.15);
+            top: -150px;
+            right: -100px;
+            animation: floatShape 8s ease-in-out infinite alternate;
+        }
+
+        .hero::after {
+            width: 400px;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.15);
+            bottom: -150px;
+            left: -100px;
+            animation: floatShape 12s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes floatShape {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(50px) scale(1.1); }
         }
 
         @media (max-width: 768px) {
             .hero {
-                padding: 3rem 0;
+                padding: 4rem 0 3rem;
                 text-align: center;
             }
-            .hero h1 {
-                font-size: 2rem !important;
-            }
-            .hero p {
-                margin: 0 auto 1.5rem !important;
-                font-size: 1rem !important;
-            }
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-            top: -100px;
-            right: -100px;
-        }
-
-        .hero::after {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 50%;
-            bottom: -50px;
-            left: -50px;
-        }
-
-        .hero h1 {
-            font-weight: 800;
-            font-size: 2.8rem;
-            line-height: 1.2;
-            margin-bottom: 1.25rem;
-        }
-
-        .hero p {
-            font-size: 1.15rem;
-            opacity: 0.92;
-            line-height: 1.7;
-            max-width: 550px;
-            margin-bottom: 2rem;
-        }
+            .hero h1 { font-size: 2.2rem !important; }
+            .hero p { margin: 0 auto 1.5rem !important; font-size: 1rem !important; }
         }
 
         .hero-badge {
@@ -125,7 +142,14 @@
             font-size: 0.85rem;
             font-weight: 600;
             margin-bottom: 1.25rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            animation: pulse-badge 2s infinite;
+        }
+        @keyframes pulse-badge {
+            0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
         }
 
         /* ===== FEATURE CARDS ===== */
@@ -149,40 +173,48 @@
 
         /* ===== FEATURE CARDS ===== */
         .feature-card {
-            background: white;
-            border-radius: 1rem;
-            padding: 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 1.5rem;
+            padding: 2.5rem 2rem;
             text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0, 0, 0, 0.04);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--glass-border);
             height: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            transform-style: preserve-3d;
         }
 
         .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 20px 40px rgba(255, 0, 0, 0.08);
+            border: 1px solid rgba(255,0,0,0.2);
         }
 
         .feature-icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 1rem;
+            width: 80px;
+            height: 80px;
+            border-radius: 1.2rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1.25rem;
-            font-size: 1.8rem;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            transform: translateZ(30px); /* 3D effect on tilt */
+            transition: transform 0.3s ease;
         }
 
         .feature-card h5 {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            transform: translateZ(20px);
         }
 
         .feature-card p {
             color: #6c757d;
-            font-size: 0.92rem;
+            font-size: 0.95rem;
             line-height: 1.6;
+            transform: translateZ(10px);
         }
 
         /* ===== TEAM FLIP CARDS (MYSTERIOUS) ===== */
@@ -394,41 +426,52 @@
         }
 
         .login-card {
-            background: var(--light-bg);
-            border-radius: 1.25rem;
-            padding: 2.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 1.5rem;
+            padding: 3rem 2.5rem;
             text-align: center;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--glass-border);
             height: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            transform-style: preserve-3d;
         }
 
         .login-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.15);
+            border-color: rgba(255,0,0,0.3);
+            box-shadow: 0 20px 40px rgba(255, 0, 0, 0.12);
         }
 
         .login-card .icon-wrapper {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1.25rem;
-            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+            font-size: 2.2rem;
+            transform: translateZ(40px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
         }
 
         .login-card h4 {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            transform: translateZ(30px);
         }
 
         .login-card p {
             color: #6c757d;
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            transform: translateZ(20px);
+        }
+
+        .btn-login-wrapper {
+            transform: translateZ(30px);
         }
 
         .btn-login-primary {
@@ -644,14 +687,14 @@
     <section class="hero">
         <div class="container">
             <div class="row align-items-center">
-                <div class="col-lg-7">
+                <div class="col-lg-7" data-aos="fade-right" data-aos-duration="1000">
                     <div class="hero-badge">
-                        <i class="bi bi-lightning-charge-fill"></i> <span data-i18n="hero.badge">Sistem Terintegrasi</span>
+                        <i class="bi bi-lightning-charge-fill text-warning"></i> <span data-i18n="hero.badge">Sistem Terintegrasi</span>
                     </div>
-                    <h1 data-i18n="hero.title">Kelola Toko & Pemesanan dalam Satu Platform</h1>
-                    <p data-i18n="hero.desc">SMEGABIZ menggabungkan sistem kasir (POS) canggih dengan pemesanan makanan online. Pelanggan bisa pesan dari mana saja, kasir terima pesanan secara real-time.</p>
-                    <div class="d-flex gap-3 mt-4 flex-wrap">
-                        <a href="{{ route('pelanggan.login') }}" class="btn-login-primary">
+                    <h1 class="text-gradient" data-i18n="hero.title" style="font-size: 3.2rem; letter-spacing: -1px;">Kelola Toko & Pemesanan dalam Satu Platform</h1>
+                    <p data-i18n="hero.desc" style="font-size: 1.2rem; font-weight: 400;">SMEGABIZ menggabungkan sistem kasir (POS) canggih dengan pemesanan makanan online. Pelanggan bisa pesan dari mana saja, kasir terima pesanan secara real-time.</p>
+                    <div class="d-flex gap-3 mt-5 flex-wrap" data-aos="fade-up" data-aos-delay="300">
+                        <a href="{{ route('pelanggan.login') }}" class="btn-login-primary" style="background: white; color: var(--primary);">
                             <i class="bi bi-bag-heart-fill"></i> <span data-i18n="hero.cta_order">Pesan Sekarang</span>
                         </a>
                         <a href="#features" class="btn-login-outline" style="border-color: rgba(255,255,255,0.4); color: white; background: transparent;">
@@ -659,20 +702,20 @@
                         </a>
                     </div>
                 </div>
-                <div class="col-lg-5 d-none d-lg-block text-center">
-                    <i class="bi bi-shop-window" style="font-size: 12rem; opacity: 0.15;"></i>
+                <div class="col-lg-5 d-none d-lg-block text-center position-relative" data-aos="zoom-in-up" data-aos-duration="1200" data-aos-delay="200">
+                    <i class="bi bi-shop-window animate__animated animate__pulse animate__infinite animate__slower" style="font-size: 14rem; opacity: 0.2; display: inline-block;"></i>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Features -->
-    <section class="features" id="features">
+    <section class="features" id="features" style="position: relative; z-index: 2;">
         <div class="container">
-            <h2 class="section-title" data-i18n="feat.title">Fitur Unggulan</h2>
-            <p class="section-subtitle" data-i18n="feat.subtitle">Semua yang Anda butuhkan untuk mengelola toko dan menerima pesanan online</p>
+            <h2 class="section-title text-gradient-dark" data-i18n="feat.title" data-aos="fade-up" style="font-size: 2.5rem; letter-spacing: -1px;">Fitur Unggulan</h2>
+            <p class="section-subtitle mb-5" data-i18n="feat.subtitle" data-aos="fade-up" data-aos-delay="100" style="font-size: 1.1rem;">Semua yang Anda butuhkan untuk mengelola toko dan menerima pesanan online</p>
             <div class="row g-4">
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="150">
                     <div class="feature-card">
                         <div class="feature-icon" style="background: #fff3cd; color: #856404;">
                             <i class="bi bi-cart-check-fill"></i>
@@ -681,7 +724,7 @@
                         <p data-i18n="feat.pos_desc">Transaksi cepat dengan barcode scanner, multi metode pembayaran, dan struk otomatis.</p>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="250">
                     <div class="feature-card">
                         <div class="feature-icon" style="background: #d4edda; color: #155724;">
                             <i class="bi bi-phone-fill"></i>
@@ -690,7 +733,7 @@
                         <p data-i18n="feat.booking_desc">Pelanggan pesan makanan langsung dari browser. Pilih pickup atau delivery.</p>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="350">
                     <div class="feature-card">
                         <div class="feature-icon" style="background: #cce5ff; color: #004085;">
                             <i class="bi bi-box-seam-fill"></i>
@@ -699,8 +742,8 @@
                         <p data-i18n="feat.stock_desc">Manajemen stok gudang dan kasir yang terintegrasi. Pantau pergerakan barang secara akurat.</p>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="450">
+                    <div class="feature-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2">
                         <div class="feature-icon" style="background: #f8d7da; color: #a52834;">
                             <i class="bi bi-bell-fill"></i>
                         </div>
@@ -708,8 +751,8 @@
                         <p data-i18n="feat.realtime_desc">Terima pesanan SmeGo secara real-time dengan notifikasi suara dan pop-up.</p>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="550">
+                    <div class="feature-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2">
                         <div class="feature-icon" style="background: #e2e3e5; color: #383d41;">
                             <i class="bi bi-graph-up-arrow"></i>
                         </div>
@@ -717,8 +760,8 @@
                         <p data-i18n="feat.report_desc">Rekap transaksi, laba, dan stok dalam satu klik. Ekspor data ke PDF & Excel dengan mudah.</p>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="650">
+                    <div class="feature-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2">
                         <div class="feature-icon" style="background: #d1ecf1; color: #0c5460;">
                             <i class="bi bi-display-fill"></i>
                         </div>
@@ -732,15 +775,19 @@
 
 
     <!-- About Us — Tim Pengembang -->
-    <section class="features" id="tentang" style="background: white;">
-        <div class="container">
-            <h2 class="section-title" data-i18n="about.title">Tim Pengembang</h2>
-            <p class="section-subtitle" data-i18n="about.subtitle">Kami adalah 4 siswa dari konsentrasi Rekayasa Perangkat Lunak (RPL) SMKN 10 Surabaya yang berkolaborasi membangun sistem ini sebagai proyek nyata. Setiap anggota membawa peran dan keahlian masing-masing untuk mewujudkan SMEGABIZ.</p>
+    <section class="features" id="tentang" style="background: white; position: relative; overflow: hidden;">
+        <!-- Decorative blobs -->
+        <div style="position: absolute; top: -50px; left: 10%; width: 250px; height: 250px; background: rgba(0,255,100,0.05); filter: blur(60px); border-radius: 50%;"></div>
+        <div style="position: absolute; bottom: 50px; right: 5%; width: 300px; height: 300px; background: rgba(255,200,0,0.05); filter: blur(60px); border-radius: 50%;"></div>
+
+        <div class="container" style="position: relative; z-index: 2;">
+            <h2 class="section-title text-gradient-dark" data-i18n="about.title" data-aos="fade-up" style="font-size: 2.5rem; letter-spacing: -1px;">Tim Pengembang</h2>
+            <p class="section-subtitle mb-5" data-i18n="about.subtitle" data-aos="fade-up" data-aos-delay="100" style="font-size: 1.1rem;">Kami adalah 4 siswa dari konsentrasi Rekayasa Perangkat Lunak (RPL) SMKN 10 Surabaya yang berkolaborasi membangun sistem ini sebagai proyek nyata. Setiap anggota membawa peran dan keahlian masing-masing untuk mewujudkan SMEGABIZ.</p>
 
             <div class="row g-4 justify-content-center">
 
                     {{-- Member 1: Engineer --}}
-                <div class="col-md-6 col-lg-3">
+                <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="150">
                     <div class="team-card-container" onclick="this.classList.toggle('flipped')">
                         <div class="team-card-flipper" style="--card-color: #ff0000; --card-rgb: 111, 66, 193;">
                             <div class="team-card-front">
@@ -775,8 +822,8 @@
                 </div>
 
                 {{-- Member 2: Project Manager --}}
-                <div class="col-md-6 col-lg-3">
-                    <div class="team-card-container" onclick="this.classList.toggle('flipped')">
+                <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="250">
+                    <div class="team-card-container" onclick="this.classList.toggle('flipped')" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-perspective="1000" data-tilt-scale="1.05">
                         <div class="team-card-flipper" style="--card-color: #cd6beb; --card-rgb: 220, 53, 69;">
                             <div class="team-card-front">
                                 <div class="team-avatar">
@@ -809,8 +856,8 @@
                 </div>
 
                 {{-- Member 3: System Analyst --}}
-                <div class="col-md-6 col-lg-3">
-                    <div class="team-card-container" onclick="this.classList.toggle('flipped')">
+                <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="350">
+                    <div class="team-card-container" onclick="this.classList.toggle('flipped')" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-perspective="1000" data-tilt-scale="1.05">
                         <div class="team-card-flipper" style="--card-color: #0d6efd; --card-rgb: 13, 110, 253;">
                             <div class="team-card-front">
                                 <div class="team-avatar">
@@ -845,8 +892,8 @@
                 </div>
 
                 {{-- Member 4: Report Manager --}}
-                <div class="col-md-6 col-lg-3">
-                    <div class="team-card-container" onclick="this.classList.toggle('flipped')">
+                <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="450">
+                    <div class="team-card-container" onclick="this.classList.toggle('flipped')" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-perspective="1000" data-tilt-scale="1.05">
                         <div class="team-card-flipper" style="--card-color: #ffc107; --card-rgb: 255, 193, 7;">
                             <div class="team-card-front">
                                 <div class="team-avatar">
@@ -886,35 +933,43 @@
     </section>
 
     <!-- Login Section -->
-    <section class="login-section" id="login" style="background: var(--light-bg);">
-        <div class="container">
-            <h2 class="section-title mb-2" style="font-weight: 800;" data-i18n="login.title">Masuk ke Sistem</h2>
-            <p class="section-subtitle mb-4" data-i18n="login.subtitle">Pilih sesuai peran Anda</p>
+    <section class="login-section" id="login" style="background: var(--light-bg); position: relative; overflow: hidden;">
+        <!-- Decorative blobs -->
+        <div style="position: absolute; top: -100px; left: -100px; width: 300px; height: 300px; background: rgba(255,0,0,0.05); filter: blur(50px); border-radius: 50%;"></div>
+        <div style="position: absolute; bottom: -100px; right: -100px; width: 400px; height: 400px; background: rgba(0,0,255,0.03); filter: blur(60px); border-radius: 50%;"></div>
+        
+        <div class="container" style="position: relative; z-index: 2;">
+            <h2 class="section-title mb-2 text-gradient-dark" style="font-size: 2.5rem; letter-spacing: -1px; font-weight: 800;" data-i18n="login.title" data-aos="fade-up">Masuk ke Sistem</h2>
+            <p class="section-subtitle mb-5" data-i18n="login.subtitle" data-aos="fade-up" data-aos-delay="100" style="font-size: 1.1rem;">Pilih sesuai peran Anda</p>
             <div class="row g-4 justify-content-center">
                 <!-- Staff Login -->
-                <div class="col-md-5">
-                    <div class="login-card">
+                <div class="col-md-5" data-aos="fade-right" data-aos-delay="200">
+                    <div class="login-card" data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.1">
                         <div class="icon-wrapper" style="background: #fff3cd; color: #856404;">
                             <i class="bi bi-person-badge-fill"></i>
                         </div>
                         <h4 data-i18n="login.staff_title">Login Staf</h4>
                         <p data-i18n="login.staff_desc">Untuk admin dan kasir. Kelola toko, transaksi, stok, dan laporan.</p>
-                        <a href="{{ route('staff.login') }}" class="btn-login-outline">
-                            <i class="bi bi-box-arrow-in-right"></i> <span data-i18n="login.staff_btn">Login Staf</span>
-                        </a>
+                        <div class="btn-login-wrapper">
+                            <a href="{{ route('staff.login') }}" class="btn-login-outline">
+                                <i class="bi bi-box-arrow-in-right"></i> <span data-i18n="login.staff_btn">Login Staf</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <!-- Customer Login -->
-                <div class="col-md-5">
-                    <div class="login-card">
+                <div class="col-md-5" data-aos="fade-left" data-aos-delay="300">
+                    <div class="login-card" data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.1">
                         <div class="icon-wrapper" style="background: #d4edda; color: #155724;">
                             <i class="bi bi-bag-heart-fill"></i>
                         </div>
                         <h4 data-i18n="login.cust_title">Login Pelanggan</h4>
                         <p data-i18n="login.cust_desc">Untuk memesan makanan secara online. Akun diberikan oleh kasir toko.</p>
-                        <a href="{{ route('pelanggan.login') }}" class="btn-login-primary">
-                            <i class="bi bi-bag-heart"></i> <span data-i18n="login.cust_btn">Login Pelanggan</span>
-                        </a>
+                        <div class="btn-login-wrapper">
+                            <a href="{{ route('pelanggan.login') }}" class="btn-login-primary">
+                                <i class="bi bi-bag-heart"></i> <span data-i18n="login.cust_btn">Login Pelanggan</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -930,7 +985,23 @@
 
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/i18next.min.js') }}"></script>
+    <!-- AOS Animate On Scroll JS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- VanillaTilt JS (Efek 3D Apple-like) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     <script>
+        // Init AOS
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    once: true,
+                    offset: 50,
+                    duration: 800,
+                    easing: 'ease-out-cubic'
+                });
+            }
+        });
+
         // Smooth scroll
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
