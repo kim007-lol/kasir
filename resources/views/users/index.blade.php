@@ -9,13 +9,22 @@
             <i class="bi bi-person-gear"></i> Kelola User
         </h2>
         <div class="d-flex gap-2 flex-wrap">
-            <a href="{{ route('users.pelanggan.template') }}" class="btn btn-outline-success btn-sm fw-bold">
+            <!-- <a href="{{ route('users.pelanggan.template') }}" class="btn btn-outline-success btn-sm fw-bold">
                 <i class="bi bi-download"></i> Template Excel
             </a>
             <button type="button" class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#importModal">
                 <i class="bi bi-upload"></i> Import Pelanggan
             </button>
             <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm fw-bold text-white">
+                <i class="bi bi-plus-circle"></i> Tambah User
+            </a> -->
+            <a href="{{ route('users.pelanggan.template') }}" class="btn btn-outline-success fw-bold">
+                <i class="bi bi-download"></i> Template Excel
+            </a>
+            <button type="button" class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bi bi-upload"></i> Import Pelanggan
+            </button>
+            <a href="{{ route('users.create') }}" class="btn btn-primary fw-bold text-white">
                 <i class="bi bi-plus-circle"></i> Tambah User
             </a>
         </div>
