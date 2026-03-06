@@ -7,7 +7,10 @@
     <style>
         /* Apply 70% zoom only on Desktop screens (width > 991px) */
         @media (min-width: 992px) {
-            html {
+            /* html {
+                zoom: 70%;
+            } */
+            .container {
                 zoom: 70%;
             }
         }

@@ -95,7 +95,7 @@
 
 
         /* Print Optimization */
-        @media print {
+        /* @media print {
             body {
                 width: 100%;
                 padding: 0;
@@ -109,6 +109,43 @@
 
             .no-print {
                 display: none !important;
+            }
+        } */
+        @media print {
+            body {
+                background: white !important;
+                margin: 10px auto;
+                padding: 0;
+            }
+
+            @page {
+                margin: 0;
+                size: 80mm auto;
+                /* Allow printer to determine size, or use 80mm if needed */
+            }
+
+            .receipt-container {
+                width: 100%;
+                max-width: 100%;
+                padding: 0;
+                border: none;
+                box-shadow: none;
+                margin: 0 auto;
+            }
+
+            /* Hide everything else */
+            .action-buttons {
+                display: none !important;
+            }
+
+            /* Ensure texts are black */
+            * {
+                color: #000 !important;
+            }
+
+            .text-green {
+                color: #000 !important;
+                /* Force black for thermal printing */
             }
         }
 

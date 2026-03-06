@@ -324,7 +324,7 @@ class CashierItemController extends Controller
             ->when($categoryId, function ($query) use ($categoryId) {
                 $query->where('category_id', $categoryId);
             })
-            ->orderByRaw('created_at DESC');
+            ->orderByRaw('name asc');
 
         $cashierItems = $query->paginate(15);
         $categories = \App\Models\Category::orderBy('name')->get();
