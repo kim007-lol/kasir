@@ -111,6 +111,7 @@ class CashierItemController extends Controller
                         'selling_price' => $warehouse->final_price,
                         'name' => $warehouse->name,
                         'code' => $warehouse->code,
+                        'expiry_date'=>$warehouse->exp_date,
                     ];
 
                     // Jika user (admin) spesifik mengisi angka diskon, update nilai diskonnya
@@ -142,7 +143,8 @@ class CashierItemController extends Controller
                         'name' => $warehouse->name,
                         'selling_price' => $warehouse->final_price,
                         'discount' => $inputDiscount !== null ? (float) $inputDiscount : 0,
-                        'stock' => $validated['quantity']
+                        'stock' => $validated['quantity'],
+                        'expiry_date'=>$warehouse->exp_date,
                     ]);
 
                     // Log Transfer In (New)
@@ -289,7 +291,11 @@ class CashierItemController extends Controller
 
                 $warehouse->increment('stock', $cashierItem->stock);
             }
-
+            // Membuat stok menjadi 0
+            $updateStok = [
+             'stock'=> 0,
+            ];
+            $cashierItem->update($updateStok);
             // Hapus item kasir
             $cashierItem->delete();
         });
@@ -388,6 +394,7 @@ class CashierItemController extends Controller
                         'selling_price' => $warehouse->final_price,
                         'name' => $warehouse->name,
                         'code' => $warehouse->code,
+                        'expiry_date' => $warehouse->exp_date,
                     ];
 
                     // Jika user mengisi angka diskon, update nilai diskonnya
@@ -419,7 +426,8 @@ class CashierItemController extends Controller
                         'name' => $warehouse->name,
                         'selling_price' => $warehouse->final_price,
                         'discount' => $inputDiscount !== null ? (float) $inputDiscount : 0,
-                        'stock' => $validated['quantity']
+                        'stock' => $validated['quantity'],
+                        'expiry_date' => $warehouse->exp_date,
                     ]);
 
                     // Log Transfer In (New)
