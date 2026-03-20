@@ -116,24 +116,39 @@ class WarehouseController extends Controller
 
         $validated['discount'] = 0; // Force discount to 0
 
-        DB::transaction(function () use ($validated, $warehouse) {
-            $oldStock = $warehouse->stock;
-            $warehouse->update($validated);
+        try {
+            DB::transaction(function () use ($validated, $warehouse) {
+                $oldStock = $warehouse->stock;
+                $stockDifference = $validated['stock'] - $oldStock;
 
-            // Jika ada penambahan stok, catat di stock_entries
-            $stockDifference = $validated['stock'] - $oldStock;
-            if ($stockDifference > 0) {
-                StockEntry::create([
-                    'warehouse_item_id' => $warehouse->id,
-                    'supplier_id' => $validated['supplier_id'],
-                    'quantity' => $stockDifference,
-                    'entry_date' => now()->toDateString()
-                ]);
-            }
-        });
+                // FIX BUG-REPORT #2: Cegah pengurangan stok langsung via form Edit.
+                // Admin harus menggunakan menu Penyesuaian Stok (Opname) agar tercatat audit trail.
+                if ($stockDifference < 0) {
+                    throw new \Exception(
+                        'Pengurangan stok tidak diperbolehkan melalui form Edit. '
+                        . 'Gunakan menu "Penyesuaian Stok (Opname)" untuk mengurangi stok agar tercatat riwayatnya. '
+                        . 'Stok saat ini: ' . $oldStock
+                    );
+                }
 
-        $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
-        return redirect()->route($routePrefix . 'warehouse.index')->with('success', 'Barang gudang berhasil diperbarui');
+                $warehouse->update($validated);
+
+                // Jika ada penambahan stok, catat di stock_entries
+                if ($stockDifference > 0) {
+                    StockEntry::create([
+                        'warehouse_item_id' => $warehouse->id,
+                        'supplier_id' => $validated['supplier_id'],
+                        'quantity' => $stockDifference,
+                        'entry_date' => now()->toDateString()
+                    ]);
+                }
+            });
+
+            $routePrefix = auth()->user()->role === 'kasir' ? 'cashier.' : '';
+            return redirect()->route($routePrefix . 'warehouse.index')->with('success', 'Barang gudang berhasil diperbarui');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
     public function destroy(WarehouseItem $warehouse): RedirectResponse

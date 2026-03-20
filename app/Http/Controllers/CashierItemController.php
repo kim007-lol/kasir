@@ -96,18 +96,22 @@ class CashierItemController extends Controller
                 $warehouse->decrement('stock', $validated['quantity']);
 
                 // Cek apakah item sudah ada di kasir (termasuk yang soft-deleted)
-                $cashierItem = CashierItem::withTrashed()->where('warehouse_item_id', $warehouse->id)->first();
+                // FIX BUG-REPORT #4: Tambahkan lockForUpdate agar tidak ada race condition
+                $cashierItem = CashierItem::withTrashed()->where('warehouse_item_id', $warehouse->id)->lockForUpdate()->first();
 
                 if ($cashierItem) {
                     // Restore jika soft-deleted
                     if ($cashierItem->trashed()) {
                         $cashierItem->restore();
+                        // CRITICAL: Reset stok ke 0 karena stok lama sudah dikembalikan ke gudang saat dihapus
+                        $cashierItem->stock = 0;
                     }
-                    // Update stok kasir yang sudah ada
-                    $cashierItem->increment('stock', $validated['quantity']);
+                    // Tambahkan stok baru
+                    $cashierItem->stock += $validated['quantity'];
 
                     // Siapkan array data update
                     $updateData = [
+                        'stock' => $cashierItem->stock,
                         'selling_price' => $warehouse->final_price,
                         'name' => $warehouse->name,
                         'code' => $warehouse->code,
@@ -290,7 +294,11 @@ class CashierItemController extends Controller
                 $warehouse->increment('stock', $cashierItem->stock);
             }
 
-            // Hapus item kasir
+            // Reset stok ke 0 sebelum soft-delete agar tidak ada 'stok hantu'
+            $cashierItem->stock = 0;
+            $cashierItem->save();
+
+            // Hapus item kasir (soft-delete)
             $cashierItem->delete();
         });
 
@@ -324,7 +332,7 @@ class CashierItemController extends Controller
             ->when($categoryId, function ($query) use ($categoryId) {
                 $query->where('category_id', $categoryId);
             })
-            ->orderByRaw('created_at DESC');
+            ->orderByRaw('name asc');
 
         $cashierItems = $query->paginate(15);
         $categories = \App\Models\Category::orderBy('name')->get();
@@ -362,8 +370,10 @@ class CashierItemController extends Controller
                 // Cek apakah diskon melebihi atau sama dengan harga jual
                 if ($inputDiscount !== null && $inputDiscount >= $warehouse->final_price) {
                     throw new \Exception('Potongan harga (Rp ' . number_format($inputDiscount, 0, ',', '.') . ') tidak boleh melebihi atau sama dengan harga jual barang (Rp ' . number_format($warehouse->final_price, 0, ',', '.') . ').');
+                    }
+                if($inputDiscount !== null && $inputDiscount < 0) {
+                    throw new \Exception('Potongan harga tidak boleh bernilai negatif.');
                 }
-
                 // Check if stock is sufficient
                 if ($warehouse->stock < $validated['quantity']) {
                     throw new \Exception('Stok gudang tidak cukup. Stok tersedia: ' . $warehouse->stock);
@@ -373,18 +383,22 @@ class CashierItemController extends Controller
                 $warehouse->decrement('stock', $validated['quantity']);
 
                 // Check if item already exists in cashier (including soft-deleted)
-                $cashierItem = CashierItem::withTrashed()->where('warehouse_item_id', $warehouse->id)->first();
+                // FIX BUG-REPORT #4: Tambahkan lockForUpdate agar tidak ada race condition
+                $cashierItem = CashierItem::withTrashed()->where('warehouse_item_id', $warehouse->id)->lockForUpdate()->first();
 
                 if ($cashierItem) {
                     // Restore jika soft-deleted
                     if ($cashierItem->trashed()) {
                         $cashierItem->restore();
+                        // CRITICAL: Reset stok ke 0 karena stok lama sudah dikembalikan ke gudang saat dihapus
+                        $cashierItem->stock = 0;
                     }
-                    // Update existing cashier stock
-                    $cashierItem->increment('stock', $validated['quantity']);
+                    // Tambahkan stok baru
+                    $cashierItem->stock += $validated['quantity'];
 
                     // Siapkan array data update
                     $updateData = [
+                        'stock' => $cashierItem->stock,
                         'selling_price' => $warehouse->final_price,
                         'name' => $warehouse->name,
                         'code' => $warehouse->code,

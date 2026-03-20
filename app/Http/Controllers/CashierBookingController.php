@@ -62,18 +62,22 @@ class CashierBookingController extends Controller
 
         try {
             DB::transaction(function () use ($booking) {
-                // BUG-04: Kurangi stok saat kasir menerima pesanan (bukan saat pelanggan membuat pesanan)
-                foreach ($booking->items as $bookingItem) {
+                // FIX BUG-R2 #2: Lock booking untuk mencegah double-accept
+                $lockedBooking = Booking::where('id', $booking->id)->lockForUpdate()->first();
+
+                if (!$lockedBooking || !$lockedBooking->canBeAccepted()) {
+                    throw new \Exception('Pesanan ini sudah diproses oleh kasir lain (status: ' . ($lockedBooking ? $lockedBooking->status_label : 'Tidak Ditemukan') . ')');
+                }
+
+                // Verifikasi stok masih valid
+                foreach ($lockedBooking->items as $bookingItem) {
                     $item = CashierItem::find($bookingItem->cashier_item_id);
-                    if ($item) {
-                        if ($item->stock < $bookingItem->qty) {
-                            throw new \Exception("Stok {$item->name} tidak mencukupi (Tersedia: {$item->stock}).");
-                        }
-                        $item->decrement('stock', $bookingItem->qty);
+                    if ($item && $item->stock < 0) {
+                        throw new \Exception("Stok {$item->name} bermasalah (negatif: {$item->stock}). Hubungi admin.");
                     }
                 }
 
-                $booking->update(['status' => 'confirmed']);
+                $lockedBooking->update(['status' => 'confirmed']);
             });
 
             return back()->with('success', "Pesanan {$booking->booking_code} diterima!");
@@ -102,13 +106,12 @@ class CashierBookingController extends Controller
                     throw new \Exception('Pesanan ini sudah tidak bisa ditolak (status: ' . ($lockedBooking ? $lockedBooking->status_label : 'Tidak Ditemukan') . ')');
                 }
 
-                // BUG-04: Stok dikurangi saat accept, jadi HANYA kembalikan saat reject/cancel JIKA statusnya bukan pending
-                if ($lockedBooking->status !== 'pending') {
-                    foreach ($lockedBooking->items as $bookingItem) {
-                        $cashierItem = CashierItem::find($bookingItem->cashier_item_id);
-                        if ($cashierItem) {
-                            $cashierItem->increment('stock', $bookingItem->qty);
-                        }
+                // FIX BUG-REPORT #1: Stok sudah dikurangi saat placeOrder,
+                // jadi SELALU kembalikan stok saat pesanan ditolak/dibatalkan
+                foreach ($lockedBooking->items as $bookingItem) {
+                    $cashierItem = CashierItem::find($bookingItem->cashier_item_id);
+                    if ($cashierItem) {
+                        $cashierItem->increment('stock', $bookingItem->qty);
                     }
                 }
 
@@ -133,8 +136,18 @@ class CashierBookingController extends Controller
             return back()->with('error', 'Pesanan harus dikonfirmasi terlebih dahulu');
         }
 
-        $booking->update(['status' => 'processing']);
-        return back()->with('success', "Pesanan {$booking->booking_code} sedang diproses.");
+        try {
+            DB::transaction(function () use ($booking) {
+                $locked = Booking::where('id', $booking->id)->lockForUpdate()->first();
+                if (!$locked || $locked->status !== 'confirmed') {
+                    throw new \Exception('Pesanan sudah diproses oleh kasir lain.');
+                }
+                $locked->update(['status' => 'processing']);
+            });
+            return back()->with('success', "Pesanan {$booking->booking_code} sedang diproses.");
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -147,8 +160,18 @@ class CashierBookingController extends Controller
         }
 
         if ($booking->delivery_type === 'pickup') {
-            $booking->update(['status' => 'ready']);
-            return back()->with('success', "Pesanan {$booking->booking_code} siap diambil pelanggan.");
+            try {
+                DB::transaction(function () use ($booking) {
+                    $locked = Booking::where('id', $booking->id)->lockForUpdate()->first();
+                    if (!$locked || $locked->status !== 'processing') {
+                        throw new \Exception('Pesanan sudah diproses oleh kasir lain.');
+                    }
+                    $locked->update(['status' => 'ready']);
+                });
+                return back()->with('success', "Pesanan {$booking->booking_code} siap diambil pelanggan.");
+            } catch (\Exception $e) {
+                return back()->with('error', $e->getMessage());
+            }
         }
 
         // Delivery Flow
@@ -160,35 +183,47 @@ class CashierBookingController extends Controller
 
         try {
             $transaction = DB::transaction(function () use ($booking, $request) {
+                // FIX BUG-R2 #3: Lock booking + cek duplikat transaksi
+                $lockedBooking = Booking::where('id', $booking->id)->lockForUpdate()->first();
+
+                if (!$lockedBooking || $lockedBooking->status !== 'processing') {
+                    throw new \Exception('Pesanan sudah diproses oleh kasir lain (status: ' . ($lockedBooking ? $lockedBooking->status_label : 'Tidak Ditemukan') . ')');
+                }
+
+                // Cegah duplikat transaksi
+                if (Transaction::where('booking_id', $lockedBooking->id)->exists()) {
+                    throw new \Exception('Transaksi untuk pesanan ini sudah pernah dibuat.');
+                }
+
                 // Generate invoice
                 $invoice = 'INV-' . date('YmdHis') . '-' . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
 
                 // Find linked member via user
-                $member = $booking->user?->member;
+                $member = $lockedBooking->user?->member;
 
-                $paymentMethod = $booking->payment_method ?? 'cash';
-                $paidAmount = $paymentMethod === 'cash' ? ($booking->amount_paid ?? $booking->total) : $booking->total;
-                $changeAmount = $paymentMethod === 'cash' ? ($paidAmount - $booking->total) : 0;
+                $paymentMethod = $lockedBooking->payment_method ?? 'cash';
+                $paidAmount = $paymentMethod === 'cash' ? ($lockedBooking->amount_paid ?? $lockedBooking->total) : $lockedBooking->total;
+                $changeAmount = $paymentMethod === 'cash' ? ($paidAmount - $lockedBooking->total) : 0;
 
                 // Create Transaction record
                 $transaction = Transaction::create([
                     'invoice' => $invoice,
-                    'customer_name' => $booking->customer_name,
+                    'customer_name' => $lockedBooking->customer_name,
                     'member_id' => $member?->id,
-                    'total' => $booking->total,
-                    'paid_amount' => $paidAmount, // Fully paid
+                    'total' => $lockedBooking->total,
+                    'paid_amount' => $paidAmount,
                     'change_amount' => $changeAmount,
                     'payment_method' => $paymentMethod,
                     'discount_percent' => 0,
                     'discount_amount' => 0,
-                    'user_id' => Auth::id(), // Kasir who completed it
-                    'cashier_name' => $request->assignee_name, // Kurir name instead for delivery
+                    'user_id' => Auth::id(),
+                    'cashier_name' => $request->assignee_name,
                     'source' => 'online',
-                    'booking_id' => $booking->id,
+                    'booking_id' => $lockedBooking->id,
                 ]);
 
                 // Create TransactionDetail for each booking item
-                foreach ($booking->items as $bookingItem) {
+                foreach ($lockedBooking->items as $bookingItem) {
                     $cashierItem = CashierItem::find($bookingItem->cashier_item_id);
 
                     $purchasePrice = 0;
@@ -204,7 +239,7 @@ class CashierBookingController extends Controller
                         'transaction_id' => $transaction->id,
                         'item_id' => $bookingItem->cashier_item_id,
                         'price' => $bookingItem->price,
-                        'original_price' => $bookingItem->price, // snapshot from booking
+                        'original_price' => $bookingItem->price,
                         'discount' => 0,
                         'qty' => $bookingItem->qty,
                         'subtotal' => $bookingItem->subtotal,
@@ -212,7 +247,7 @@ class CashierBookingController extends Controller
                     ]);
                 }
 
-                $booking->update([
+                $lockedBooking->update([
                     'status' => 'ready',
                     'payment_method' => $paymentMethod,
                     'amount_paid' => $paidAmount,
@@ -239,9 +274,13 @@ class CashierBookingController extends Controller
 
         if ($booking->delivery_type === 'delivery') {
             try {
-                $booking->update([
-                    'status' => 'completed',
-                ]);
+                DB::transaction(function () use ($booking) {
+                    $locked = Booking::where('id', $booking->id)->lockForUpdate()->first();
+                    if (!$locked || !$locked->canBeCompleted()) {
+                        throw new \Exception('Pesanan sudah diselesaikan oleh kasir lain.');
+                    }
+                    $locked->update(['status' => 'completed']);
+                });
                 return back()->with('success', "Pesanan {$booking->booking_code} telah diserahkan (Selesai).");
             } catch (\Exception $e) {
                 return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
@@ -261,35 +300,47 @@ class CashierBookingController extends Controller
 
         try {
             $transaction = DB::transaction(function () use ($booking, $request) {
+                // FIX BUG-R2 #7: Lock booking + cek duplikat transaksi
+                $lockedBooking = Booking::where('id', $booking->id)->lockForUpdate()->first();
+
+                if (!$lockedBooking || !$lockedBooking->canBeCompleted()) {
+                    throw new \Exception('Pesanan sudah diselesaikan oleh kasir lain (status: ' . ($lockedBooking ? $lockedBooking->status_label : 'Tidak Ditemukan') . ')');
+                }
+
+                // Cegah duplikat transaksi
+                if (Transaction::where('booking_id', $lockedBooking->id)->exists()) {
+                    throw new \Exception('Transaksi untuk pesanan ini sudah pernah dibuat.');
+                }
+
                 // Generate invoice
                 $invoice = 'INV-' . date('YmdHis') . '-' . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
 
                 // Find linked member via user
-                $member = $booking->user?->member;
+                $member = $lockedBooking->user?->member;
 
                 $paymentMethod = $request->payment_method;
-                $paidAmount = $paymentMethod === 'cash' ? $request->paid_amount : $booking->total;
-                $changeAmount = $paymentMethod === 'cash' ? ($paidAmount - $booking->total) : 0;
+                $paidAmount = $paymentMethod === 'cash' ? $request->paid_amount : $lockedBooking->total;
+                $changeAmount = $paymentMethod === 'cash' ? ($paidAmount - $lockedBooking->total) : 0;
 
                 // Create Transaction record
                 $transaction = Transaction::create([
                     'invoice' => $invoice,
-                    'customer_name' => $booking->customer_name,
+                    'customer_name' => $lockedBooking->customer_name,
                     'member_id' => $member?->id,
-                    'total' => $booking->total,
-                    'paid_amount' => $paidAmount, // Fully paid
+                    'total' => $lockedBooking->total,
+                    'paid_amount' => $paidAmount,
                     'change_amount' => $changeAmount,
                     'payment_method' => $paymentMethod,
                     'discount_percent' => 0,
                     'discount_amount' => 0,
-                    'user_id' => Auth::id(), // Kasir who completed it
+                    'user_id' => Auth::id(),
                     'cashier_name' => $request->assignee_name,
                     'source' => 'online',
-                    'booking_id' => $booking->id,
+                    'booking_id' => $lockedBooking->id,
                 ]);
 
                 // Create TransactionDetail for each booking item
-                foreach ($booking->items as $bookingItem) {
+                foreach ($lockedBooking->items as $bookingItem) {
                     $cashierItem = CashierItem::find($bookingItem->cashier_item_id);
 
                     $purchasePrice = 0;
@@ -305,7 +356,7 @@ class CashierBookingController extends Controller
                         'transaction_id' => $transaction->id,
                         'item_id' => $bookingItem->cashier_item_id,
                         'price' => $bookingItem->price,
-                        'original_price' => $bookingItem->price, // snapshot from booking
+                        'original_price' => $bookingItem->price,
                         'discount' => 0,
                         'qty' => $bookingItem->qty,
                         'subtotal' => $bookingItem->subtotal,
@@ -313,7 +364,7 @@ class CashierBookingController extends Controller
                     ]);
                 }
 
-                $booking->update([
+                $lockedBooking->update([
                     'status' => 'completed',
                     'payment_method' => $paymentMethod,
                     'amount_paid' => $paidAmount,

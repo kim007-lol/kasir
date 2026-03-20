@@ -144,6 +144,8 @@ class TransactionController extends Controller
 
         $cart = session()->get('cart', []);
         $total = $this->calculateTotal($cart);
+        // FIX BUG-REPORT #3: Simpan ulang cart ke session setelah harga dimutakhirkan dari DB
+        session()->put('cart', $cart);
 
         if ($request->ajax()) {
             /** @var \Illuminate\View\View $view */
