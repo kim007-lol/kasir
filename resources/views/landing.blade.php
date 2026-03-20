@@ -225,38 +225,18 @@
         }
 
         .lanyard-team-container {
-            display: grid;
-            grid-template-columns: repeat(3, 250px);
+            display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            row-gap: 0;
-            column-gap: 3rem;
+            gap: 1.5rem; /* Dikurangi agar 4 card muat sebaris */
             padding-top: 2rem;
             padding-bottom: 3rem;
-        }
-
-        .lanyard-wrapper.pm { grid-column: 2; grid-row: 1; z-index: 4; }
-        .lanyard-wrapper.prog { grid-column: 1; grid-row: 1; margin-top: 220px; z-index: 3; }
-        .lanyard-wrapper.sa { grid-column: 3; grid-row: 1; margin-top: 220px; z-index: 3; }
-        .lanyard-wrapper.ux { grid-column: 2; grid-row: 2; margin-top: -180px; z-index: 2; }
-
-        @media (max-width: 991px) {
-            .lanyard-team-container {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 2.5rem;
-                padding-top: 2rem;
-                padding-bottom: 2rem;
-            }
-            .lanyard-wrapper.pm, .lanyard-wrapper.prog, .lanyard-wrapper.sa, .lanyard-wrapper.ux {
-                margin-top: 0;
-            }
         }
 
         .lanyard-wrapper {
             perspective: 1000px;
             position: relative;
-            width: 250px;
+            width: 230px; /* Diperkecil dari 250px agar muat 4 baris */
             animation: lanyard-swing 4s ease-in-out infinite;
             transform-origin: top center;
             z-index: 2;
@@ -782,11 +762,11 @@
                 </div>
                 <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="650">
                     <div class="feature-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2">
-                        <div class="feature-icon" style="background: #d1ecf1; color: #0c5460;">
-                            <i class="bi bi-display-fill"></i>
+                        <div class="feature-icon" style="background: #e9ecef; color: #cc0000; border: 1px solid rgba(204,0,0,0.1);">
+                            <i class="bi bi-robot"></i>
                         </div>
-                        <h5 data-i18n="feat.display_title">Layar Pelanggan</h5>
-                        <p data-i18n="feat.display_desc">Tingkatkan kepercayaan dengan monitor khusus untuk transparansi transaksi pelanggan.</p>
+                        <h5 data-i18n="feat.ai_title">Tanya Toko AI</h5>
+                        <p data-i18n="feat.ai_desc">Asisten AI pintar untuk analisis bisnis, stok, dan performa penjualan secara instan.</p>
                     </div>
                 </div>
             </div>
@@ -809,7 +789,7 @@
             <div class="lanyard-team-container">
 
                 {{-- Member 1: Engineer --}}
-                <div class="lanyard-wrapper prog" data-aos="zoom-in" data-aos-delay="150" data-aos-offset="0">
+                <div class="lanyard-wrapper" data-aos="zoom-in" data-aos-delay="150" data-aos-offset="0">
                     <div class="lanyard-string"></div>
                     <div class="lanyard-card" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2" style="--card-color: #e60000; --card-rgb: 230, 0, 0;">
                         <div class="lanyard-avatar">
@@ -827,7 +807,7 @@
                 </div>
 
                 {{-- Member 2: Project Manager --}}
-                <div class="lanyard-wrapper pm" data-aos="zoom-in" data-aos-delay="250" data-aos-offset="0">
+                <div class="lanyard-wrapper" data-aos="zoom-in" data-aos-delay="250" data-aos-offset="0">
                     <div class="lanyard-string"></div>
                     <div class="lanyard-card" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2" style="--card-color: #6f42c1; --card-rgb: 111, 66, 193;">
                         <div class="lanyard-avatar">
@@ -835,7 +815,8 @@
                         </div>
                         <h5 class="lanyard-name">Syifa Rizka Angeli</h5>
                         <div class="lanyard-role">Project Manager</div>
-                        <p class="lanyard-desc" data-i18n="team.pm_desc">Mengatur timeline, komunikasi tim, dan memastikan project rilis tepat pada waktunya.</p>
+                        {{-- <p class="lanyard-desc" data-i18n="team.pm_desc">Mengatur timeline, komunikasi tim, dan memastikan project rilis tepat pada waktunya.</p> --}}
+                        <p class="lanyard-desc">Mengatur timeline, komunikasi tim, dan tepat waktu.</p>
                         <div class="lanyard-social">
                             <a href="#" title="Instagram"><i class="bi bi-instagram"></i></a>
                             <a href="#" title="Email"><i class="bi bi-envelope-fill"></i></a>
@@ -844,7 +825,7 @@
                 </div>
 
                 {{-- Member 3: System Analyst --}}
-                <div class="lanyard-wrapper sa" data-aos="zoom-in" data-aos-delay="350" data-aos-offset="0">
+                <div class="lanyard-wrapper" data-aos="zoom-in" data-aos-delay="350" data-aos-offset="0">
                     <div class="lanyard-string"></div>
                     <div class="lanyard-card" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2" style="--card-color: #0d6efd; --card-rgb: 13, 110, 253;">
                         <div class="lanyard-avatar">
@@ -861,7 +842,7 @@
                 </div>
 
                 {{-- Member 4: UI/UX Designer --}}
-                <div class="lanyard-wrapper ux" data-aos="zoom-in" data-aos-delay="450" data-aos-offset="0">
+                <div class="lanyard-wrapper" data-aos="zoom-in" data-aos-delay="450" data-aos-offset="0">
                     <div class="lanyard-string"></div>
                     <div class="lanyard-card" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2" style="--card-color: #ffc107; --card-rgb: 255, 193, 7;">
                         <div class="lanyard-avatar" style="color: #d39e00;">
@@ -988,7 +969,9 @@
                     report_title: "Laporan Bisnis",
                     report_desc: "Rekap transaksi, laba, dan stok harian hingga bulanan. Ekspor data ke PDF & Excel dengan mudah.",
                     display_title: "Layar Pelanggan",
-                    display_desc: "Tingkatkan kepercayaan dengan monitor khusus untuk transparansi rincian belanja pelanggan."
+                    display_desc: "Tingkatkan kepercayaan dengan monitor khusus untuk transparansi rincian belanja pelanggan.",
+                    ai_title: "Tanya Toko AI",
+                    ai_desc: "Tanya apa saja tentang bisnis Anda ke asisten AI mulai dari penjualan, stok, hingga performa toko secara real-time."
                 },
                 about: {
                     title: "Tim Pengembang",
@@ -1035,7 +1018,9 @@
                     report_title: "Business Reports",
                     report_desc: "Daily to monthly transaction, profit, and stock recaps. Easy export to PDF & Excel.",
                     display_title: "Customer Display",
-                    display_desc: "Boost trust with a dedicated monitor for real-time transaction detail transparency."
+                    display_desc: "Boost trust with a dedicated monitor for real-time transaction detail transparency.",
+                    ai_title: "Ask Shop AI",
+                    ai_desc: "Ask anything about your business to our AI assistant from sales, stock, to store performance in real-time."
                 },
                 about: {
                     title: "Development Team",

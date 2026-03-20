@@ -9,7 +9,7 @@
     </h2>
 
     <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i>
+        <i class="bi bi-info-circle"></i> 
         <strong>Catatan:</strong> Stok yang Anda transfer akan otomatis dikurangi dari gudang dan ditambahkan ke kasir menggunakan database transaction.
     </div>
 

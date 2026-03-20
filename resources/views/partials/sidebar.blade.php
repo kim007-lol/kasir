@@ -44,6 +44,10 @@
             <i class="bi bi-person-gear"></i>
             <span>Kelola User</span>
         </a>
+        <a href="{{ route('ai-chat.index') }}" class="@if(request()->routeIs('ai-chat.*')) active @endif">
+            <i class="bi bi-robot"></i>
+            <span>Tanya Toko AI</span>
+        </a>
     </nav>
     <hr class="bg-secondary my-3">
     <div class="logout-btn">

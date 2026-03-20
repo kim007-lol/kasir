@@ -12,7 +12,10 @@ $layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
         <h2 class="fw-bold mb-0">
             <i class="bi bi-people"></i> Kelola Member
         </h2>
-        <a href="{{ route($routePrefix . 'members.create') }}" class="btn btn-primary btn-sm fw-bold text-white">
+        <!-- <a href="{{ route($routePrefix . 'members.create') }}" class="btn btn-primary btn-sm fw-bold text-white">
+            <i class="bi bi-plus-circle"></i> Tambah Member
+        </a> -->
+        <a href="{{ route($routePrefix . 'members.create') }}" class="btn btn-primary fw-bold text-white">
             <i class="bi bi-plus-circle"></i> Tambah Member
         </a>
     </div>
