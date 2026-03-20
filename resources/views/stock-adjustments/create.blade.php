@@ -23,12 +23,33 @@
                     <form method="POST" action="{{ route($routePrefix . 'stock-adjustments.store') }}" id="adjustmentForm">
                         @csrf
 
-                        {{-- Select Item --}}
-                        <div class="mb-3 position-relative">
-                            <label class="form-label fw-semibold">Pilih Item <span class="text-danger">*</span></label>
-                            <select name="cashier_item_id" id="itemSelect" class="form-select @error('cashier_item_id') is-invalid @enderror" required>
-                                <option value="">-- Cari dan pilih item --</option>
-                                @foreach ($items as $item)
+                        {{-- Target: Gudang atau Kasir --}}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Target Penyesuaian <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="target" id="targetCashier" value="cashier"
+                                           {{ old('target', 'cashier') === 'cashier' ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold text-primary" for="targetCashier">
+                                        <i class="bi bi-shop"></i> Stok Item Kasir
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="target" id="targetWarehouse" value="warehouse"
+                                           {{ old('target') === 'warehouse' ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold text-warning" for="targetWarehouse">
+                                        <i class="bi bi-box-seam"></i> Stok Gudang
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Select Item Kasir --}}
+                        <div class="mb-3 position-relative" id="cashierItemContainer">
+                            <label class="form-label fw-semibold">Pilih Item Kasir <span class="text-danger">*</span></label>
+                            <select name="cashier_item_id" id="cashierItemSelect" class="form-select @error('cashier_item_id') is-invalid @enderror">
+                                <option value="">-- Cari dan pilih item kasir --</option>
+                                @foreach ($cashierItems as $item)
                                     <option value="{{ $item->id }}"
                                             data-stock="{{ $item->stock }}"
                                             data-code="{{ $item->code }}"
@@ -38,6 +59,25 @@
                                 @endforeach
                             </select>
                             @error('cashier_item_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- Select Item Gudang --}}
+                        <div class="mb-3 position-relative" id="warehouseItemContainer" style="display: none;">
+                            <label class="form-label fw-semibold">Pilih Item Gudang <span class="text-danger">*</span></label>
+                            <select name="warehouse_item_id" id="warehouseItemSelect" class="form-select @error('warehouse_item_id') is-invalid @enderror">
+                                <option value="">-- Cari dan pilih item gudang --</option>
+                                @foreach ($warehouseItems as $item)
+                                    <option value="{{ $item->id }}"
+                                            data-stock="{{ $item->stock }}"
+                                            data-code="{{ $item->code }}"
+                                            {{ old('warehouse_item_id') == $item->id ? 'selected' : '' }}>
+                                        [{{ $item->code }}] {{ $item->name }} — Stok: {{ $item->stock }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('warehouse_item_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -140,34 +180,77 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const itemSelect = document.getElementById('itemSelect');
+        const cashierItemSelect = document.getElementById('cashierItemSelect');
+        const warehouseItemSelect = document.getElementById('warehouseItemSelect');
+        const cashierContainer = document.getElementById('cashierItemContainer');
+        const warehouseContainer = document.getElementById('warehouseItemContainer');
         const stockInfo = document.getElementById('stockInfo');
         const currentStockDisplay = document.getElementById('currentStockDisplay');
         const previewContainer = document.getElementById('previewContainer');
         const previewStock = document.getElementById('previewStock');
         const quantityInput = document.getElementById('quantityInput');
         const typeRadios = document.querySelectorAll('input[name="type"]');
+        const targetRadios = document.querySelectorAll('input[name="target"]');
 
         let currentStock = 0;
 
         // Initialize Select2 if available
-        if (typeof $ !== 'undefined' && $.fn.select2) {
-            $('#itemSelect').select2({
-                theme: 'bootstrap-5',
-                dropdownParent: $('#itemSelect').parent(),
-                placeholder: '-- Cari dan pilih item --',
-                allowClear: true,
-            }).on('change', function () {
-                updateStockPreview();
-            });
+        function initSelect2(selector) {
+            if (typeof $ !== 'undefined' && $.fn.select2) {
+                $(selector).select2({
+                    theme: 'bootstrap-5',
+                    dropdownParent: $(selector).parent(),
+                    placeholder: $(selector).find('option:first').text(),
+                    allowClear: true,
+                }).on('change', function () {
+                    updateStockPreview();
+                });
+            }
         }
 
-        itemSelect.addEventListener('change', updateStockPreview);
+        initSelect2('#cashierItemSelect');
+        initSelect2('#warehouseItemSelect');
+
+        // Target toggle
+        targetRadios.forEach(r => r.addEventListener('change', function () {
+            toggleTarget(this.value);
+        }));
+
+        function toggleTarget(target) {
+            if (target === 'warehouse') {
+                cashierContainer.style.display = 'none';
+                warehouseContainer.style.display = '';
+                cashierItemSelect.removeAttribute('required');
+                warehouseItemSelect.setAttribute('required', 'required');
+            } else {
+                cashierContainer.style.display = '';
+                warehouseContainer.style.display = 'none';
+                warehouseItemSelect.removeAttribute('required');
+                cashierItemSelect.setAttribute('required', 'required');
+            }
+            // Reset stock display
+            stockInfo.style.display = 'none';
+            currentStock = 0;
+            updateStockPreview();
+        }
+
+        // Initial state
+        const initialTarget = document.querySelector('input[name="target"]:checked')?.value || 'cashier';
+        toggleTarget(initialTarget);
+
+        cashierItemSelect.addEventListener('change', updateStockPreview);
+        warehouseItemSelect.addEventListener('change', updateStockPreview);
         quantityInput.addEventListener('input', updatePreview);
         typeRadios.forEach(r => r.addEventListener('change', updatePreview));
 
+        function getActiveSelect() {
+            const target = document.querySelector('input[name="target"]:checked')?.value || 'cashier';
+            return target === 'warehouse' ? warehouseItemSelect : cashierItemSelect;
+        }
+
         function updateStockPreview() {
-            const selected = itemSelect.options[itemSelect.selectedIndex];
+            const activeSelect = getActiveSelect();
+            const selected = activeSelect.options[activeSelect.selectedIndex];
             if (selected && selected.value) {
                 currentStock = parseInt(selected.dataset.stock || 0);
                 currentStockDisplay.textContent = currentStock;
@@ -195,17 +278,20 @@
 
         // Form submit confirmation
         document.getElementById('adjustmentForm').addEventListener('submit', function (e) {
-            const selected = itemSelect.options[itemSelect.selectedIndex];
+            const activeSelect = getActiveSelect();
+            const selected = activeSelect.options[activeSelect.selectedIndex];
             const itemName = selected ? selected.text : 'Unknown';
             const qty = quantityInput.value;
             const type = document.querySelector('input[name="type"]:checked')?.value;
             const typeLabel = type === 'increase' ? 'MENAMBAH' : 'MENGURANGI';
+            const target = document.querySelector('input[name="target"]:checked')?.value;
+            const targetLabel = target === 'warehouse' ? 'GUDANG' : 'KASIR';
 
             if (typeof Swal !== 'undefined') {
                 e.preventDefault();
                 Swal.fire({
                     title: 'Konfirmasi Penyesuaian',
-                    html: `Anda akan <b>${typeLabel}</b> stok sebanyak <b>${qty}</b> untuk:<br><b>${itemName}</b>`,
+                    html: `Anda akan <b>${typeLabel}</b> stok <b>${targetLabel}</b> sebanyak <b>${qty}</b> untuk:<br><b>${itemName}</b>`,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#ff0000',
@@ -222,7 +308,7 @@
         });
 
         // Trigger initial display if old value present
-        if (itemSelect.value) {
+        if (cashierItemSelect.value || warehouseItemSelect.value) {
             updateStockPreview();
         }
     });

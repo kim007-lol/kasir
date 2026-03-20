@@ -25,6 +25,14 @@
                     <input type="text" name="search" class="form-control form-control-sm" placeholder="Nama/kode item..." value="{{ $search ?? '' }}">
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label fw-semibold small">Target</label>
+                    <select name="target" class="form-select form-select-sm">
+                        <option value="">Semua</option>
+                        <option value="cashier" {{ ($target ?? '') === 'cashier' ? 'selected' : '' }}>Kasir</option>
+                        <option value="warehouse" {{ ($target ?? '') === 'warehouse' ? 'selected' : '' }}>Gudang</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label class="form-label fw-semibold small">Tipe</label>
                     <select name="type" class="form-select form-select-sm">
                         <option value="">Semua</option>
@@ -35,10 +43,6 @@
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Dari Tanggal</label>
                     <input type="date" name="start_date" class="form-control form-control-sm" value="{{ $startDate ?? '' }}">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-semibold small">Sampai Tanggal</label>
-                    <input type="date" name="end_date" class="form-control form-control-sm" value="{{ $endDate ?? '' }}">
                 </div>
                 <div class="col-md-3 d-flex gap-2">
                     <button type="submit" class="btn btn-sm btn-primary">
@@ -61,6 +65,7 @@
                         <tr>
                             <th style="width: 50px;">#</th>
                             <th>Tanggal</th>
+                            <th>Target</th>
                             <th>Item</th>
                             <th class="text-center">Tipe</th>
                             <th class="text-center">Qty</th>
@@ -80,8 +85,15 @@
                                 <small class="text-muted">{{ $adj->created_at->isoFormat('HH:mm') }}</small>
                             </td>
                             <td>
-                                <span class="badge bg-light text-dark border me-1">{{ $adj->cashierItem->code ?? '-' }}</span>
-                                {{ $adj->cashierItem->name ?? '[Dihapus]' }}
+                                @if($adj->target === 'warehouse')
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-box-seam"></i> Gudang</span>
+                                @else
+                                    <span class="badge bg-primary"><i class="bi bi-shop"></i> Kasir</span>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border me-1">{{ $adj->item_code }}</span>
+                                {{ $adj->item_name }}
                             </td>
                             <td class="text-center">
                                 @if($adj->type === 'increase')
@@ -119,7 +131,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="10" class="text-center py-4 text-muted">
+                            <td colspan="11" class="text-center py-4 text-muted">
                                 <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                                 Belum ada data penyesuaian stok.
                             </td>

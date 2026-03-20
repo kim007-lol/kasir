@@ -103,12 +103,13 @@ class ReportController extends Controller
             ->pluck('total_quantity', 'warehouse_item_id');
 
         // Detail barang terjual dengan stok masuk (Memory Mapping)
-        $itemDetails = TransactionDetail::selectRaw('item_id, SUM(qty) as total_sold')
+        $paginatedItemDetails = TransactionDetail::selectRaw('item_id, SUM(qty) as total_sold')
             ->whereIn('transaction_id', $transactionIds)
             ->with(['item.category', 'item.warehouseItem']) // Eager load category + warehouseItem
             ->groupBy('item_id')
-            ->get()
-            ->map(function ($detail) use ($stockEntriesMap, $warehouseItemIds) {
+            ->paginate(20, ['*'], 'item_page'); // Added pagination limited to 20
+
+        $itemDetails = $paginatedItemDetails->through(function ($detail) use ($stockEntriesMap, $warehouseItemIds) {
                 $item = $detail->item;
 
                 if (!$item) {
@@ -174,6 +175,7 @@ class ReportController extends Controller
             'totalItemsSold',
             'netProfit',
             'itemDetails',
+            'paginatedItemDetails',
             'topSellingItems',
             'filter',
             'date',
@@ -324,5 +326,23 @@ class ReportController extends Controller
             ->paginate(15);
 
         return view('reports.transfer-history', compact('logs', 'startDate', 'endDate'));
+    }
+
+    public function stockAdjustmentsHistory(Request $request): View
+    {
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $target = $request->get('target'); // cashier, warehouse, or null for all
+        $type = $request->get('type'); // increase, decrease, or null for all
+
+        $adjustments = \App\Models\StockAdjustment::with(['cashierItem', 'warehouseItem', 'user'])
+            ->when($startDate, fn($q) => $q->whereDate('created_at', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('created_at', '<=', $endDate))
+            ->when($target, fn($q) => $q->where('target', $target))
+            ->when($type, fn($q) => $q->where('type', $type))
+            ->latest()
+            ->paginate(15);
+
+        return view('reports.stock-adjustments', compact('adjustments', 'startDate', 'endDate', 'target', 'type'));
     }
 }
