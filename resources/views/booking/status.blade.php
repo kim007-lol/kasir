@@ -43,7 +43,11 @@
                     Terima kasih! Selamat menikmati.
                     @break
                     @case('cancelled')
+                    @if($booking->cancel_reason === 'Dibatalkan oleh pelanggan')
+                    <span class="text-danger fw-bold">Anda telah membatalkan pesanan ini.</span>
+                    @else
                     <span class="text-danger fw-bold">Pesanan dibatalkan oleh kasir.</span>
+                    @endif
                     @if($booking->cancel_reason)
                     <br><small class="text-muted mt-1 d-block"><i class="bi bi-info-circle"></i> Alasan: {{ $booking->cancel_reason }}</small>
                     @endif
@@ -128,6 +132,14 @@
         </div>
 
         <div class="d-grid gap-2">
+            @if($booking->status === 'pending')
+            <form action="{{ route('booking.cancel', $booking) }}" method="POST" class="d-grid" id="cancelForm">
+                @csrf
+                <button type="submit" class="btn btn-outline-danger" onclick="confirmCancel(event)">
+                    <i class="bi bi-x-circle"></i> Batalkan Pesanan
+                </button>
+            </form>
+            @endif
             <a href="{{ route('booking.menu') }}" class="btn btn-outline-primary">
                 <i class="bi bi-plus-lg"></i> Pesan Lagi
             </a>
@@ -144,17 +156,35 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-danger text-white border-0">
-                <h5 class="modal-title"><i class="bi bi-x-circle-fill me-2"></i>Pesanan Ditolak</h5>
+                <h5 class="modal-title"><i class="bi bi-x-circle-fill me-2"></i>
+                    @if($booking->cancel_reason === 'Dibatalkan oleh pelanggan')
+                        Pesanan Dibatalkan
+                    @else
+                        Pesanan Ditolak
+                    @endif
+                </h5>
             </div>
             <div class="modal-body text-center py-4">
                 <div class="mb-3">
                     <i class="bi bi-x-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <h4 class="fw-bold text-danger mb-2">DITOLAK</h4>
+                <h4 class="fw-bold text-danger mb-2">
+                    @if($booking->cancel_reason === 'Dibatalkan oleh pelanggan')
+                        DIBATALKAN
+                    @else
+                        DITOLAK
+                    @endif
+                </h4>
                 <p class="text-muted mb-1">Kode Booking: <strong>{{ $booking->booking_code }}</strong></p>
                 @if($booking->cancel_reason)
                 <div class="alert alert-light border mt-3 text-start">
-                    <small class="text-muted fw-bold d-block mb-1">Alasan Penolakan:</small>
+                <small class="text-muted fw-bold d-block mb-1">
+                        @if($booking->cancel_reason === 'Dibatalkan oleh pelanggan')
+                            Alasan Pembatalan:
+                        @else
+                            Alasan Penolakan:
+                        @endif
+                    </small>
                     <p class="mb-0">{{ $booking->cancel_reason }}</p>
                 </div>
                 @endif
@@ -198,6 +228,25 @@
         new bootstrap.Modal(document.getElementById('rejectedModal')).show();
     });
     @endif
+
+    // Cancel confirmation
+    function confirmCancel(event) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Batalkan Pesanan?',
+            text: "Pesanan yang dibatalkan tidak dapat dikembalikan.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Batalkan!',
+            cancelButtonText: 'Kembali'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('cancelForm').submit();
+            }
+        });
+    }
 </script>
 @endpush
 

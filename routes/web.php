@@ -18,6 +18,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CashierBookingController;
 use App\Http\Controllers\ShopSettingController;
 use App\Http\Controllers\StockAdjustmentController;
+use App\Http\Controllers\AiChatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,6 +65,7 @@ Route::middleware(['auth', 'role:pelanggan'])->prefix('booking')->name('booking.
     Route::get('/checkout', [BookingController::class, 'checkout'])->name('checkout');
     Route::post('/checkout', [BookingController::class, 'placeOrder'])->name('placeOrder');
     Route::get('/status/{booking}', [BookingController::class, 'status'])->name('status');
+    Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
     Route::get('/history', [BookingController::class, 'history'])->name('history');
     // API: check order status (polling from status page)
     Route::get('/api/status/{booking}', [BookingController::class, 'apiStatus'])->name('api.status');
@@ -107,11 +109,16 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/reports/export-excel', [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
     Route::get('/reports/stock-entries', [ReportController::class, 'stockEntriesHistory'])->name('reports.stockEntries');
     Route::get('/reports/transfer-history', [ReportController::class, 'transferHistory'])->name('reports.transferHistory');
+    Route::get('/reports/stock-adjustments', [ReportController::class, 'stockAdjustmentsHistory'])->name('reports.stockAdjustments');
     Route::resource('users', UserController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::post('/users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
     Route::get('/users-pelanggan/template', [UserController::class, 'exportTemplate'])->name('users.pelanggan.template');
     Route::post('/users-pelanggan/import', [UserController::class, 'importPelanggan'])->name('users.pelanggan.import');
     Route::get('/about', [BusinessProfileController::class, 'index'])->name('about');
+
+    // === TANYA TOKO AI ===
+    Route::get('/ai-chat', [AiChatController::class, 'index'])->name('ai-chat.index');
+    Route::post('/ai-chat/ask', [AiChatController::class, 'ask'])->name('ai-chat.ask');
 });
 
 // ===== CASHIER ROUTES =====

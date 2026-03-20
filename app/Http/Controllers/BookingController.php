@@ -221,12 +221,15 @@ class BookingController extends Controller
             'delivery_address' => 'required_if:delivery_type,delivery|nullable|string|max:500',
             'pickup_time' => 'required_if:delivery_type,pickup|nullable|date_format:H:i',
             'payment_method' => 'required_if:delivery_type,delivery|nullable|in:cash,qris',
+            'amount_paid' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:500',
         ], [
             'delivery_type.required' => 'Pilih metode pengambilan',
             'delivery_address.required_if' => 'Alamat pengiriman harus diisi untuk delivery',
             'pickup_time.required_if' => 'Jam ambil harus diisi',
             'payment_method.required_if' => 'Pilih metode pembayaran',
+            'amount_paid.numeric' => 'Nominal uang tunai harus berupa angka',
+            'amount_paid.min' => 'Nominal uang tunai tidak boleh negatif',
         ]);
 
         try {
@@ -260,6 +263,10 @@ class BookingController extends Controller
                     'subtotal' => $subtotal,
                     'notes' => $cartItem['notes'] ?? null,
                 ];
+
+                // FIX BUG-REPORT #1: Langsung kurangi stok saat pesanan dibuat
+                // agar tidak terjadi overselling ke pelanggan lain / transaksi kasir
+                $item->decrement('stock', $cartItem['qty']);
             }
 
             // Validasi uang tunai secara manual SETELAH semua harga dilock untuk menghindari race condition (perubahan harga dadakan)
@@ -374,5 +381,48 @@ class BookingController extends Controller
             ->paginate(10);
 
         return view('booking.history', compact('bookings'));
+    }
+
+    /**
+     * Cancel a pending booking (Customer side)
+     */
+    public function cancel(Booking $booking)
+    {
+        // Ensure user can only cancel their own bookings
+        if ($booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if ($booking->status !== 'pending') {
+            return back()->with('error', 'Pesanan yang sudah diproses tidak dapat dibatalkan.');
+        }
+
+        try {
+            DB::transaction(function () use ($booking) {
+                // Lock booking to prevent race condition 
+                $lockedBooking = Booking::where('id', $booking->id)->lockForUpdate()->first();
+
+                if (!$lockedBooking || $lockedBooking->status !== 'pending') {
+                    throw new \Exception('Pesanan sudah diproses dan tidak bisa dibatalkan.');
+                }
+
+                // Return stock for each item
+                foreach ($lockedBooking->items as $bookingItem) {
+                    $item = \App\Models\CashierItem::find($bookingItem->cashier_item_id);
+                    if ($item) {
+                        $item->increment('stock', $bookingItem->qty);
+                    }
+                }
+
+                $lockedBooking->update([
+                    'status' => 'cancelled',
+                    'cancel_reason' => 'Dibatalkan oleh pelanggan',
+                ]);
+            });
+
+            return back()->with('success', 'Pesanan berhasil dibatalkan.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal membatalkan pesanan: ' . $e->getMessage());
+        }
     }
 }
