@@ -796,8 +796,8 @@
                             <i class="bi bi-code-slash"></i>
                         </div>
                         <h5 class="lanyard-name">Ngabdullah Hakim</h5>
-                        <div class="lanyard-role">Programmer</div>
-                        <p class="lanyard-desc" data-i18n="team.eng_desc">Seseorang yang suka ngoding dan selalu belajar berkembang. Mengurus flow Backend & Frontend.</p>
+                        <div class="lanyard-role" data-i18n="team.eng_role">Programmer</div>
+                        <p class="lanyard-desc" data-i18n="team.eng_desc">Seseorang yang suka ngoding dan selalu belajar berkembang.</p>
                         <div class="lanyard-social">
                             <a href="https://github.com/kim007-lol" target="_blank" title="GitHub"><i class="bi bi-github"></i></a>
                             <a href="mailto:ngabdullahhakim99@gmail.com" title="Email"><i class="bi bi-envelope-fill"></i></a>
@@ -814,9 +814,8 @@
                             <i class="bi bi-diagram-3-fill"></i>
                         </div>
                         <h5 class="lanyard-name">Syifa Rizka Angeli</h5>
-                        <div class="lanyard-role">Project Manager</div>
-                        {{-- <p class="lanyard-desc" data-i18n="team.pm_desc">Mengatur timeline, komunikasi tim, dan memastikan project rilis tepat pada waktunya.</p> --}}
-                        <p class="lanyard-desc">Mengatur timeline, komunikasi tim, dan tepat waktu.</p>
+                        <div class="lanyard-role" data-i18n="team.pm_role">Project Manager</div>
+                        <p class="lanyard-desc" data-i18n="team.pm_desc">Mengatur timeline, komunikasi tim, dan tepat waktu.</p>
                         <div class="lanyard-social">
                             <a href="#" title="Instagram"><i class="bi bi-instagram"></i></a>
                             <a href="#" title="Email"><i class="bi bi-envelope-fill"></i></a>
@@ -829,11 +828,11 @@
                     <div class="lanyard-string"></div>
                     <div class="lanyard-card" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2" style="--card-color: #0d6efd; --card-rgb: 13, 110, 253;">
                         <div class="lanyard-avatar">
-                            <img src="{{ asset('img/BAYU.jpg') }}" alt="Bayu">
+                            <i class="bi bi-cpu-fill"></i>
                         </div>
                         <h5 class="lanyard-name">Bayu Bramasta</h5>
-                        <div class="lanyard-role">System Analyst</div>
-                        <p class="lanyard-desc">I'm 18 Y.O an Electrical Engineering Student 😎.</p>
+                        <div class="lanyard-role" data-i18n="team.sa_role">System Analyst</div>
+                        <p class="lanyard-desc" data-i18n="team.sa_desc">I'm 18 Y.O an Electrical Engineering Student 😎.</p>
                         <div class="lanyard-social">
                             <a href="https://github.com/BayuBramasta" target="_blank" title="GitHub"><i class="bi bi-github"></i></a>
                             <a href="https://www.facebook.com/share/1E46oyY1m8/" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
@@ -849,8 +848,8 @@
                             <i class="bi bi-file-earmark-bar-graph-fill"></i>
                         </div>
                         <h5 class="lanyard-name">M. Iqbal Fathyyatan</h5>
-                        <div class="lanyard-role" style="color: #d39e00;">UI/UX Designer</div>
-                        <p class="lanyard-desc">Lorem ipsum dolor sit amet consectetur adipisicing elit. Iqbal breathing.</p>
+                        <div class="lanyard-role" style="color: #d39e00;" data-i18n="team.ui_role">UI/UX Designer</div>
+                        <p class="lanyard-desc" data-i18n="team.ui_desc">Lorem ipsum dolor sit amet consectetur adipisicing elit. Iqbal breathing.</p>
                         <div class="lanyard-social">
                             <a href="#" title="Instagram"><i class="bi bi-instagram"></i></a>
                             <a href="#" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
@@ -978,10 +977,14 @@
                     subtitle: "Kami adalah 4 siswa dari konsentrasi Rekayasa Perangkat Lunak (RPL) SMKN 10 Surabaya yang berkolaborasi membangun sistem ini sebagai proyek nyata. Setiap anggota membawa peran dan keahlian masing-masing untuk mewujudkan SmegaMart."
                 },
                 team: {
-                    pm_desc: "[Deskripsi Project Manager]",
-                    sa_desc: "[Deskripsi System Analyst]",
-                    rm_desc: "[Deskripsi UI/UX Designer]",
-                    eng_desc: "Seseorang yang suka ngoding dan terus berkembang dalam dunia pengembangan web."
+                    eng_role: "Programmer",
+                    eng_desc: "Mengelola arsitektur Backend dan Frontend secara penuh untuk performa optimal.",
+                    pm_role: "Project Manager",
+                    pm_desc: "Mengatur ritme kerja tim, kelancaran proyek, dan memastikan rilis tepat waktu.",
+                    sa_role: "System Analyst",
+                    sa_desc: "Menganalisis sistem dan merancang alur logika bisnis yang cepat dan aman.",
+                    ui_role: "UI/UX Designer",
+                    ui_desc: "Mendesain antarmuka modern yang rapi, responsif, dan sangat nyaman digunakan."
                 },
                 login: {
                     title: "Masuk ke Sistem",
@@ -1027,10 +1030,14 @@
                     subtitle: "We are 4 students from the Software Engineering (RPL) major at SMKN 10 Surabaya who collaborated to build this system as a real-world project. Each member brings their own role and expertise to bring SmegaMart to life."
                 },
                 team: {
-                    pm_desc: "[Project Manager description]",
-                    sa_desc: "[System Analyst description]",
-                    rm_desc: "[UI/UX Designer description]",
-                    eng_desc: "Someone who loves coding and keeps growing in the world of web development."
+                    eng_role: "Programmer",
+                    eng_desc: "Handles both Backend and Frontend architecture for optimal web performance.",
+                    pm_role: "Project Manager",
+                    pm_desc: "Manages team workflow, project timeline, and ensures timely, smooth releases.",
+                    sa_role: "System Analyst",
+                    sa_desc: "Analyzes core systems and designs fast, secure business logic operations.",
+                    ui_role: "UI/UX Designer",
+                    ui_desc: "Designs a stunningly modern, neat, and highly responsive user interface."
                 },
                 login: {
                     title: "Sign In",
