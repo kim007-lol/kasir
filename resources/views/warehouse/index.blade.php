@@ -220,7 +220,12 @@ $layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
 
         document.addEventListener('DOMContentLoaded', function() {
             function pollWarehouseStock() {
-                fetch("{{ route($routePrefix . 'warehouse.status') }}")
+                fetch("{{ route($routePrefix . 'warehouse.status') }}", {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
                     .then(res => res.json())
                     .then(data => {
                         data.forEach(item => {

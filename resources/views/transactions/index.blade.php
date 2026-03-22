@@ -802,7 +802,12 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
 
         // --- Real-time Stock Polling ---
         function pollStockStatus() {
-            fetch("{{ route($routePrefix . 'stock.status') }}")
+            fetch("{{ route($routePrefix . 'stock.status') }}", {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
                 .then(res => res.json())
                 .then(data => {
                     data.forEach(item => {

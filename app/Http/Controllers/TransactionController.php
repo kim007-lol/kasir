@@ -352,8 +352,11 @@ class TransactionController extends Controller
             $discountAmount = 0;
         }
 
-        // Nama kasir yang melayani (manual input dari form)
-        $cashierName = $validated['cashier_name'];
+        // SEC: Cashier name defaults to authenticated user — prevents identity spoofing on receipts
+        $cashierName = auth()->user()->name;
+        if (auth()->user()->role === 'admin' && !empty($validated['cashier_name'])) {
+            $cashierName = $validated['cashier_name']; // Admin can override
+        }
         $paidAmount = (float) $validated['paid_amount'];
 
         try {
@@ -419,15 +422,17 @@ class TransactionController extends Controller
                     'invoice' => $invoice,
                     'customer_name' => $customerName,
                     'member_id' => $validated['member_id'] ?? null,
-                    'total' => $netTotal, // Store Net Total
                     'paid_amount' => $paidAmount,
-                    'change_amount' => $changeAmount,
                     'payment_method' => $validated['payment_method'],
-                    'discount_percent' => 0,
-                    'discount_amount' => $discountAmount,
                     'user_id' => auth()->id(), // System Operator
                     'cashier_name' => $cashierName // SEC-07: Server-validated name
                 ]);
+                // SEC: set server-calculated fields explicitly — not via mass assignment
+                $transaction->total = $netTotal;
+                $transaction->change_amount = $changeAmount;
+                $transaction->discount_percent = 0;
+                $transaction->discount_amount = $discountAmount;
+                $transaction->save();
 
                 $transactionId = $transaction->id;
 

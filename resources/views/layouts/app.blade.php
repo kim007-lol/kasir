@@ -461,6 +461,13 @@
 
     <div class="main-content">
         @include('partials.navbar')
+        
+        @if(isDemoUser())
+        <div class="bg-warning text-dark text-center py-2 px-3 fw-bold" style="font-size: 0.9rem; z-index: 1040; position: relative;">
+            <i class="bi bi-exclamation-triangle-fill"></i> Mode Demo Aktif: Anda sedang mengakses sistem sebagai akun demonstrasi. Aksi penambahan, perubahan, dan penghapusan data telah dibatasi (Read-Only).
+        </div>
+        @endif
+
         <div class="content">
             {{-- @include('partials.alert') --}}
             @yield('content')

@@ -25,7 +25,7 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'role',
+        // 'role' — removed from $fillable (SEC: prevent mass-assignment privilege escalation)
     ];
 
     /**

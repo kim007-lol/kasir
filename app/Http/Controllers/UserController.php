@@ -86,8 +86,10 @@ class UserController extends Controller
                     'username' => $validated['username'],
                     'email'    => $email,
                     'password' => Hash::make($validated['password']),
-                    'role'     => $validated['role'],
                 ]);
+                // SEC: role set explicitly — not via mass assignment
+                $user->role = $validated['role'];
+                $user->save();
 
                 if ($validated['role'] === 'pelanggan') {
                     $phone = $validated['phone'];
@@ -159,7 +161,6 @@ class UserController extends Controller
         $updateData = [
             'name'     => $validated['name'],
             'username' => $validated['username'],
-            'role'     => $newRole,
         ];
 
         // Hanya update password jika diisi
@@ -169,6 +170,9 @@ class UserController extends Controller
 
         DB::transaction(function () use ($user, $updateData, $oldRole, $newRole, $validated) {
             $user->update($updateData);
+            // SEC: role set explicitly — not via mass assignment
+            $user->role = $newRole;
+            $user->save();
 
             // Jika role baru pelanggan dan belum punya member → buat member
             if ($newRole === 'pelanggan' && !$user->member()->withTrashed()->exists()) {

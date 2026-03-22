@@ -1,0 +1,346 @@
+# 🔒 Security Audit Report — SMEGABIZ POS Application
+**Date:** 2026-03-22 | **Auditor:** AI Security Engineer | **Scope:** Full codebase
+
+---
+
+## 📋 Executive Summary
+
+Aplikasi POS SMEGABIZ telah di-audit secara menyeluruh. Secara keseluruhan, aplikasi menunjukkan **kesadaran keamanan yang baik** — banyak area kritis sudah di-handle (lockForUpdate, DB::transaction, IDOR protection, rate limiting, demo data isolation, CSRF protection). Namun ditemukan **beberapa temuan signifikan** yang perlu diperbaiki.
+
+| Severity | Count |
+|----------|-------|
+| 🔴 CRITICAL | 3 |
+| 🟠 HIGH | 4 |
+| 🟡 MEDIUM | 5 |
+| 🟢 LOW | 5 |
+
+---
+
+## 🔴 CRITICAL Findings
+
+### C-01: API Key & Credentials Exposed in [.env](file:///d:/kasirku/.env) (Committed to Git)
+
+| Field | Detail |
+|-------|--------|
+| **File** | [.env](file:///d:/kasirku/.env) |
+| **Issue** | [.env](file:///d:/kasirku/.env) berisi `GROQ_API_KEY`, `DB_PASSWORD`, dan `REVERB_APP_SECRET` yang kemungkinan ter-commit |
+| **Impact** | Attackers bisa menggunakan API key untuk mengakses Groq AI, dan database credentials bisa digunakan untuk akses langsung ke PostgreSQL |
+| **Evidence** | `GROQ_API_KEY=gsk_DEea8tg50wv...`, `DB_PASSWORD=hakim`, `REVERB_APP_SECRET=nirtwb0z0tw...` |
+
+> [!CAUTION]
+> **Skenario Serangan**: Jika repo bersifat public atau credentials bocor, attacker bisa langsung connect ke database atau abuse API key Groq.
+
+**Fix:**
+```diff
+# 1. Pastikan .env ada di .gitignore (sudah ada ✓)
+# 2. Revoke & rotate semua key yang pernah ter-commit
+# 3. Gunakan secret management (Vault, SSM)
+# 4. Ganti DB password ke password yang kuat
+- DB_PASSWORD=hakim
++ DB_PASSWORD=<strong_random_password>
+```
+
+---
+
+### C-02: Mass Assignment — User `role` Field in `$fillable`
+
+| Field | Detail |
+|-------|--------|
+| **File** | [User.php](file:///d:/kasirku/app/Models/User.php#L23-L29) |
+| **Method** | Model `$fillable` |
+| **Issue** | Field `role` berada dalam `$fillable` array. Jika ada endpoint yang menerima input user dan melakukan mass-assignment langsung, role bisa diubah ke `admin` |
+| **Impact** | Privilege Escalation — user biasa bisa menjadi admin |
+
+**Evidence:**
+```php
+protected $fillable = [
+    'name', 'username', 'email', 'password',
+    'role',  // ⚠️ DANGEROUS in $fillable
+];
+```
+
+**Mitigasi Saat Ini:** `UserController::store()` dan [update()](file:///d:/kasirku/app/Http/Controllers/CashierItemController.php#177-275) memang memvalidasi `'role' => 'required|in:admin,kasir,pelanggan'` dan endpoint ini **hanya bisa diakses admin** (dilindungi middleware `role:admin`). Jadi saat ini **belum exploitable secara langsung**, tetapi ini adalah **defense-in-depth violation** — jika di masa depan ada endpoint lain yang menggunakan `User::create($request->all())`, maka akan langsung terbuka.
+
+**Fix:**
+```php
+// Option A: Hapus 'role' dari $fillable
+protected $fillable = ['name', 'username', 'email', 'password'];
+
+// Set role secara eksplisit di controller:
+$user = User::create([...]);
+$user->role = $validated['role'];
+$user->save();
+
+// Option B: Gunakan $guarded untuk field sensitif
+protected $guarded = ['id', 'role'];
+```
+
+---
+
+### C-03: Demo Login via GET Request Tanpa CSRF / Rate Limiting
+
+| Field | Detail |
+|-------|--------|
+| **File** | [web.php](file:///d:/kasirku/routes/web.php#L50) + [LoginController.php](file:///d:/kasirku/app/Http/Controllers/Auth/LoginController.php#L99-L141) |
+| **Route** | `GET /demo/{role}` |
+| **Issue** | Demo login menggunakan GET request, otomatis login user tanpa password. Tidak ada rate limiting, CSRF tidak berlaku karena GET |
+| **Impact** | Bisa digunakan untuk automated session farming atau brute-force demo endpoint. Jika [isDemo()](file:///d:/kasirku/app/Helpers/helpers.php#4-11) check fail/bypass, bisa login sebagai user apapun |
+
+**Mitigasi Saat Ini:** Ada check [isDemo()](file:///d:/kasirku/app/Helpers/helpers.php#4-11) yang memerlukan `APP_MODE=demo`. Tapi jika environment berubah, ini menjadi celah.
+
+**Fix:**
+```php
+// 1. Ganti ke POST method dengan CSRF
+Route::post('/demo/{role}', [LoginController::class, 'demoLogin'])
+    ->name('demo.login')
+    ->middleware('throttle:5,1'); // max 5 per menit
+
+// 2. Tambah rate limiting di controller
+public function demoLogin(Request $request, $role) {
+    $key = 'demo_login:' . $request->ip();
+    if (RateLimiter::tooManyAttempts($key, 10)) {
+        abort(429, 'Too many demo login attempts.');
+    }
+    RateLimiter::hit($key, 60);
+    // ... existing logic
+}
+```
+
+---
+
+## 🟠 HIGH Findings
+
+### H-01: AI Chat Endpoint Leaks Business Data to Demo Users
+
+| Field | Detail |
+|-------|--------|
+| **File** | [AiChatController.php](file:///d:/kasirku/app/Http/Controllers/AiChatController.php) + [StoreDataService.php](file:///d:/kasirku/app/Services/StoreDataService.php) |
+| **Route** | `POST /ai-chat/ask` |
+| **Issue** | `StoreDataService::getContext()` query **semua data bisnis** (revenue, profit, stok, member count, supplier list) **tanpa mempertimbangkan demo global scopes**. Demo user di-scope oleh middleware, tetapi [StoreDataService](file:///d:/kasirku/app/Services/StoreDataService.php#16-220) langsung query model tanpa check |
+| **Impact** | Demo user bisa melihat **data keuangan real** (revenue, profit, supplier names) melalui AI chat |
+
+**Evidence:** [StoreDataService](file:///d:/kasirku/app/Services/StoreDataService.php#16-220) query langsung ke [Transaction](file:///d:/kasirku/app/Models/Transaction.php#10-68), `Member`, [Supplier](file:///d:/kasirku/app/Services/StoreDataService.php#198-202), [CashierItem](file:///d:/kasirku/app/Models/CashierItem.php#11-59) — jika demo scopes hanya berlaku per-request via middleware, dan AI chat dikerjakan dalam request yang sama, maka scope harusnya aktif. **TETAPI** — jika ada cached data atau scope tidak tercakup (misal `Supplier::count()`), data real bisa bocor.
+
+**Fix:**
+```php
+// Di AiChatController::ask(), cek demo user
+public function ask(Request $request) {
+    if (isDemoUser()) {
+        return response()->json([
+            'success' => true,
+            'reply' => '🔒 Fitur AI Chat tidak tersedia di mode demo.',
+        ]);
+    }
+    // ... existing logic
+}
+```
+
+---
+
+### H-02: [GroqService](file:///d:/kasirku/app/Services/GroqService.php#8-133) Menggunakan `env()` Langsung — Bisa Return `null` di Cached Config
+
+| Field | Detail |
+|-------|--------|
+| **File** | [GroqService.php](file:///d:/kasirku/app/Services/GroqService.php#L15) |
+| **Issue** | `$this->apiKey = env('GROQ_API_KEY', '')` — Fungsi `env()` **hanya bisa dipanggil di file config**. Setelah `php artisan config:cache`, `env()` akan return `null` |
+| **Impact** | Service rusak di production, API key bisa tidak terbaca, atau error yang tidak jelas |
+
+**Fix:**
+```php
+// config/services.php
+'groq' => [
+    'api_key' => env('GROQ_API_KEY', ''),
+    'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+],
+
+// GroqService.php
+$this->apiKey = config('services.groq.api_key', '');
+```
+
+---
+
+### H-03: Booking Search di `CashierBookingController::history()` Rentan SQL Injection (LIKE tanpa escape)
+
+| Field | Detail |
+|-------|--------|
+| **File** | [CashierBookingController.php](file:///d:/kasirku/app/Http/Controllers/CashierBookingController.php#L418-L422) |
+| **Issue** | Search menggunakan raw string interpolation dalam LIKE clause tanpa escaping |
+| **Evidence** | `->where('booking_code', 'like', "%{$search}%")` |
+| **Impact** | Bukan full SQL injection, tapi LIKE injection: user bisa inject wildcard `%` dan `_` untuk bypass filter |
+
+**Fix:**
+```php
+$searchLower = '%' . mb_strtolower(str_replace(['%', '_'], ['\\%', '\\_'], $search)) . '%';
+$q->whereRaw('LOWER(booking_code) LIKE ?', [$searchLower])
+  ->orWhereRaw('LOWER(customer_name) LIKE ?', [$searchLower]);
+```
+
+---
+
+### H-04: `Booking::status` Field di `$fillable` — Status Manipulation Risk
+
+| Field | Detail |
+|-------|--------|
+| **File** | [Booking.php](file:///d:/kasirku/app/Models/Booking.php#L15-L29) |
+| **Issue** | Field [status](file:///d:/kasirku/app/Http/Controllers/BookingController.php#343-357) dan `total` dalam `$fillable`. Jika ada mass-assignment, status bisa dimanipulasi langsung (skip workflow `pending → confirmed → ready → completed`) |
+| **Impact** | Business logic bypass |
+
+**Mitigasi:** Saat ini semua update status dilakukan eksplisit di controller. Tapi ini defense-in-depth issue.
+
+**Fix:**
+```php
+// Hapus 'status' dan 'total' dari $fillable
+// Gunakan explicit assignment di controller
+$booking->status = 'confirmed';
+$booking->save();
+```
+
+---
+
+## 🟡 MEDIUM Findings
+
+### M-01: `Transaction::$fillable` Terlalu Terbuka
+
+| Field | Detail |
+|-------|--------|
+| **File** | [Transaction.php](file:///d:/kasirku/app/Models/Transaction.php#L14-L28) |
+| **Issue** | `total`, `discount_amount`, `discount_percent`, `change_amount` ada di `$fillable`. Meskipun controller menghitung ulang dari DB, field ini seharusnya tidak bisa di-mass-assign |
+| **Impact** | Jika ada code path yang menggunakan `Transaction::create($request->all())`, total transaksi bisa dimanipulasi |
+
+---
+
+### M-02: [StockAdjustment](file:///d:/kasirku/app/Models/StockAdjustment.php#9-63) — `user_id` di `$fillable`
+
+| Field | Detail |
+|-------|--------|
+| **File** | [StockAdjustment.php](file:///d:/kasirku/app/Models/StockAdjustment.php#L13-L24) |
+| **Issue** | `user_id` dalam `$fillable` memungkinkan forgery identitas pembuat adjustment jika ada mass-assignment |
+
+---
+
+### M-03: Demo Mode — Shared Database (Design Risk)
+
+| Field | Detail |
+|-------|--------|
+| **Issue** | Demo mode menggunakan **database yang sama** dengan production. Isolasi dilakukan via global scopes (prefix `DW-`, `DC-`, `DINV-`, `demo_*`) |
+| **Impact** | Jika ada query yang bypass global scope (menggunakan `withoutGlobalScopes()`), data production bisa terexpose ke demo user |
+
+**Status:** Isolasi cukup solid (14 model di-scope), tapi inherently risky. Rekomendasi jangka panjang: gunakan database terpisah untuk demo.
+
+---
+
+### M-04: No Refund / Void Transaction Mechanism
+
+| Field | Detail |
+|-------|--------|
+| **Issue** | Tidak ada endpoint untuk refund atau void transaksi. Jika terjadi kesalahan, tidak ada cara aman untuk membatalkan transaksi |
+| **Impact** | Data integrity — transaksi salah tetap tercatat, stok tidak dikembalikan |
+
+---
+
+### M-05: `cashier_name` Diinput Manual dari Form
+
+| Field | Detail |
+|-------|--------|
+| **File** | [TransactionController.php](file:///d:/kasirku/app/Http/Controllers/TransactionController.php#L356) |
+| **Issue** | `cashier_name` diinput dari form, bukan dari `auth()->user()->name`. Kasir bisa memasukkan nama siapa saja |
+| **Impact** | Audit trail tidak reliable — kasir bisa memalsukan identitas pada struk |
+
+**Fix:**
+```php
+// Gunakan auth user sebagai default, override hanya jika admin
+$cashierName = auth()->user()->name;
+if (auth()->user()->role === 'admin' && !empty($validated['cashier_name'])) {
+    $cashierName = $validated['cashier_name'];
+}
+```
+
+---
+
+## 🟢 LOW Findings
+
+### L-01: `APP_ENV=local` di [.env](file:///d:/kasirku/.env)
+
+Pastikan di production `APP_ENV=production` dan `APP_DEBUG=false` (debug sudah false ✓).
+
+---
+
+### L-02: No HTTPS Enforcement di Application Level
+
+[SecurityHeaders.php](file:///d:/kasirku/app/Http/Middleware/SecurityHeaders.php) mengirim HSTS header, tetapi tidak ada redirect dari HTTP ke HTTPS di application. Ini biasanya di-handle di server (Nginx/Apache), pastikan sudah dikonfigurasi.
+
+---
+
+### L-03: Session Lifetime 120 menit
+
+`SESSION_LIFETIME=120` cukup lama untuk POS. Pertimbangkan 30-60 menit untuk keamanan lebih.
+
+---
+
+### L-04: No Password Hashing Algorithm Specification
+
+Laravel default menggunakan bcrypt, yang sudah baik. Pertimbangkan migrasi ke Argon2id untuk keamanan lebih.
+
+---
+
+### L-05: `whereRaw` Usage (Safe but Fragile)
+
+Banyak penggunaan `whereRaw('LOWER(name) LIKE ?', [...])` di berbagai controller. Ini **aman** karena menggunakan parameter binding, tapi bisa diganti dengan Eloquent ILIKE (PostgreSQL native) untuk readability.
+
+---
+
+## ✅ Area yang Sudah Aman
+
+| Area | Status | Detail |
+|------|--------|--------|
+| **Transaction Logic** | ✅ Solid | `lockForUpdate()`, `DB::transaction()`, server-side price recalculation |
+| **Stock Management** | ✅ Solid | Lock-based updates, stok tidak bisa minus (validated) |
+| **IDOR Protection** | ✅ Solid | Transaction, receipt, booking — semua cek ownership |
+| **Rate Limiting (Login)** | ✅ Active | 5 attempts per minute di staff & customer login |
+| **CSRF Protection** | ✅ Active | Web middleware group includes VerifyCsrfToken |
+| **Demo Write Block** | ✅ Active | DemoMode blocks POST/PUT/PATCH/DELETE + export |
+| **Demo Data Isolation** | ✅ Comprehensive | 14 model scopes, prefix-based filtering |
+| **Security Headers** | ✅ Active | CSP, X-Frame-Options, HSTS, nosniff, no-referrer |
+| **Soft Delete Auth Block** | ✅ Active | Deleted users blocked from login |
+| **Role Cross-Login Block** | ✅ Active | Pelanggan blocked from staff login & vice versa |
+| **Double Submit Prevention** | ✅ Active | Checkout idempotency token |
+| **Discount Restriction** | ✅ Active | Only admin can apply discount (server-validated) |
+| **Password Hashing** | ✅ Bcrypt | Via `Hash::make()` |
+| **Input Validation** | ✅ Most endpoints | Validation rules on almost all endpoints |
+
+---
+
+## 📊 Summary Table — All Findings
+
+| # | Severity | File / Endpoint | Issue | Impact |
+|---|----------|----------------|-------|--------|
+| C-01 | 🔴 CRITICAL | [.env](file:///d:/kasirku/.env) | API keys & DB password exposed | Data breach |
+| C-02 | 🔴 CRITICAL | [User.php](file:///d:/kasirku/app/Models/User.php) | `role` in `$fillable` | Privilege escalation |
+| C-03 | 🔴 CRITICAL | `GET /demo/{role}` | No CSRF, no rate limit, GET login | Session abuse |
+| H-01 | 🟠 HIGH | [AiChatController](file:///d:/kasirku/app/Http/Controllers/AiChatController.php#10-41) | Business data leaks to demo | Data exposure |
+| H-02 | 🟠 HIGH | [GroqService](file:///d:/kasirku/app/Services/GroqService.php#8-133) | `env()` direct call | Service failure in production |
+| H-03 | 🟠 HIGH | [CashierBookingController](file:///d:/kasirku/app/Http/Controllers/CashierBookingController.php#15-461) | LIKE injection in search | Filter bypass |
+| H-04 | 🟠 HIGH | [Booking.php](file:///d:/kasirku/app/Models/Booking.php) | [status](file:///d:/kasirku/app/Http/Controllers/BookingController.php#343-357) in `$fillable` | Business logic bypass |
+| M-01 | 🟡 MEDIUM | [Transaction.php](file:///d:/kasirku/app/Models/Transaction.php) | `total` in `$fillable` | Transaction manipulation |
+| M-02 | 🟡 MEDIUM | [StockAdjustment.php](file:///d:/kasirku/app/Models/StockAdjustment.php) | `user_id` in `$fillable` | Audit trail forgery |
+| M-03 | 🟡 MEDIUM | Architecture | Demo uses shared database | Data leak risk |
+| M-04 | 🟡 MEDIUM | Architecture | No refund mechanism | Data integrity |
+| M-05 | 🟡 MEDIUM | [TransactionController](file:///d:/kasirku/app/Http/Controllers/TransactionController.php#17-550) | Manual cashier_name input | Identity spoofing |
+| L-01 | 🟢 LOW | [.env](file:///d:/kasirku/.env) | `APP_ENV=local` | Misconfiguration |
+| L-02 | 🟢 LOW | Deployment | No HTTP→HTTPS redirect | MitM |
+| L-03 | 🟢 LOW | [.env](file:///d:/kasirku/.env) | Session 120 min | Session hijacking window |
+| L-04 | 🟢 LOW | Auth | No Argon2id | Best practice |
+| L-05 | 🟢 LOW | Controllers | `whereRaw` usage | Code quality |
+
+---
+
+## 🛡️ Recommended Priority Actions
+
+1. 🔴 **Segera**: Rotate semua API keys & DB password yang pernah tercatat di git history
+2. 🔴 **Segera**: Hapus `role` dari `User::$fillable`
+3. 🔴 **Segera**: Ubah demo login ke POST + rate limit
+4. 🟠 **Minggu ini**: Block AI Chat untuk demo user
+5. 🟠 **Minggu ini**: Fix `env()` → `config()` di GroqService
+6. 🟠 **Minggu ini**: Escape LIKE wildcards di search
+7. 🟡 **Sprint berikutnya**: Audit semua model `$fillable` dan hapus field sensitif
+8. 🟡 **Sprint berikutnya**: Pertimbangkan database terpisah untuk demo

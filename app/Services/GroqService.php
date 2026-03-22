@@ -5,15 +5,16 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class GeminiService
+class GroqService
 {
     protected string $apiKey;
     protected string $model;
 
     public function __construct()
     {
-        $this->apiKey = env('GROQ_API_KEY', '');
-        $this->model  = 'llama-3.3-70b-versatile'; // Groq's latest very capable reasoning model
+        // SEC: Use config() instead of env() — env() returns null after config:cache
+        $this->apiKey = config('services.groq.api_key', '');
+        $this->model  = config('services.groq.model', 'llama-3.3-70b-versatile');
     }
 
     /**
@@ -130,4 +131,3 @@ Kamu adalah AI yang cerdas, luwes, dan bisa diajak ngobrol tentang apa saja.
 PROMPT;
     }
 }
-

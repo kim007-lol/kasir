@@ -14,14 +14,14 @@ class Transaction extends Model
     protected $fillable = [
         'invoice',
         'customer_name',
-        'total',
+        // 'total' — removed (SEC: must be calculated server-side)
         'user_id',
         'paid_amount',
-        'change_amount',
+        // 'change_amount' — removed (SEC: must be calculated server-side)
         'payment_method',
         'member_id',
-        'discount_percent',
-        'discount_amount',
+        // 'discount_percent' — removed (SEC: must be set explicitly by admin)
+        // 'discount_amount' — removed (SEC: must be calculated server-side)
         'cashier_name',
         'source',
         'booking_id',

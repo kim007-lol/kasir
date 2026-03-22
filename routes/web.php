@@ -45,6 +45,9 @@ Route::get('/login', function () {
 Route::get('/staff/login', function () {
     return view('auth.login');
 })->name('staff.login')->middleware('guest');
+
+// Demo Login Route — POST only (CSRF protected + rate limited)
+Route::post('/demo/{role}', [LoginController::class, 'demoLogin'])->name('demo.login')->middleware('throttle:5,1');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -56,7 +59,7 @@ Route::prefix('pelanggan')->name('pelanggan.')->group(function () {
 });
 
 // ===== BOOKING ROUTES (Pelanggan) =====
-Route::middleware(['auth', 'role:pelanggan'])->prefix('booking')->name('booking.')->group(function () {
+Route::middleware(['auth', 'role:pelanggan', 'demo', 'demo.filter'])->prefix('booking')->name('booking.')->group(function () {
     Route::get('/menu', [BookingController::class, 'menu'])->name('menu');
     Route::post('/cart/add', [BookingController::class, 'addToCart'])->name('cart.add');
     Route::post('/cart/update', [BookingController::class, 'updateCart'])->name('cart.update');
@@ -72,7 +75,7 @@ Route::middleware(['auth', 'role:pelanggan'])->prefix('booking')->name('booking.
 });
 
 // ===== ADMIN ROUTES =====
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:admin', 'demo', 'demo.filter'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
 
@@ -122,7 +125,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 });
 
 // ===== CASHIER ROUTES =====
-Route::middleware(['auth', 'role:kasir'])->prefix('cashier')->name('cashier.')->group(function () {
+Route::middleware(['auth', 'role:kasir', 'demo', 'demo.filter'])->prefix('cashier')->name('cashier.')->group(function () {
     Route::get('/dashboard', function () {
         $lowStockItems = \App\Models\CashierItem::where('stock', '>', 0)
             ->where('stock', '<', 5)

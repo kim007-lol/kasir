@@ -308,11 +308,13 @@ class BookingController extends Controller
                 'pickup_time' => $pickupTimeDt,
                 'delivery_address' => $request->delivery_type === 'delivery' ? $request->delivery_address : null,
                 'notes' => $notes,
-                'total' => $total,
                 'payment_method' => $request->delivery_type === 'delivery' ? $request->payment_method : null,
                 'amount_paid' => ($request->delivery_type === 'delivery' && $request->payment_method === 'cash') ? $request->amount_paid : null,
-                'status' => 'pending',
             ]);
+            // SEC: set server-calculated fields explicitly — not via mass assignment
+            $booking->status = 'pending';
+            $booking->total = $total;
+            $booking->save();
 
             // Create booking items with validated data
             foreach ($validatedCart as $item) {

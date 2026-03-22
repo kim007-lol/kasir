@@ -14,6 +14,12 @@ class ShopSetting extends Model
      */
     public static function get(string $key, $default = null)
     {
+        // SECURITY: Demo user tidak boleh lihat setting real
+        // Cache::remember bypass global scope, jadi perlu manual check
+        if (function_exists('isDemoUser') && isDemoUser()) {
+            return $default;
+        }
+
         return Cache::remember("shop_setting_{$key}", 60, function () use ($key, $default) {
             $setting = static::where('key', $key)->first();
             return $setting ? $setting->value : $default;

@@ -489,7 +489,12 @@
         }
 
         function pollGlobalBookings() {
-            fetch('{{ route("cashier.bookings.pendingCount") }}')
+            fetch('{{ route("cashier.bookings.pendingCount") }}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
                 .then(r => r.json())
                 .then(data => {
                     updateGlobalBadges(data.pending_count);

@@ -679,6 +679,20 @@
                 <a href="{{ route('pelanggan.login') }}" class="btn btn-sm text-white" style="background: var(--primary);">
                     <i class="bi bi-bag-heart"></i> <span class="d-none d-sm-inline" data-i18n="nav.order_food">Pesan Makanan</span>
                 </a>
+                
+                @if(config('app.mode') === 'demo')
+                <div class="dropdown d-none d-md-block">
+                    <button class="btn btn-sm btn-dark dropdown-toggle text-white" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius:2rem;">
+                        <i class="bi bi-rocket-fill text-warning"></i> Coba Demo
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius:1rem;">
+                        <li><h6 class="dropdown-header">Pilih Peran Demo:</h6></li>
+                        <li><form method="POST" action="{{ route('demo.login', 'admin') }}">@csrf<button type="submit" class="dropdown-item py-2"><i class="bi bi-person-badge text-primary me-2"></i> Admin (Pemilik)</button></form></li>
+                        <li><form method="POST" action="{{ route('demo.login', 'kasir') }}">@csrf<button type="submit" class="dropdown-item py-2"><i class="bi bi-cart-check text-success me-2"></i> Kasir (Frontdesk)</button></form></li>
+                        <li><form method="POST" action="{{ route('demo.login', 'pelanggan') }}">@csrf<button type="submit" class="dropdown-item py-2"><i class="bi bi-bag-heart text-danger me-2"></i> Pelanggan (Online)</button></form></li>
+                    </ul>
+                </div>
+                @endif
             </div>
         </div>
     </nav>
@@ -697,9 +711,23 @@
                         <a href="{{ route('pelanggan.login') }}" class="btn-login-primary" style="background: white; color: var(--primary);">
                             <i class="bi bi-bag-heart-fill"></i> <span data-i18n="hero.cta_order">Pesan Sekarang</span>
                         </a>
+                        @if(config('app.mode') === 'demo')
+                        <div class="dropdown">
+                            <button class="btn-login-outline dropdown-toggle" style="border-color: rgba(255,255,255,0.4); color: white; background: rgba(0,0,0,0.2);" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-rocket-takeoff-fill text-warning"></i> Coba Akses Demo
+                            </button>
+                            <ul class="dropdown-menu shadow border-0" style="border-radius:1rem;">
+                                <li><h6 class="dropdown-header">Masuk Sebagai:</h6></li>
+                                <li><form method="POST" action="{{ route('demo.login', 'admin') }}">@csrf<button type="submit" class="dropdown-item py-2"><i class="bi bi-person-badge text-primary me-2"></i> Admin Manajemen</button></form></li>
+                                <li><form method="POST" action="{{ route('demo.login', 'kasir') }}">@csrf<button type="submit" class="dropdown-item py-2"><i class="bi bi-cart-check text-success me-2"></i> Kasir POS</button></form></li>
+                                <li><form method="POST" action="{{ route('demo.login', 'pelanggan') }}">@csrf<button type="submit" class="dropdown-item py-2"><i class="bi bi-bag-heart text-danger me-2"></i> Pelanggan Online</button></form></li>
+                            </ul>
+                        </div>
+                        @else
                         <a href="#features" class="btn-login-outline" style="border-color: rgba(255,255,255,0.4); color: white; background: transparent;">
                             <i class="bi bi-arrow-down-circle"></i> <span data-i18n="hero.cta_learn">Pelajari Lebih</span>
                         </a>
+                        @endif
                     </div>
                 </div>
                 <div class="col-lg-5 d-none d-lg-block text-center position-relative" data-aos="zoom-in-up" data-aos-duration="1200" data-aos-delay="200">

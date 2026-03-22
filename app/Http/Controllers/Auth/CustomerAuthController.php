@@ -52,6 +52,15 @@ class CustomerAuthController extends Controller
         if (Auth::attempt(['username' => $credentials['username'], 'password' => $credentials['password']])) {
             $user = Auth::user();
 
+            // SECURITY: Block login ke akun demo via form login manual
+            if (str_starts_with($user->username ?? '', 'demo_')) {
+                Auth::logout();
+                $request->session()->invalidate();
+                return back()->withErrors([
+                    'username' => 'Akun demo hanya bisa diakses melalui tombol Demo di halaman utama.',
+                ])->onlyInput('username');
+            }
+
             // SEC-01: Block soft-deleted users
             if ($user->trashed()) {
                 Auth::logout();

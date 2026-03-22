@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "name": "Devi Diana Safitri, SPd.",
+        "username": "admin",
+        "role": "admin"
+    },
+    {
+        "id": 2,
+        "name": "Kasir SMEGABIZ",
+        "username": "kasir",
+        "role": "admin"
+    },
+    {
+        "id": 3,
+        "name": "Administrator",
+        "username": "admin_tokoku",
+        "role": "admin"
+    },
+    {
+        "id": 4,
+        "name": "Staf Kasir",
+        "username": "kasir_tokoku",
+        "role": "admin"
+    },
+    {
+        "id": 5,
+        "name": "Pelanggan Setia",
+        "username": "user_example",
+        "role": "admin"
+    },
+    {
+        "id": 6,
+        "name": "Hakim",
+        "username": "Hakim",
+        "role": "pelanggan"
+    }
+]

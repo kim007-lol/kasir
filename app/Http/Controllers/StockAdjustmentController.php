@@ -103,11 +103,10 @@ class StockAdjustmentController extends Controller
 
                     $item->refresh();
 
-                    StockAdjustment::create([
+                    $adjustment = StockAdjustment::create([
                         'target' => 'warehouse',
                         'warehouse_item_id' => $item->id,
                         'cashier_item_id' => null,
-                        'user_id' => auth()->id(),
                         'type' => $validated['type'],
                         'quantity' => $validated['quantity'],
                         'stock_before' => $stockBefore,
@@ -115,6 +114,9 @@ class StockAdjustmentController extends Controller
                         'reason' => $validated['reason'],
                         'notes' => $validated['notes'] ?? null,
                     ]);
+                    // SEC: user_id set from auth — not via mass assignment
+                    $adjustment->user_id = auth()->id();
+                    $adjustment->save();
 
                     return [
                         'name' => $item->name,
@@ -139,11 +141,10 @@ class StockAdjustmentController extends Controller
 
                     $item->refresh();
 
-                    StockAdjustment::create([
+                    $adjustment = StockAdjustment::create([
                         'target' => 'cashier',
                         'cashier_item_id' => $item->id,
                         'warehouse_item_id' => null,
-                        'user_id' => auth()->id(),
                         'type' => $validated['type'],
                         'quantity' => $validated['quantity'],
                         'stock_before' => $stockBefore,
@@ -151,6 +152,9 @@ class StockAdjustmentController extends Controller
                         'reason' => $validated['reason'],
                         'notes' => $validated['notes'] ?? null,
                     ]);
+                    // SEC: user_id set from auth — not via mass assignment
+                    $adjustment->user_id = auth()->id();
+                    $adjustment->save();
 
                     return [
                         'name' => $item->name,

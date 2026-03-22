@@ -210,17 +210,19 @@ class CashierBookingController extends Controller
                     'invoice' => $invoice,
                     'customer_name' => $lockedBooking->customer_name,
                     'member_id' => $member?->id,
-                    'total' => $lockedBooking->total,
                     'paid_amount' => $paidAmount,
-                    'change_amount' => $changeAmount,
                     'payment_method' => $paymentMethod,
-                    'discount_percent' => 0,
-                    'discount_amount' => 0,
                     'user_id' => Auth::id(),
                     'cashier_name' => $request->assignee_name,
                     'source' => 'online',
                     'booking_id' => $lockedBooking->id,
                 ]);
+                // SEC: set server-calculated fields explicitly — not via mass assignment
+                $transaction->total = $lockedBooking->total;
+                $transaction->change_amount = $changeAmount;
+                $transaction->discount_percent = 0;
+                $transaction->discount_amount = 0;
+                $transaction->save();
 
                 // Create TransactionDetail for each booking item
                 foreach ($lockedBooking->items as $bookingItem) {
@@ -327,17 +329,19 @@ class CashierBookingController extends Controller
                     'invoice' => $invoice,
                     'customer_name' => $lockedBooking->customer_name,
                     'member_id' => $member?->id,
-                    'total' => $lockedBooking->total,
                     'paid_amount' => $paidAmount,
-                    'change_amount' => $changeAmount,
                     'payment_method' => $paymentMethod,
-                    'discount_percent' => 0,
-                    'discount_amount' => 0,
                     'user_id' => Auth::id(),
                     'cashier_name' => $request->assignee_name,
                     'source' => 'online',
                     'booking_id' => $lockedBooking->id,
                 ]);
+                // SEC: set server-calculated fields explicitly — not via mass assignment
+                $transaction->total = $lockedBooking->total;
+                $transaction->change_amount = $changeAmount;
+                $transaction->discount_percent = 0;
+                $transaction->discount_amount = 0;
+                $transaction->save();
 
                 // Create TransactionDetail for each booking item
                 foreach ($lockedBooking->items as $bookingItem) {
@@ -416,9 +420,11 @@ class CashierBookingController extends Controller
         }
 
         if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('booking_code', 'like', "%{$search}%")
-                    ->orWhere('customer_name', 'like', "%{$search}%");
+            // SEC: Escape LIKE wildcards to prevent LIKE injection
+            $escapedSearch = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $search) . '%';
+            $query->where(function ($q) use ($escapedSearch) {
+                $q->where('booking_code', 'like', $escapedSearch)
+                    ->orWhere('customer_name', 'like', $escapedSearch);
             });
         }
 

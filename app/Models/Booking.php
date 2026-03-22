@@ -20,8 +20,8 @@ class Booking extends Model
         'delivery_type',
         'pickup_time',
         'delivery_address',
-        'status',
-        'total',
+        // 'status' — removed (SEC: must be set explicitly via workflow)
+        // 'total' — removed (SEC: must be calculated server-side)
         'notes',
         'payment_method',
         'amount_paid',

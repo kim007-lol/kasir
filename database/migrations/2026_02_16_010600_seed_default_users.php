@@ -49,17 +49,20 @@ return new class extends Migration
             ],
         ];
 
-        foreach ($users as $user) {
-            User::updateOrCreate(
-                ['email' => $user['email']],
+        foreach ($users as $userData) {
+            // SEC: 'role' is NOT in $fillable (removed to prevent mass-assignment privilege escalation)
+            // So we must set it explicitly after create/update
+            $user = User::updateOrCreate(
+                ['email' => $userData['email']],
                 [
-                    'name' => $user['name'],
-                    'username' => $user['username'],
-                    'password' => Hash::make($user['password']),
-                    'role' => $user['role'],
+                    'name' => $userData['name'],
+                    'username' => $userData['username'],
+                    'password' => Hash::make($userData['password']),
                     'email_verified_at' => $now,
                 ]
             );
+            $user->role = $userData['role'];
+            $user->save();
         }
     }
 

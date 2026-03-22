@@ -51,6 +51,15 @@ class LoginController extends Controller
         if (Auth::attempt($loginCredentials)) {
             $user = Auth::user();
 
+            // SECURITY: Block login ke akun demo via form login manual
+            if (str_starts_with($user->username ?? '', 'demo_')) {
+                Auth::logout();
+                $request->session()->invalidate();
+                return back()->withErrors([
+                    'login' => 'Akun demo hanya bisa diakses melalui tombol Demo di halaman utama.',
+                ])->onlyInput('login');
+            }
+
             // SEC-01: Block soft-deleted users
             if ($user->trashed()) {
                 Auth::logout();
@@ -87,11 +96,62 @@ class LoginController extends Controller
         ])->onlyInput('login');
     }
 
+    public function demoLogin(Request $request, $role)
+    {
+        // Pastikan APP_MODE = demo sebelum mengizinkan auto-login
+        if (!isDemo()) {
+            return redirect('/')->with('error', 'Demo mode tidak aktif.');
+        }
+
+        // SECURITY FIX #1: Whitelist role yang valid
+        $allowedRoles = ['admin', 'kasir', 'pelanggan'];
+        if (!in_array($role, $allowedRoles, true)) {
+            abort(404);
+        }
+
+        // Mapping role ke username demo
+        $username = "demo_{$role}";
+
+        // Cari user demo berdasarkan username
+        $user = \App\Models\User::where('username', '=', $username)->first();
+
+        if (!$user) {
+            return redirect('/')->with('error', "Akun demo untuk {$role} belum tersedia.");
+        }
+
+        // Logout user saat ini jika ada
+        if (Auth::check()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
+        // Auto-login
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        // Redirect sesuai role
+        if ($user->role === 'kasir') {
+            return redirect()->intended(route('cashier.dashboard'))->with('info', "Anda login sebagai Kasir (Mode Demo).");
+        } elseif ($user->role === 'pelanggan') {
+            return redirect()->intended(route('booking.menu'))->with('info', "Anda login sebagai Pelanggan (Mode Demo).");
+        }
+
+        return redirect()->intended(route('dashboard'))->with('info', "Anda login sebagai Admin (Mode Demo).");
+    }
+
     public function logout(Request $request)
     {
+        $isDemo = isDemoUser();
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        if ($isDemo) {
+            return redirect('/')->with('info', 'Anda telah logout dari Mode Demo.');
+        }
+
         return redirect('/login');
     }
 }

@@ -14,7 +14,7 @@ class StockAdjustment extends Model
         'cashier_item_id',
         'warehouse_item_id',
         'target', // 'cashier' atau 'warehouse'
-        'user_id',
+        // 'user_id' — removed (SEC: must be set from auth()->id() to prevent audit trail forgery)
         'type',
         'quantity',
         'stock_before',

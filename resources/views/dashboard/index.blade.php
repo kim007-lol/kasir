@@ -237,7 +237,12 @@
 
     // Auto Refresh Dashboard Statistics every 15 seconds
     setInterval(function() {
-        fetch("{{ route('dashboard.stats') }}")
+        fetch("{{ route('dashboard.stats') }}", {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
             .then(response => response.json())
             .then(data => {
                 document.getElementById('totalItems').innerText = data.totalItems;

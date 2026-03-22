@@ -207,7 +207,12 @@
     @if(in_array($booking->status, ['pending', 'confirmed', 'processing']))
     // Polling status
     setInterval(function() {
-        fetch("{{ route('booking.api.status', $booking->id) }}")
+        fetch("{{ route('booking.api.status', $booking->id) }}", {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
             .then(response => response.json())
             .then(data => {
                 const badge = document.getElementById('status-badge');
