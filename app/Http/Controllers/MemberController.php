@@ -55,8 +55,10 @@ class MemberController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|max:20|regex:/^[0-9]+$/',
             'address' => 'nullable|string',
+        ], [
+            'phone.regex' => 'Nomor telepon hanya boleh berisi angka.'
         ]);
 
         Member::create($validated);
@@ -88,8 +90,10 @@ class MemberController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|max:20|regex:/^[0-9]+$/',
             'address' => 'nullable|string',
+        ], [
+            'phone.regex' => 'Nomor telepon hanya boleh berisi angka.'
         ]);
 
         $member->update($validated);

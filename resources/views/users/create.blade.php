@@ -79,7 +79,8 @@
                     </label>
                     <input type="text" class="form-control @error('phone') is-invalid @enderror"
                         id="phone" name="phone" value="{{ old('phone') }}"
-                        placeholder="Contoh: 081234567890">
+                        placeholder="Contoh: 081234567890"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     @error('phone')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

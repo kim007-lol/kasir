@@ -54,13 +54,14 @@ class SupplierController extends Controller
                     return $query->where('address', $request->address);
                 })
             ],
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|regex:/^[0-9]+$/',
             'email' => ['required', 'email', 'max:100', Rule::unique('suppliers', 'email')->withoutTrashed()],
             'address' => 'required|string',
             'contract_date' => 'required|date'
         ], [
             'name.unique' => 'Supplier dengan nama dan alamat yang sama sudah ada.',
-            'email.unique' => 'Email ini sudah terdaftar untuk supplier lain.'
+            'email.unique' => 'Email ini sudah terdaftar untuk supplier lain.',
+            'phone.regex' => 'Nomor telepon hanya boleh berisi angka.'
         ]);
 
         Supplier::create($validated);
@@ -85,13 +86,14 @@ class SupplierController extends Controller
                     return $query->where('address', $request->address);
                 })->ignore($supplier->id)
             ],
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|regex:/^[0-9]+$/',
             'email' => 'required|email|max:100|unique:suppliers,email,' . $supplier->id,
             'address' => 'required|string',
             'contract_date' => 'required|date'
         ], [
             'name.unique' => 'Supplier dengan nama dan alamat yang sama sudah ada.',
-            'email.unique' => 'Email ini sudah terdaftar untuk supplier lain.'
+            'email.unique' => 'Email ini sudah terdaftar untuk supplier lain.',
+            'phone.regex' => 'Nomor telepon hanya boleh berisi angka.'
         ]);
 
         $supplier->update($validated);

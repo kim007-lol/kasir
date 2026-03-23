@@ -202,7 +202,7 @@
                 </label>
                 <input type="text" name="phone" id="phone"
                     class="form-control @error('phone') is-invalid @enderror"
-                    value="{{ old('phone') }}" placeholder="Contoh: 08123456789" required>
+                    value="{{ old('phone') }}" placeholder="Contoh: 08123456789" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                 @error('phone')
                 <div class="invalid-feedback"><i class="bi bi-exclamation-circle"></i> {{ $message }}</div>
                 @enderror

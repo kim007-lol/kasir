@@ -34,7 +34,7 @@ $layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
                 <div class="mb-3">
                     <label for="phone" class="form-label fw-bold">No Telepon</label>
                     <input type="tel" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror"
-                        value="{{ old('phone') }}" placeholder="Contoh: 081234567890">
+                        value="{{ old('phone') }}" placeholder="Contoh: 081234567890" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     @error('phone')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

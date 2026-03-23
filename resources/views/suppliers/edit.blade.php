@@ -27,7 +27,7 @@ $layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
 
                 <div class="mb-3">
                     <label for="phone" class="form-label">No Telp</label>
-                    <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone', $supplier->phone) }}">
+                    <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone', $supplier->phone) }}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     @error('phone')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

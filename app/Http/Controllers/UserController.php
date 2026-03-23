@@ -54,7 +54,7 @@ class UserController extends Controller
             'role'     => 'required|in:admin,kasir,pelanggan',
         ];
         if ($request->input('role') === 'pelanggan') {
-            $rules['phone'] = 'required|string|max:20';
+            $rules['phone'] = 'required|string|max:20|regex:/^[0-9]+$/';
         }
 
         $validated = $request->validate($rules, [
@@ -68,6 +68,7 @@ class UserController extends Controller
             'role.required'      => 'Role harus dipilih',
             'role.in'            => 'Role tidak valid',
             'phone.required'     => 'Nomor telepon wajib diisi untuk akun pelanggan',
+            'phone.regex'        => 'Nomor telepon hanya boleh berisi angka',
         ]);
 
         // Auto-generate a unique email based on username
