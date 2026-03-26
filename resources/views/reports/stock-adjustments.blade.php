@@ -46,12 +46,15 @@
                     <label for="end_date" class="form-label fw-semibold small">Tanggal Akhir</label>
                     <input type="date" class="form-control form-control-sm" id="end_date" name="end_date" value="{{ $endDate ?? '' }}">
                 </div>
-                <div class="col-md-2 d-flex gap-2">
+                <div class="col-md-2 d-flex gap-2 flex-wrap">
                     <button type="submit" class="btn btn-sm btn-primary">
                         <i class="bi bi-search"></i> Filter
                     </button>
                     <a href="{{ route('reports.stockAdjustments') }}" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-arrow-clockwise"></i> Reset
+                    </a>
+                    <a href="{{ route('reports.stockAdjustments.exportPdf', request()->all()) }}" class="btn btn-sm btn-danger">
+                        <i class="bi bi-file-earmark-pdf"></i> PDF
                     </a>
                 </div>
             </form>

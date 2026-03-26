@@ -85,6 +85,9 @@ $routePrefix = (auth()->check() && auth()->user()->role === 'kasir') ? 'cashier.
                         <a href="{{ route($routePrefix . 'history.index') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-clockwise"></i> Reset
                         </a>
+                        <a href="{{ route($routePrefix . 'history.exportPdf', request()->all()) }}" class="btn btn-danger">
+                            <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                        </a>
                     </div>
                 </div>
             </form>

@@ -1,0 +1,461 @@
+# Panduan Dokumentasi Backend SMEGAMART
+
+> Dokumen ini disusun berdasarkan **analisis langsung** terhadap source code project `kasirku`.
+> Fokus: **Backend Laravel** — tidak membahas database secara detail.
+
+---
+
+## 1. Ringkasan Kebutuhan Backend
+
+Berdasarkan analisis kode, backend SMEGAMART memiliki komponen-komponen berikut:
+
+| Komponen | Jumlah | Detail |
+|---|---|---|
+| Controllers | 17 | TransactionController, BookingController, CashierBookingController, ReportController, CashierItemController, StockAdjustmentController, WarehouseController, UserController, dll. |
+| Models | 14 | Transaction, Booking, CashierItem, WarehouseItem, StockTransferLog, StockAdjustment, Member, dll. |
+| Middleware Custom | 3 | EnsureUserRole, PreventBackHistory, Authenticate |
+| Services | 2 | StoreDataService (AI context), GeminiService (AI chat) |
+| Exports | 2 | ReportsExport (Excel), PelangganTemplateExport |
+| Imports | 1 | PelangganImport |
+| Observers | 2 | CashierItemObserver, WarehouseItemObserver |
+| Role Pengguna | 3 | admin, kasir, pelanggan |
+
+### Fitur Backend Utama:
+1. **Checkout Transaksi POS** — DB::transaction + lockForUpdate + idempotency token
+2. **Booking Online** — lifecycle status (pending → confirmed → processing → ready → completed/cancelled) + stock reservation
+3. **Transfer Stok** — gudang → kasir dengan log transfer
+4. **Stock Opname** — penyesuaian stok kasir dan gudang
+5. **Barang Titipan (Consignment)** — lifecycle harian
+6. **Laporan & Export** — PDF (DomPDF) + Excel (Maatwebsite)
+7. **Role-Based Access Control** — middleware [EnsureUserRole](file:///d:/kasirku/app/Http/Middleware/EnsureUserRole.php#10-33)
+8. **Integrasi AI** — Gemini API + StoreDataService
+
+---
+
+## 2. Daftar Screenshot Wajib
+
+### Prioritas: 🔴 Wajib | 🟡 Penting | 🟢 Opsional
+
+| No | Nama Screenshot | Tujuan | Bab | Subbab | Caption | Prioritas |
+|---|---|---|---|---|---|---|
+| 1 | Struktur Folder Backend | Menunjukkan arsitektur file backend Laravel | III | 3.2 | Gambar 3.1 Struktur Folder Backend Sistem SMEGAMART | 🔴 |
+| 2 | File [web.php](file:///d:/kasirku/routes/web.php) — Routing Admin | Menunjukkan pembagian route per role | IV | 4.1 | Gambar 4.1 Implementasi Routing untuk Role Admin | 🔴 |
+| 3 | File [web.php](file:///d:/kasirku/routes/web.php) — Routing Kasir | Menunjukkan routing khusus kasir | IV | 4.1 | Gambar 4.2 Implementasi Routing untuk Role Kasir | 🔴 |
+| 4 | File [web.php](file:///d:/kasirku/routes/web.php) — Routing Pelanggan | Menunjukkan routing booking pelanggan | IV | 4.1 | Gambar 4.3 Implementasi Routing untuk Role Pelanggan | 🟡 |
+| 5 | [EnsureUserRole.php](file:///d:/kasirku/app/Http/Middleware/EnsureUserRole.php) | Membuktikan middleware pembatas akses | IV | 4.1 | Gambar 4.4 Implementasi Middleware EnsureUserRole | 🔴 |
+| 6 | [Kernel.php](file:///d:/kasirku/app/Http/Kernel.php) — Alias Middleware | Menunjukkan registrasi alias `role` | IV | 4.1 | Gambar 4.5 Registrasi Middleware pada Kernel | 🟡 |
+| 7 | `TransactionController::checkout()` | Menunjukkan logika checkout dengan DB::transaction dan lockForUpdate | IV | 4.2 | Gambar 4.6 Implementasi Proses Checkout pada Controller | 🔴 |
+| 8 | Hasil transaksi berhasil (halaman struk) | Bukti checkout berhasil | IV | 4.2 | Gambar 4.7 Hasil Checkout Berhasil — Halaman Struk | 🔴 |
+| 9 | Pesan error stok tidak cukup saat checkout | Bukti validasi stok berjalan | IV | 4.2 | Gambar 4.8 Validasi Stok pada Proses Checkout | 🔴 |
+| 10 | `BookingController::placeOrder()` | Logika pembuatan booking + stock reservation | IV | 4.3 | Gambar 4.9 Implementasi Proses Place Order Booking | 🔴 |
+| 11 | Halaman status booking pelanggan | Bukti tracking status pesanan | IV | 4.3 | Gambar 4.10 Halaman Status Pesanan Pelanggan | 🟡 |
+| 12 | `CashierBookingController::accept()` | Logika accept booking dengan lock | IV | 4.3 | Gambar 4.11 Implementasi Accept Booking pada Kasir | 🟡 |
+| 13 | `CashierBookingController::reject()` | Logika reject + pengembalian stok | IV | 4.3 | Gambar 4.12 Implementasi Reject Booking dan Pengembalian Stok | 🟡 |
+| 14 | `CashierItemController::storeFromWarehouse()` | Logika transfer stok gudang → kasir | IV | 4.4 | Gambar 4.13 Implementasi Transfer Stok dari Gudang ke Kasir | 🔴 |
+| 15 | Hasil transfer stok berhasil | Bukti transfer berjalan | IV | 4.4 | Gambar 4.14 Hasil Transfer Stok Berhasil | 🟡 |
+| 16 | Halaman riwayat transfer stok | Audit trail perpindahan barang | IV | 4.4 | Gambar 4.15 Riwayat Transfer Stok | 🟡 |
+| 17 | `StockAdjustmentController::store()` | Logika stock opname dengan lock | IV | 4.4 | Gambar 4.16 Implementasi Stock Opname | 🟡 |
+| 18 | `ReportController::index()` | Logika pengambilan data laporan | IV | 4.5 | Gambar 4.17 Implementasi Halaman Laporan | 🔴 |
+| 19 | Halaman laporan dengan filter | Bukti laporan yang terstruktur | IV | 4.5 | Gambar 4.18 Tampilan Halaman Laporan dengan Filter Periode | 🔴 |
+| 20 | `ReportController::exportPdf()` | Logika export PDF | IV | 4.5 | Gambar 4.19 Implementasi Export Laporan ke PDF | 🟡 |
+| 21 | Hasil export PDF | Bukti file PDF dihasilkan | IV | 4.5 | Gambar 4.20 Hasil Export Laporan dalam Format PDF | 🔴 |
+| 22 | Hasil export Excel | Bukti file Excel dihasilkan | IV | 4.5 | Gambar 4.21 Hasil Export Laporan dalam Format Excel | 🟡 |
+| 23 | Akses ditolak (403) — role tidak sesuai | Bukti RBAC berjalan | IV | 4.6 | Gambar 4.22 Akses Ditolak karena Role Tidak Sesuai | 🔴 |
+| 24 | Pesan error validasi input | Bukti validasi server-side | IV | 4.6 | Gambar 4.23 Validasi Input pada Proses Checkout | 🟡 |
+| 25 | [ReportsExport.php](file:///d:/kasirku/app/Exports/ReportsExport.php) | Export class Excel | IV | 4.5 | Gambar 4.24 Implementasi Class Export Excel | 🟢 |
+| 26 | Halaman daftar pesanan booking (kasir) | Bukti manajemen booking | IV | 4.3 | Gambar 4.25 Halaman Daftar Pesanan Booking Online | 🟢 |
+
+> **Total screenshot yang direkomendasikan: 20–26 gambar**
+> Jika ingin lebih ringkas, ambil yang bertanda 🔴 saja (**13 gambar**).
+
+---
+
+## 3. Daftar Flowchart / Diagram yang Perlu Dibuat
+
+| No | Nama Diagram | Isi Diagram | Tujuan | Bab | Subbab | Caption | Prioritas |
+|---|---|---|---|---|---|---|---|
+| 1 | **Arsitektur Backend** | Browser → Route → Middleware → Controller → Model → Database → Response | Menunjukkan alur kerja utama backend | III | 3.2 | Gambar 3.2 Arsitektur Backend Sistem SMEGAMART | 🔴 |
+| 2 | **Alur Checkout** | Kasir pilih barang → Validasi input → Cek stok DB → Lock row → Hitung total → Buat transaksi → Simpan detail → Kurangi stok → Bersihkan cart → Redirect struk | Menjelaskan proses inti transaksi | III | 3.3 | Gambar 3.3 Alur Proses Checkout Transaksi | 🔴 |
+| 3 | **Alur Booking Online** | Pelanggan pilih barang → Cek ketersediaan → Lock item → Kurangi stok → Buat booking → Kasir terima/tolak → Proses → Siap → Selesai | Menjelaskan lifecycle booking | III | 3.4 | Gambar 3.4 Alur Proses Booking Online | 🔴 |
+| 4 | **Status Lifecycle Booking** | pending → confirmed → processing → ready → completed (+ cancelled dari titik manapun yang valid) | Menunjukkan state machine booking | III | 3.4 | Gambar 3.5 Diagram Status Pesanan Booking | 🔴 |
+| 5 | **Alur Transfer Stok** | Pilih barang gudang → Validasi stok → Lock warehouse → Kurangi stok gudang → Cek item kasir → Tambah/buat item kasir → Catat log → Selesai | Menjelaskan pemindahan barang | III | 3.5 | Gambar 3.6 Alur Proses Transfer Stok | 🔴 |
+| 6 | **Alur Pembuatan Laporan** | Request → Filter periode & sumber → Query transaksi → Agregasi data → Hitung HPP & laba → Tampilkan / Export PDF/Excel | Menjelaskan proses laporan | III | 3.6 | Gambar 3.7 Alur Pembuatan Laporan | 🟡 |
+| 7 | **Alur RBAC & Middleware** | Request masuk → Middleware `auth` (cek login) → Middleware `role` (cek peran) → Akses diterima / ditolak (403) | Menjelaskan keamanan akses | III | 3.7 | Gambar 3.8 Alur Role-Based Access Control | 🔴 |
+| 8 | **Alur Stock Opname** | Pilih target (kasir/gudang) → Pilih item → Input jumlah → Lock row → Update stok → Catat log → Selesai | Menjelaskan penyesuaian stok | III | 3.5 | Gambar 3.9 Alur Proses Stock Opname | 🟢 |
+
+> **Total diagram yang direkomendasikan: 6–8 diagram**
+> Jika ingin efisien, ambil yang bertanda 🔴 saja (**6 diagram**).
+
+### Contoh Detail Flowchart Checkout (untuk referensi pembuatan):
+
+```
+[Kasir Kirim Data Checkout]
+        ↓
+[Validasi Input Request]
+        ↓
+  [Keranjang Kosong?] —Ya→ [Tampilkan Error]
+        ↓ Tidak
+[Cek Idempotency Token] —Sudah Ada→ [Tampilkan Error Double Submit]
+        ↓ Token Baru
+[Loop Setiap Item di Keranjang]
+        ↓
+  [Ambil Item dari DB] → [lockForUpdate()]
+        ↓
+  [Stok Cukup?] —Tidak→ [Throw Exception]
+        ↓ Ya
+  [Harga Valid?] —Tidak→ [Throw Exception]
+        ↓ Ya
+  [Hitung Total dari Harga DB]
+        ↓
+[Hitung Diskon & Net Total]
+        ↓
+[Pembayaran Cukup?] —Tidak→ [Throw Exception]
+        ↓ Ya
+[Buat Record Transaction]
+        ↓
+[Buat TransactionDetail untuk Setiap Item]
+        ↓
+[Kurangi Stok (decrement)]
+        ↓
+[Simpan Token + Bersihkan Cart]
+        ↓
+[Redirect ke Halaman Struk]
+```
+
+---
+
+## 4. Struktur Folder Backend yang Perlu Ditampilkan
+
+```
+app/
+├── Console/              ← (opsional) command auto-cancel booking
+├── Events/               ← (bisa diabaikan)
+├── Exceptions/           ← (bisa diabaikan)
+├── Exports/              ← ★ PENTING — ReportsExport.php, PelangganTemplateExport.php
+│   ├── ReportsExport.php
+│   └── PelangganTemplateExport.php
+├── Http/
+│   ├── Controllers/      ← ★ SANGAT PENTING
+│   │   ├── Auth/
+│   │   │   ├── LoginController.php
+│   │   │   └── CustomerAuthController.php
+│   │   ├── TransactionController.php      ← Proses checkout POS
+│   │   ├── BookingController.php          ← Booking pelanggan
+│   │   ├── CashierBookingController.php   ← Manajemen booking kasir
+│   │   ├── ReportController.php           ← Laporan + export
+│   │   ├── CashierItemController.php      ← Stok kasir + transfer
+│   │   ├── StockAdjustmentController.php  ← Stock opname
+│   │   ├── WarehouseController.php        ← Manajemen gudang
+│   │   ├── UserController.php             ← Kelola user
+│   │   ├── DashboardController.php        ← Dashboard admin
+│   │   ├── CategoryController.php         ← CRUD kategori
+│   │   ├── SupplierController.php         ← CRUD supplier
+│   │   ├── MemberController.php           ← CRUD member
+│   │   ├── HistoryController.php          ← Histori transaksi
+│   │   ├── ShopSettingController.php      ← Pengaturan toko
+│   │   └── AiChatController.php           ← Integrasi AI
+│   ├── Kernel.php        ← ★ PENTING — registrasi middleware
+│   └── Middleware/       ← ★ PENTING
+│       ├── EnsureUserRole.php             ← RBAC middleware
+│       ├── PreventBackHistory.php         ← Keamanan navigasi
+│       └── Authenticate.php              ← Auth check
+├── Imports/              ← ★ PENTING — PelangganImport.php
+├── Models/               ← ★ PENTING (sebutkan saja, jangan bahas ERD)
+│   ├── Transaction.php
+│   ├── Booking.php
+│   ├── CashierItem.php
+│   ├── WarehouseItem.php
+│   ├── StockTransferLog.php
+│   ├── StockAdjustment.php
+│   └── ... (14 model total)
+├── Observers/            ← ★ PENTING — logic otomatis
+│   ├── CashierItemObserver.php
+│   └── WarehouseItemObserver.php
+├── Providers/            ← (bisa diabaikan)
+└── Services/             ← ★ PENTING
+    ├── GeminiService.php          ← Koneksi AI
+    └── StoreDataService.php       ← Context data untuk AI
+
+routes/
+├── web.php               ← ★ SANGAT PENTING — 241 baris, 3 group role
+└── api.php               ← (minor)
+```
+
+### Yang **TIDAK PERLU** ditampilkan:
+- `vendor/` — library pihak ketiga
+- `node_modules/` — dependency frontend
+- `public/` — asset publik
+- `storage/` — cache dan log
+- `bootstrap/` — bootstrapping Laravel
+- [config/](file:///d:/kasirku/.editorconfig) — konfigurasi (kecuali ingin menunjukkan konfigurasi khusus)
+- `database/migrations/` — ini bagian database engineer, bukan backend
+
+---
+
+## 5. Relasi Antar Komponen Backend
+
+### Alur Kerja Utama
+```
+Browser (Request)
+    ↓
+routes/web.php  →  Menentukan controller berdasarkan URL dan HTTP method
+    ↓
+Middleware (auth + role)  →  Memeriksa autentikasi dan hak akses
+    ↓
+Controller  →  Memproses logika bisnis (validasi, perhitungan, dll)
+    ↓
+Model (Eloquent ORM)  →  Berinteraksi dengan database via query builder
+    ↓
+DB::transaction + lockForUpdate  →  Menjaga konsistensi data
+    ↓
+Response (View / Redirect / JSON)  →  Dikirim kembali ke browser
+```
+
+### Relasi Spesifik per Proses
+
+#### Checkout POS
+```
+Route POST /cashier/transaksi/bayar
+  → middleware: auth, role:kasir
+  → TransactionController::checkout()
+    → validate input (item_id, qty, paid_amount, payment_method, token)
+    → DB::transaction {
+        → CashierItem::lockForUpdate()     ← mencegah race condition
+        → validasi stok real-time
+        → Transaction::create()            ← simpan header transaksi
+        → TransactionDetail::create()      ← simpan detail per item
+        → CashierItem::decrement('stock')  ← kurangi stok
+        → session token                    ← cegah double submit
+      }
+    → redirect ke halaman struk
+```
+
+#### Booking Online
+```
+Route POST /booking/checkout
+  → middleware: auth, role:pelanggan
+  → BookingController::placeOrder()
+    → validate input (delivery_type, address, pickup_time, payment_method)
+    → DB::beginTransaction() {
+        → CashierItem::lockForUpdate()     ← lock stok
+        → CashierItem::decrement('stock')  ← reservasi stok langsung
+        → Booking::create()                ← simpan booking
+        → BookingItem::create()            ← simpan item booking
+      }
+    → redirect ke halaman status
+
+Route POST /cashier/bookings/{booking}/accept
+  → middleware: auth, role:kasir
+  → CashierBookingController::accept()
+    → DB::transaction {
+        → Booking::lockForUpdate()         ← cegah double-accept
+        → update status → 'confirmed'
+      }
+
+Route POST /cashier/bookings/{booking}/reject
+  → CashierBookingController::reject()
+    → DB::transaction {
+        → Booking::lockForUpdate()
+        → CashierItem::increment('stock')  ← kembalikan stok
+        → update status → 'cancelled'
+      }
+```
+
+#### Transfer Stok
+```
+Route POST /cashier/stock/warehouse
+  → middleware: auth, role:kasir
+  → CashierItemController::storeFromWarehouse()
+    → validate (warehouse_item_id, quantity, discount)
+    → DB::transaction {
+        → WarehouseItem::lockForUpdate()   ← lock gudang
+        → validasi stok gudang
+        → WarehouseItem::decrement()       ← kurangi gudang
+        → CashierItem::create/update()     ← tambah ke kasir
+        → StockTransferLog::create()       ← catat riwayat
+      }
+```
+
+#### Laporan & Export
+```
+Route GET /reports
+  → middleware: auth, role:admin
+  → ReportController::index()
+    → query Transaction + filter (today/week/month/custom/all)
+    → filter source (pos/online/all)
+    → agregasi: total transaksi, pendapatan, HPP, laba bersih
+    → render view
+
+Route GET /reports/export-pdf
+  → ReportController::exportPdf()
+    → query + Pdf::loadView() → download .pdf
+
+Route GET /reports/export-excel
+  → ReportController::exportExcel()
+    → query + Excel::download(ReportsExport) → download .xlsx
+```
+
+---
+
+## 6. Potongan Kode Inti yang Layak Dicantumkan
+
+| No | Potongan Kode | File Sumber | Kenapa Penting | Bab | Lokasi |
+|---|---|---|---|---|---|
+| 1 | **Route group dengan middleware role** | `routes/web.php` baris 59, 75, 125 | Menunjukkan penerapan RBAC di level routing | BAB IV | Subbab 4.1 |
+| 2 | **Middleware `EnsureUserRole`** | `app/Http/Middleware/EnsureUserRole.php` (33 baris) | Logika utama pembatasan akses — **tampilkan lengkap** | BAB IV | Subbab 4.1 |
+| 3 | **Logika `DB::transaction` + `lockForUpdate` pada checkout** | `TransactionController.php` baris 365–462 | Inti dari keamanan dan konsistensi transaksi | BAB IV | Subbab 4.2 |
+| 4 | **Validasi input checkout** | `TransactionController.php` baris 297–304 | Menunjukkan validasi server-side | BAB IV | Subbab 4.2 |
+| 5 | **Pencegahan double-submit (idempotency token)** | `TransactionController.php` baris 309–313 | Teknik keamanan penting kasir | BAB IV | Subbab 4.6 |
+| 6 | **`BookingController::placeOrder()` — stock reservation** | `BookingController.php` baris 235–341 | Menunjukkan booking + langsung kurangi stok | BAB IV | Subbab 4.3 |
+| 7 | **`CashierBookingController::reject()` — pengembalian stok** | `CashierBookingController.php` baris 100–128 | Menunjukkan rollback stok saat pesanan dibatalkan | BAB IV | Subbab 4.3 |
+| 8 | **`CashierItemController::storeFromWarehouse()` — transfer stok** | `CashierItemController.php` baris 357–461 | Logika transfer + logging | BAB IV | Subbab 4.4 |
+| 9 | **`StockAdjustmentController::store()` — stock opname** | `StockAdjustmentController.php` baris 68–176 | Penyesuaian stok kasir dan gudang | BAB IV | Subbab 4.4 |
+| 10 | **`ReportController::exportPdf()`** | `ReportController.php` baris 197–260 | Proses export data ke PDF | BAB IV | Subbab 4.5 |
+| 11 | **`ReportsExport` class** | `app/Exports/ReportsExport.php` (38 baris) | Export Excel — **tampilkan lengkap** | BAB IV | Subbab 4.5 |
+| 12 | **IDOR prevention pada struk** | `TransactionController.php` baris 504–508 | Keamanan akses data (kasir hanya bisa lihat transaksi sendiri) | BAB IV | Subbab 4.6 |
+| 13 | **`Kernel.php` — middleware aliases** | `app/Http/Kernel.php` baris 56–68 | Menunjukkan registrasi `'role' => EnsureUserRole::class` | BAB IV | Subbab 4.1 |
+
+### Rekomendasi Penanganan:
+- Kode **≤ 40 baris** → masukkan langsung di bab utama
+- Kode **41–80 baris** → masukkan di bab utama, highlight bagian penting saja
+- Kode **> 80 baris** → masukkan sebagian di bab utama, sisanya di lampiran
+
+---
+
+## 7. Rekomendasi Peletakan per Bab
+
+### BAB III — Pembahasan (Rancangan & Alur Kerja) ← Fokus: **Diagram dan Narasi**
+
+| Subbab | Isi yang Direkomendasikan | Gambar |
+|---|---|---|
+| 3.1 Gambaran Umum Sistem | Narasi umum tentang apa yang dilakukan backend, role pengguna (admin, kasir, pelanggan), teknologi yang dipakai | — |
+| 3.2 Desain Arsitektur Backend | Narasi arsitektur MVC + diagram arsitektur backend | Gambar 3.1, 3.2 |
+| 3.3 Alur Proses Checkout | Narasi alur checkout + flowchart checkout | Gambar 3.3 |
+| 3.4 Alur Proses Booking Online | Narasi alur booking + flowchart booking + diagram status | Gambar 3.4, 3.5 |
+| 3.5 Alur Proses Transfer Stok & Stock Opname | Narasi transfer + stock opname + flowchart | Gambar 3.6, 3.9 |
+| 3.6 Alur Pembuatan Laporan | Narasi laporan + diagram alur | Gambar 3.7 |
+| 3.7 Keamanan dan Integritas Data | Narasi RBAC, validasi, transaksi DB, locking + diagram RBAC | Gambar 3.8 |
+
+> **Poin penting BAB III:** Jangan masukkan screenshot kode atau screenshot tampilan. Cukup diagram alur dan narasi penjelasan saja.
+
+---
+
+### BAB IV — Implementasi dan Pengujian ← Fokus: **Screenshot Kode + Bukti Hasil**
+
+| Subbab | Isi Screenshot / Gambar | Isi Teks |
+|---|---|---|
+| 4.1 Implementasi Routing dan Middleware | Screenshot routing (Gambar 4.1–4.5), screenshot middleware | Penjelasan bagaimana routing dan middleware bekerja, snippet kode |
+| 4.2 Implementasi Proses Checkout | Screenshot controller checkout (Gambar 4.6), screenshot hasil berhasil (4.7), screenshot error (4.8) | Penjelasan teknis: DB::transaction, lockForUpdate, idempotency |
+| 4.3 Implementasi Booking Online | Screenshot placeOrder (4.9), status page (4.10), accept/reject (4.11-4.12) | Penjelasan lifecycle, stock reservation, pengembalian stok |
+| 4.4 Implementasi Manajemen Stok | Screenshot transfer (4.13-4.16), stock opname | Penjelasan transfer gudang→kasir, logging, stock opname |
+| 4.5 Implementasi Laporan | Screenshot halaman laporan (4.17-4.21), export PDF/Excel | Penjelasan filter, agregasi, export |
+| 4.6 Implementasi Keamanan | Screenshot 403 (4.22), validasi (4.23), IDOR protection | Penjelasan RBAC, validasi input, ownership check |
+| 4.7 Pengujian Fungsional | **Tabel pengujian** (lihat di bawah) | Narasi hasil pengujian |
+
+---
+
+### Lampiran ← Fokus: **Kode Lengkap + Hasil Uji Tambahan**
+
+| Lampiran | Isi |
+|---|---|
+| Lampiran A | Potongan kode lengkap controller utama (checkout, booking, transfer) |
+| Lampiran B | Screenshot tambahan: customer-display, dashboard, histori transaksi |
+| Lampiran C | Tabel pengujian lengkap (jika tabel di 4.7 terlalu panjang) |
+| Lampiran D | Screenshot export PDF dan Excel lengkap |
+
+---
+
+## 8. Format Tabel Pengujian Fungsional (untuk BAB IV Subbab 4.7)
+
+| No | Skenario Pengujian | Input | Hasil yang Diharapkan | Hasil Aktual | Status |
+|---|---|---|---|---|---|
+| 1 | Login admin dengan kredensial valid | Username, password valid | Redirect ke dashboard admin | Sesuai | ✅ Berhasil |
+| 2 | Login kasir dengan kredensial valid | Username, password valid | Redirect ke dashboard kasir | Sesuai | ✅ Berhasil |
+| 3 | Akses halaman admin oleh role kasir | URL `/dashboard` dengan login kasir | Tampil halaman 403 Forbidden | Sesuai | ✅ Berhasil |
+| 4 | Checkout dengan stok cukup | 2 item, pembayaran >= total | Transaksi tersimpan, stok berkurang, struk tampil | Sesuai | ✅ Berhasil |
+| 5 | Checkout dengan stok tidak cukup | Item qty > stok tersedia | Pesan error "Stok tidak cukup" | Sesuai | ✅ Berhasil |
+| 6 | Checkout dengan double submit | Klik "Bayar" 2x berturut-turut | Transaksi pertama berhasil, kedua ditolak | Sesuai | ✅ Berhasil |
+| 7 | Booking saat toko tutup | Pilih item di luar jam toko | Pesan error "Toko sedang tutup" | Sesuai | ✅ Berhasil |
+| 8 | Booking dengan stok cukup | Pilih item tersedia | Booking tersimpan, stok berkurang | Sesuai | ✅ Berhasil |
+| 9 | Pembatalan booking oleh pelanggan | Status masih pending | Booking dibatalkan, stok kembali | Sesuai | ✅ Berhasil |
+| 10 | Transfer stok gudang → kasir | Pilih barang, qty <= stok gudang | Stok gudang berkurang, stok kasir bertambah, log tercatat | Sesuai | ✅ Berhasil |
+| 11 | Transfer stok melebihi ketersediaan | qty > stok gudang | Pesan error "Stok gudang tidak cukup" | Sesuai | ✅ Berhasil |
+| 12 | Stock opname tambah stok kasir | Pilih item, tipe "increase" | Stok bertambah, riwayat tercatat | Sesuai | ✅ Berhasil |
+| 13 | Stock opname kurangi stok kasir | Pilih item, tipe "decrease" | Stok berkurang, riwayat tercatat | Sesuai | ✅ Berhasil |
+| 14 | Export laporan ke PDF | Filter hari ini | File PDF terunduh | Sesuai | ✅ Berhasil |
+| 15 | Export laporan ke Excel | Filter hari ini | File Excel terunduh | Sesuai | ✅ Berhasil |
+| 16 | Kasir lihat struk transaksi orang lain | URL struk milik kasir lain | Pesan error "Tidak memiliki akses" | Sesuai | ✅ Berhasil |
+
+---
+
+## 9. Saran agar Laporan Terlihat Rapi dan Profesional
+
+### ✅ Yang Harus Dilakukan
+1. **Setiap gambar harus punya caption** dengan nomor urut yang konsisten (Gambar 3.1, 3.2, dst.)
+2. **Gunakan pola: penjelasan → gambar → keterangan** di setiap subbab
+3. **Screenshot kode sebaiknya di-highlight** pada bagian penting (beri kotak/warna)
+4. **Flowchart gunakan bentuk standar**: kotak persegi = proses, diamond = kondisi, oval = mulai/selesai
+5. **Tabel pengujian gunakan format yang konsisten** — jangan campur narasi dan tabel
+6. **Struktur folder tampilkan dalam format tree** (seperti contoh di atas)
+7. **Sebutkan file spesifik** saat menjelaskan implementasi (contoh: "Implementasi middleware terdapat pada file `EnsureUserRole.php`")
+8. **Gunakan istilah teknis yang konsisten** di seluruh laporan (jangan campur "middleware" dan "penyaring akses" di tempat berbeda)
+
+### ❌ Yang Harus Dihindari
+1. **Jangan screenshot seluruh file** — ambil bagian yang relevan saja
+2. **Jangan screenshot berulang** yang isinya mirip-mirip
+3. **Jangan campur gambar tampilan UI biasa** di bagian backend kecuali sebagai bukti hasil
+4. **Jangan membahas ERD atau struktur tabel** — itu bagian database engineer
+5. **Jangan memasukkan kode di BAB III** — BAB III hanya rancangan dan alur kerja (diagram)
+6. **Jangan membuat flowchart yang terlalu panjang** — pecah menjadi beberapa diagram jika perlu
+
+### 💡 Tips Tambahan
+- Gunakan **Mermaid, draw.io, atau Lucidchart** untuk membuat diagram
+- Untuk screenshot kode, gunakan **VS Code** dengan tema terang agar terbaca di print
+- Jumlah halaman ideal per bab: BAB III (8–12 hal), BAB IV (15–25 hal)
+- Referensikan nomor gambar di dalam narasi: *"Seperti ditunjukkan pada Gambar 4.6, proses checkout..."*
+
+---
+
+## 10. Checklist Persiapan Screenshot
+
+Berikut urutan terbaik untuk mengambil screenshot:
+
+### Langkah 1 — Struktur Proyek
+- [ ] Buka terminal, jalankan `tree` atau screenshot struktur folder di VS Code
+
+### Langkah 2 — File Routing & Middleware
+- [ ] Buka `routes/web.php`, screenshot bagian admin, kasir, pelanggan (3 screenshot)
+- [ ] Buka `EnsureUserRole.php` (screenshot penuh, file kecil)
+- [ ] Buka `Kernel.php`, screenshot bagian `$middlewareAliases`
+
+### Langkah 3 — Controller Checkout
+- [ ] Buka `TransactionController.php`, screenshot method `checkout()` (bagian `DB::transaction`)
+- [ ] Jalankan checkout di browser, screenshot halaman struk
+- [ ] Coba checkout dengan stok habis, screenshot pesan error
+
+### Langkah 4 — Controller Booking
+- [ ] Buka `BookingController.php`, screenshot method `placeOrder()` (bagian `DB::transaction`)
+- [ ] Buka `CashierBookingController.php`, screenshot method `accept()` dan `reject()`
+- [ ] Login sebagai pelanggan, buat booking, screenshot halaman status
+- [ ] Login sebagai kasir, screenshot halaman daftar pesanan
+
+### Langkah 5 — Controller Stok
+- [ ] Buka `CashierItemController.php`, screenshot method `storeFromWarehouse()`
+- [ ] Jalankan transfer stok, screenshot hasil berhasil
+- [ ] Buka halaman riwayat transfer, screenshot
+- [ ] Buka `StockAdjustmentController.php`, screenshot method `store()`
+
+### Langkah 6 — Controller Laporan
+- [ ] Buka `ReportController.php`, screenshot method `index()` dan `exportPdf()`
+- [ ] Buka halaman laporan di browser, screenshot dengan filter
+- [ ] Download PDF, screenshot hasil file PDF
+- [ ] Download Excel, screenshot hasil file Excel
+
+### Langkah 7 — Keamanan
+- [ ] Coba akses URL admin dengan login kasir, screenshot halaman 403
+- [ ] Coba checkout tanpa mengisi required field, screenshot pesan validasi
+- [ ] Screenshot kode IDOR prevention di `downloadReceipt()` atau `receipt()`
+
+### Langkah 8 — Export & AI (opsional)
+- [ ] Screenshot `ReportsExport.php` (file pendek)
+- [ ] Screenshot `StoreDataService.php` (bagian `getContext()`)

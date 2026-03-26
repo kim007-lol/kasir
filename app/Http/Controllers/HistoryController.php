@@ -7,6 +7,8 @@ use App\Models\TransactionDetail;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class HistoryController extends Controller
 {
@@ -30,7 +32,7 @@ class HistoryController extends Controller
                 $q->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
             })
             ->when($filter == 'month', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
-            ->when($filter == 'custom' && $startDate && $endDate, fn($q) => $q->whereBetween('created_at', [\Carbon\Carbon::parse($startDate)->startOfDay(), \Carbon\Carbon::parse($endDate)->endOfDay()]))
+            ->when($filter == 'custom' && $startDate && $endDate, fn($q) => $q->whereBetween('created_at', [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()]))
             ->when($paymentMethod, fn($q) => $q->where('payment_method', $paymentMethod))
             ->when($source, fn($q) => $q->where('source', $source))
             ->when($search, fn($q) => $q->where(fn($sq) => $sq->whereRaw('LOWER(invoice) LIKE ?', ['%' . mb_strtolower($search) . '%'])->orWhereRaw('LOWER(customer_name) LIKE ?', ['%' . mb_strtolower($search) . '%'])))
@@ -58,5 +60,50 @@ class HistoryController extends Controller
 
         $details = TransactionDetail::where('transaction_id', $transaction->id)->with('item')->get();
         return view('history.show', compact('transaction', 'details'));
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $filter = $request->get('filter', 'today');
+        $search = $request->get('search');
+        $paymentMethod = $request->get('payment_method');
+        $source = $request->get('source');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $query = Transaction::with(['user', 'member'])
+            ->when(auth()->user()->role === 'kasir', function ($q) {
+                $q->where('user_id', auth()->id());
+            })
+            ->when($filter == 'today', fn($q) => $q->whereDate('created_at', today()))
+            ->when($filter == 'week', function ($q) {
+                $now = now();
+                $q->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+            })
+            ->when($filter == 'month', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
+            ->when($filter == 'custom' && $startDate && $endDate, fn($q) => $q->whereBetween('created_at', [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()]))
+            ->when($paymentMethod, fn($q) => $q->where('payment_method', $paymentMethod))
+            ->when($source, fn($q) => $q->where('source', $source))
+            ->when($search, fn($q) => $q->where(fn($sq) => $sq->whereRaw('LOWER(invoice) LIKE ?', ['%' . mb_strtolower($search) . '%'])->orWhereRaw('LOWER(customer_name) LIKE ?', ['%' . mb_strtolower($search) . '%'])))
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc');
+
+        $transactions = $query->get();
+
+        // Build filter label for PDF header
+        $filterLabel = match ($filter) {
+            'today' => 'Hari Ini (' . today()->format('d/m/Y') . ')',
+            'week' => 'Minggu Ini',
+            'month' => 'Bulan Ini (' . now()->format('F Y') . ')',
+            'custom' => ($startDate && $endDate) ? Carbon::parse($startDate)->format('d/m/Y') . ' - ' . Carbon::parse($endDate)->format('d/m/Y') : 'Custom',
+            'all' => 'Semua Data',
+            default => 'Hari Ini',
+        };
+
+        $pdf = Pdf::loadView('history.history-pdf', compact('transactions', 'filterLabel'));
+        $pdf->setPaper('a4', 'landscape');
+
+        $filename = 'history-transaksi-' . now()->format('Y-m-d') . '.pdf';
+        return $pdf->download($filename);
     }
 }

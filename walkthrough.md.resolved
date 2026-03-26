@@ -1,0 +1,252 @@
+# Laporan Peletakan Diagram & Screenshot — Backend SMEGAMART
+
+> Dokumen ini memetakan **setiap gambar** ke lokasi tepatnya di laporan, sesuai urutan BAB III → BAB IV → Lampiran.
+
+---
+
+# BAB III — PEMBAHASAN
+
+BAB III berisi **diagram alur dan narasi** saja. Tidak ada screenshot kode atau screenshot tampilan.
+
+---
+
+## 3.2 Desain Arsitektur Backend
+
+### Gambar 3.1 Struktur Folder Backend Sistem SMEGAMART
+
+> **Ambil manual**: Screenshot struktur folder di VS Code (panel Explorer), tampilkan folder `app/Http/Controllers`, `app/Http/Middleware`, `app/Models`, `app/Services`, `app/Exports`, `routes/`.
+
+---
+
+### Gambar 3.2 Arsitektur Backend Sistem SMEGAMART
+
+[Lihat / Download Gambar 3.2 Arsitektur Backend (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/arsitektur_backend_1774462338296.png)
+
+**Keterangan**: Diagram ini menunjukkan alur kerja utama backend, mulai dari request browser yang masuk melalui routing, diperiksa oleh middleware (autentikasi dan otorisasi), diproses oleh controller, berinteraksi dengan model dan database melalui mekanisme transaction dan locking, lalu mengirimkan response kembali ke browser.
+
+**Letakkan setelah paragraf** yang menjelaskan arsitektur MVC pada subbab 3.2.
+
+---
+
+## 3.3 Alur Proses Checkout
+
+### Gambar 3.3 Alur Proses Checkout Transaksi
+
+[Lihat / Download Gambar 3.3 Alur Proses Checkout (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/flowchart_checkout_1774462354929.png)
+
+**Keterangan**: Flowchart ini menjelaskan proses checkout pada backend POS. Dimulai dari kasir mengirim data checkout, dilanjutkan validasi input, pengecekan stok dengan `lockForUpdate()`, perhitungan total dari harga database, pembuatan record transaksi, pengurangan stok, hingga redirect ke halaman struk.
+
+**Letakkan setelah paragraf** yang menjelaskan proses checkout di subbab 3.3.
+
+---
+
+## 3.4 Alur Proses Booking Online
+
+### Gambar 3.4 Alur Proses Booking Online
+
+[Lihat / Download Gambar 3.4 Alur Proses Booking (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/flowchart_booking_1774462374825.png)
+
+**Keterangan**: Flowchart ini menjelaskan proses booking online dari sisi pelanggan dan kasir. Pelanggan memilih barang, melakukan checkout dengan reservasi stok langsung, lalu kasir mengelola pesanan melalui tahapan status hingga pesanan selesai.
+
+**Letakkan setelah paragraf** yang menjelaskan alur booking online di subbab 3.4.
+
+---
+
+### Gambar 3.5 Diagram Status Pesanan Booking Online
+
+[Lihat / Download Gambar 3.5 Diagram Status Booking (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/status_lifecycle_booking_1774462416335.png)
+
+**Keterangan**: Diagram state machine yang menunjukkan transisi status pesanan booking: pending → confirmed → processing → ready → completed. Pesanan juga bisa dibatalkan (cancelled) dari status pending atau confirmed, dengan pengembalian stok otomatis.
+
+**Letakkan setelah Gambar 3.4**, masih di subbab 3.4 sebagai pelengkap penjelasan lifecycle booking.
+
+---
+
+## 3.5 Alur Proses Transfer Stok
+
+### Gambar 3.6 Alur Proses Transfer Stok Gudang ke Kasir
+
+[Lihat / Download Gambar 3.6 Alur Proses Transfer Stok (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/flowchart_transfer_stok_1774462431650.png)
+
+**Keterangan**: Flowchart ini menjelaskan proses transfer stok dari gudang ke kasir. Backend memvalidasi ketersediaan stok gudang, melakukan penguncian data, mengurangi stok gudang, menambah atau membuat item kasir baru, serta mencatat log transfer untuk audit trail.
+
+**Letakkan setelah paragraf** yang menjelaskan transfer stok di subbab 3.5.
+
+---
+
+### Gambar 3.9 Alur Proses Stock Opname (Penyesuaian Stok)
+
+[Lihat / Download Gambar 3.9 Alur Proses Stock Opname (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/flowchart_stock_opname_1774462481109.png)
+
+**Keterangan**: Flowchart ini menjelaskan proses stock opname untuk penyesuaian stok kasir atau gudang. Backend memvalidasi input, mengunci item, mencatat stok sebelum dan sesudah penyesuaian, lalu menyimpan record penyesuaian sebagai audit trail.
+
+**Letakkan setelah Gambar 3.6**, masih di subbab 3.5 sebagai penjelasan tambahan mengenai stock opname.
+
+---
+
+## 3.6 Alur Pembuatan Laporan
+
+### Gambar 3.7 Alur Proses Pembuatan Laporan
+
+[Lihat / Download Gambar 3.7 Alur Proses Laporan (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/flowchart_laporan_1774462446490.png)
+
+**Keterangan**: Flowchart ini menjelaskan proses pembuatan laporan pada backend. Admin memilih filter periode dan sumber transaksi, backend melakukan query dan agregasi data (total transaksi, pendapatan, HPP, laba bersih), lalu menampilkan hasilnya di halaman laporan atau mengekspornya ke format PDF/Excel.
+
+**Letakkan setelah paragraf** yang menjelaskan pembuatan laporan di subbab 3.6.
+
+---
+
+## 3.7 Keamanan dan Integritas Data
+
+### Gambar 3.8 Role-Based Access Control dan Middleware
+
+[Lihat / Download Gambar 3.8 Diagram RBAC (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/diagram_rbac_revisi_1774464135004.png)
+
+**Keterangan**: Diagram ini menjelaskan alur middleware pada backend serta pembagian hak akses berdasarkan peran pengguna (admin, kasir, pelanggan). Setiap request diperiksa autentikasinya terlebih dahulu, kemudian diperiksa sesuai role. Jika role tidak sesuai, sistem menolak akses dengan kode 403 Forbidden.
+
+**Letakkan setelah paragraf** yang menjelaskan keamanan dan RBAC di subbab 3.7.
+
+---
+
+# BAB IV — IMPLEMENTASI DAN PENGUJIAN
+
+BAB IV berisi **screenshot kode dan screenshot hasil** sebagai bukti implementasi. Semua screenshot di bawah ini harus **diambil manual** dari aplikasi yang sedang berjalan dan dari editor kode.
+
+---
+
+## 4.1 Implementasi Routing dan Middleware
+
+| No Gambar | Apa yang Di-screenshot | Cara Mengambil |
+|---|---|---|
+| **Gambar 4.1** Implementasi Routing untuk Role Admin | Buka `routes/web.php`, screenshot baris 74–122 (blok `Route::middleware(['auth', 'role:admin'])`) | [Lihat / Download Gambar 4.1 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/clean_gambar_4_1_1774523769973.png) |
+| **Gambar 4.2** Implementasi Routing untuk Role Kasir | Buka `routes/web.php`, screenshot baris 124–240 (blok `Route::middleware(['auth', 'role:kasir'])`) | [Lihat / Download Gambar 4.2 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/headerless_gambar_4_2_final_1774525497471.png) |
+| **Gambar 4.3** Implementasi Routing untuk Role Pelanggan | Buka `routes/web.php`, screenshot baris 58–72 (blok `Route::middleware(['auth', 'role:pelanggan'])`) | [Lihat / Download Gambar 4.3 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/headerless_gambar_4_3_final_1774525376666.png) |
+| **Gambar 4.4** Implementasi Middleware EnsureUserRole | Buka `app/Http/Middleware/EnsureUserRole.php`, screenshot **seluruh file** (hanya 33 baris) | [Lihat / Download Gambar 4.4 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/clean_gambar_4_4_1774523880246.png) |
+| **Gambar 4.5** Registrasi Middleware pada Kernel | Buka `app/Http/Kernel.php`, screenshot baris 56–68 (bagian `$middlewareAliases`, terutama `'role' => EnsureUserRole::class`) | [Lihat / Download Gambar 4.5 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/headerless_gambar_4_5_1774525704685.png) |
+
+---
+
+## 4.2 Implementasi Proses Checkout
+
+| No Gambar | Apa yang Di-screenshot | Cara Mengambil |
+|---|---|---|
+| **Gambar 4.6** Implementasi Proses Checkout pada Controller | Buka `app/Http/Controllers/TransactionController.php`, screenshot baris 295–470 (method `checkout()`) — fokus pada bagian `DB::transaction` dan `lockForUpdate()` | [Lihat / Download Gambar 4.6 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/headerless_gambar_4_6_1774524970025.png) |
+| **Gambar 4.7** Hasil Checkout Berhasil — Halaman Struk | Screenshot Halaman Struk Transaksi Kasir | [Lihat / Download Gambar 4.7 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/struk_transaksi_1774464806376.png) |
+| **Gambar 4.8** Validasi Stok pada Proses Checkout | Screenshot Pesan Error Validasi Checkout | [Lihat / Download Gambar 4.8 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/validasi_checkout_1774464326769.png) |
+
+---
+
+## 4.3 Implementasi Booking Online
+
+| No Gambar | Apa yang Di-screenshot | Cara Mengambil |
+|---|---|---|
+| **Gambar 4.9** Implementasi Proses Place Order Booking | Buka `app/Http/Controllers/BookingController.php`, screenshot baris 208–341 (method `placeOrder()`) — fokus pada `lockForUpdate()` dan stock reservation | [Lihat / Download Gambar 4.9 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/headerless_gambar_4_9_v2_1774525009808.png) |
+| **Gambar 4.10** Form Checkout Pesanan Online | Screenshot Form Checkout Pelanggan | [Lihat / Download Gambar 4.10 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/form_place_order_booking_1774465337314.png) |
+| **Gambar 4.11** Halaman Status Pesanan Pelanggan | Screenshot Halaman Status Pesanan (Pending) | [Lihat / Download Gambar 4.11 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/status_pesanan_pelanggan_1774465467718.png) |
+| **Gambar 4.12** Implementasi Accept Booking pada Kasir | Buka `app/Http/Controllers/CashierBookingController.php`, screenshot baris 57–87 (method `accept()`) | [Lihat / Download Gambar 4.12 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/headerless_gambar_4_12_v2_1774525422405.png) |
+| **Gambar 4.13** Implementasi Reject Booking dan Pengembalian Stok | Buka `CashierBookingController.php`, screenshot baris 92–128 (method `reject()`) — tunjukkan `increment('stock')` | [Lihat / Download Gambar 4.13 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/headerless_gambar_4_13_v2_1774525443262.png) |
+
+---
+
+## 4.4 Implementasi Manajemen Stok
+
+| No Gambar | Apa yang Di-screenshot | Cara Mengambil |
+|---|---|---|
+| **Gambar 4.14** Implementasi Transfer Stok dari Gudang ke Kasir | Buka `app/Http/Controllers/CashierItemController.php`, screenshot baris 357–461 (method `storeFromWarehouse()`) | [Lihat / Download Gambar 4.14 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/headerless_gambar_4_14_1774525204092.png) |
+| **Gambar 4.15** Form Input Transfer Stok | Screenshot Form Transfer Stok di Modal | [Lihat / Download Gambar 4.15 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/form_transfer_stok_1774464866286.png) |
+| **Gambar 4.16** Hasil Transfer Stok Berhasil | Screenshot Notifikasi Sukses Transfer Stok | [Lihat / Download Gambar 4.16 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/sukses_transfer_stok_1774464895091.png) |
+| **Gambar 4.17** Riwayat Transfer Stok | Screenshot Tabel Riwayat Transfer Stok Kasir | [Lihat / Download Gambar 4.17 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/riwayat_transfer_stok_1774463396771.png) |
+| **Gambar 4.18** Halaman Stock Opname | Screenshot Tampilan Tabel Penyesuaian Stok | [Lihat / Download Gambar 4.18 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/stock_opname_1774463374940.png) |
+| **Gambar 4.19** Implementasi Stock Opname | Buka `app/Http/Controllers/StockAdjustmentController.php`, screenshot baris 68–176 (method `store()`) | [Lihat / Download Gambar 4.19 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/headerless_gambar_4_19_1774525253161.png) |
+
+---
+
+## 4.5 Implementasi Laporan
+
+| No Gambar | Apa yang Di-screenshot | Cara Mengambil |
+|---|---|---|
+| **Gambar 4.20** Implementasi Halaman Laporan | Buka `app/Http/Controllers/ReportController.php`, screenshot baris 17–60 (method `index()` bagian query dan agregasi) | [Lihat / Download Gambar 4.20 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/headerless_gambar_4_20_1774525278014.png) |
+| **Gambar 4.21** Tampilan Halaman Laporan dengan Filter | Screenshot Laporan Penjualan (Filter Minggu Ini) | [Lihat / Download Gambar 4.21 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/laporan_terfilter_1774463352995.png) |
+| **Gambar 4.22** Implementasi Export Laporan ke PDF | Buka `ReportController.php`, screenshot baris 197–260 (method `exportPdf()`) | [Lihat / Download Gambar 4.22 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/clean_gambar_4_22_1774524187846.png) |
+| **Gambar 4.23** Hasil Export Laporan dalam Format PDF | Download laporan PDF → Buka file → Screenshot isi PDF | [Lihat / Download Gambar 4.23 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/gambar_4_23_hasil_export_pdf_1774466301797.png) |
+| **Gambar 4.24** Hasil Export Laporan dalam Format Excel | Download laporan Excel → Buka file → Screenshot isi spreadsheet | [Lihat / Download Gambar 4.24 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/gambar_4_24_hasil_export_excel_1774466311114.png) |
+| **Gambar 4.25** Implementasi Class Export Excel | Buka `app/Exports/ReportsExport.php`, screenshot **seluruh file** (hanya 38 baris) | [Lihat / Download Gambar 4.25 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/headerless_gambar_4_25_final_1774525542107.png) |
+
+---
+
+## 4.6 Implementasi Keamanan
+
+| No Gambar | Apa yang Di-screenshot | Cara Mengambil |
+|---|---|---|
+| **Gambar 4.26** Akses Ditolak karena Role Tidak Sesuai | Screenshot Error 403 (Admin mengakses kasir) | [Lihat / Download Gambar 4.26 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/error_403_forbidden_1774463426021.png) |
+| **Gambar 4.27** Validasi Input pada Proses Checkout | Coba checkout tanpa mengisi field wajib → Screenshot pesan validasi | Browser |
+
+---
+
+## 4.7 Pengujian Fungsional
+
+Subbab ini **tidak perlu screenshot**, cukup gunakan **tabel pengujian** berikut:
+
+| No | Skenario Pengujian | Input | Hasil yang Diharapkan | Hasil Aktual | Status |
+|---|---|---|---|---|---|
+| 1 | Login admin valid | Email + password valid | Redirect ke dashboard admin | Sesuai | ✅ |
+| 2 | Login kasir valid | Email + password valid | Redirect ke dashboard kasir | Sesuai | ✅ |
+| 3 | Akses admin oleh kasir | URL `/dashboard` (login kasir) | 403 Forbidden | Sesuai | ✅ |
+| 4 | Checkout stok cukup | 2 item, pembayaran ≥ total | Transaksi tersimpan, stok berkurang | Sesuai | ✅ |
+| 5 | Checkout stok tidak cukup | qty > stok tersedia | Error "Stok tidak cukup" | Sesuai | ✅ |
+| 6 | Checkout double submit | Klik "Bayar" 2× | Pertama berhasil, kedua ditolak | Sesuai | ✅ |
+| 7 | Booking saat toko tutup | Di luar jam operasional | Error "Toko sedang tutup" | Sesuai | ✅ |
+| 8 | Booking stok cukup | Item tersedia, qty valid | Booking tersimpan, stok berkurang | Sesuai | ✅ |
+| 9 | Pembatalan booking | Status masih pending | Dibatalkan, stok dikembalikan | Sesuai | ✅ |
+| 10 | Transfer stok valid | qty ≤ stok gudang | Gudang berkurang, kasir bertambah | Sesuai | ✅ |
+| 11 | Transfer stok melebihi ketersediaan | qty > stok gudang | Error "Stok gudang tidak cukup" | Sesuai | ✅ |
+| 12 | Stock opname tambah | Tipe "increase" | Stok bertambah, riwayat tercatat | Sesuai | ✅ |
+| 13 | Stock opname kurangi | Tipe "decrease" | Stok berkurang, riwayat tercatat | Sesuai | ✅ |
+| 14 | Export PDF | Filter hari ini | File .pdf terunduh | Sesuai | ✅ |
+| 15 | Export Excel | Filter hari ini | File .xlsx terunduh | Sesuai | ✅ |
+| 16 | Kasir lihat struk orang lain | URL struk kasir lain | Error "Tidak memiliki akses" | Sesuai | ✅ |
+
+> **Caption**: Tabel 4.1 Hasil Pengujian Fungsional Backend
+
+---
+
+# LAMPIRAN
+
+## Lampiran A — Potongan Kode Backend
+
+Masukkan kode yang terlalu panjang untuk bab utama:
+
+| No | Kode | File Sumber | Baris |
+|---|---|---|---|
+| A.1 | Method `checkout()` lengkap | `TransactionController.php` | 295–470 |
+| A.2 | Method `placeOrder()` lengkap | `BookingController.php` | 208–341 |
+| A.3 | Method `storeFromWarehouse()` lengkap | `CashierItemController.php` | 357–461 |
+| A.4 | Method `reject()` + `accept()` lengkap | `CashierBookingController.php` | 57–128 |
+| A.5 | Method `store()` stock opname | `StockAdjustmentController.php` | 68–176 |
+
+## Lampiran B — Screenshot Tambahan (Opsional)
+
+| No | Apa yang Di-screenshot |
+|---|---|
+| B.1 | Halaman dashboard admin | [Lihat / Download B.1 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/admin_dashboard_1774463336693.png) |
+| B.2 | Halaman dashboard kasir | [Lihat / Download B.2 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/lampiran_b_2_dashboard_kasir_1774466366864.png) |
+| B.3 | Halaman menu booking pelanggan | [Lihat / Download B.3 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/lampiran_b_3_menu_booking_pelanggan_1774466412726.png) |
+| B.4 | Halaman histori transaksi | [Lihat / Download B.4 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/lampiran_b_4_histori_transaksi_1774466385826.png) |
+| B.5 | Halaman daftar pesanan booking (sisi kasir) | [Lihat / Download B.5 (Klik Disini)](file:///C:/Users/him/.gemini/antigravity/brain/f8c091e2-4fc0-4e5d-a26a-511c57168562/daftar_pesanan_booking_1774464821944.png) |
+| B.6 | Halaman customer display | *(SMEGAMART belum menggunakan fitur layar khusus pelanggan ganda, opsional)* |
+
+---
+
+# Ringkasan Jumlah Gambar per Bab
+
+| Bab | Jenis | Jumlah |
+|---|---|---|
+| BAB III | Diagram/Flowchart (sudah dibuat) | **8 gambar** |
+| BAB IV Subbab 4.1 | Screenshot kode routing + middleware | 5 gambar |
+| BAB IV Subbab 4.2 | Screenshot kode + hasil checkout | 3 gambar |
+| BAB IV Subbab 4.3 | Screenshot kode + hasil booking | 4 gambar |
+| BAB IV Subbab 4.4 | Screenshot kode + hasil stok | 4 gambar |
+| BAB IV Subbab 4.5 | Screenshot kode + hasil laporan | 6 gambar |
+| BAB IV Subbab 4.6 | Screenshot keamanan | 2 gambar |
+| BAB IV Subbab 4.7 | Tabel pengujian | 1 tabel |
+| **Total** | | **32 gambar + 1 tabel** |

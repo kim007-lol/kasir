@@ -102,14 +102,18 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/stock-adjustments', [StockAdjustmentController::class, 'store'])->name('stock-adjustments.store');
 
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
+    Route::get('/history/export-pdf', [HistoryController::class, 'exportPdf'])->name('history.exportPdf');
     Route::get('/history/{transaction}', [HistoryController::class, 'show'])->name('history.show');
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export-pdf', [ReportController::class, 'exportPdf'])->name('reports.exportPdf');
     Route::get('/reports/export-excel', [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
     Route::get('/reports/stock-entries', [ReportController::class, 'stockEntriesHistory'])->name('reports.stockEntries');
+    Route::get('/reports/stock-entries/export-pdf', [ReportController::class, 'exportStockEntriesPdf'])->name('reports.stockEntries.exportPdf');
     Route::get('/reports/transfer-history', [ReportController::class, 'transferHistory'])->name('reports.transferHistory');
+    Route::get('/reports/transfer-history/export-pdf', [ReportController::class, 'exportTransferHistoryPdf'])->name('reports.transferHistory.exportPdf');
     Route::get('/reports/stock-adjustments', [ReportController::class, 'stockAdjustmentsHistory'])->name('reports.stockAdjustments');
+    Route::get('/reports/stock-adjustments/export-pdf', [ReportController::class, 'exportStockAdjustmentsPdf'])->name('reports.stockAdjustments.exportPdf');
     Route::resource('users', UserController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::post('/users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
     Route::get('/users-pelanggan/template', [UserController::class, 'exportTemplate'])->name('users.pelanggan.template');
@@ -172,6 +176,7 @@ Route::middleware(['auth', 'role:kasir'])->prefix('cashier')->name('cashier.')->
 
     // History Transaksi POS
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
+    Route::get('/history/export-pdf', [HistoryController::class, 'exportPdf'])->name('history.exportPdf');
     Route::get('/history/{transaction}', [HistoryController::class, 'show'])->name('history.show');
 
     // === PESANAN BOOKING ONLINE ===

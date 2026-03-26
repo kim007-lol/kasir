@@ -345,4 +345,62 @@ class ReportController extends Controller
 
         return view('reports.stock-adjustments', compact('adjustments', 'startDate', 'endDate', 'target', 'type'));
     }
+
+    public function exportStockEntriesPdf(Request $request)
+    {
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $entries = \App\Models\StockEntry::with(['warehouseItem.category', 'supplier'])
+            ->when($startDate, fn($q) => $q->whereDate('entry_date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('entry_date', '<=', $endDate))
+            ->latest('entry_date')
+            ->get();
+
+        $pdf = Pdf::loadView('reports.stock-entries-pdf', compact('entries', 'startDate', 'endDate'));
+        $pdf->setPaper('a4', 'landscape');
+
+        $filename = 'riwayat-stok-masuk-' . now()->format('Y-m-d') . '.pdf';
+        return $pdf->download($filename);
+    }
+
+    public function exportTransferHistoryPdf(Request $request)
+    {
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $logs = \App\Models\StockTransferLog::with(['warehouseItem', 'cashierItem', 'user'])
+            ->when($startDate, fn($q) => $q->whereDate('created_at', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('created_at', '<=', $endDate))
+            ->latest()
+            ->get();
+
+        $pdf = Pdf::loadView('reports.transfer-history-pdf', compact('logs', 'startDate', 'endDate'));
+        $pdf->setPaper('a4', 'landscape');
+
+        $filename = 'riwayat-transfer-kasir-' . now()->format('Y-m-d') . '.pdf';
+        return $pdf->download($filename);
+    }
+
+    public function exportStockAdjustmentsPdf(Request $request)
+    {
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $target = $request->get('target');
+        $type = $request->get('type');
+
+        $adjustments = \App\Models\StockAdjustment::with(['cashierItem', 'warehouseItem', 'user'])
+            ->when($startDate, fn($q) => $q->whereDate('created_at', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('created_at', '<=', $endDate))
+            ->when($target, fn($q) => $q->where('target', $target))
+            ->when($type, fn($q) => $q->where('type', $type))
+            ->latest()
+            ->get();
+
+        $pdf = Pdf::loadView('reports.stock-adjustments-pdf', compact('adjustments', 'startDate', 'endDate', 'target', 'type'));
+        $pdf->setPaper('a4', 'landscape');
+
+        $filename = 'riwayat-stock-opname-' . now()->format('Y-m-d') . '.pdf';
+        return $pdf->download($filename);
+    }
 }

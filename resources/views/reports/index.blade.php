@@ -74,7 +74,10 @@
                 </div>
 
                 <div class="col-12">
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ route('reports.exportPdf', request()->all()) }}" class="btn btn-danger">
+                            <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                        </a>
                         <a href="{{ route('reports.exportExcel', request()->all()) }}" class="btn btn-success">
                             <i class="bi bi-file-earmark-excel"></i> Export Excel
                         </a>

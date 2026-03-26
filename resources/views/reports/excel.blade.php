@@ -24,25 +24,25 @@
             <td>{{ $transaction->invoice }}</td>
             <td>{{ $transaction->created_at->format('d/m/Y H:i') }}</td>
             <td>{{ $transaction->customer_name ?? '-' }}</td>
-            <td>{{ $transaction->total }}</td>
-            <td>{{ $transaction->net_profit }}</td>
+            <td>Rp. {{ number_format($transaction->total, 0, ',', '.') }}</td>
+            <td>Rp. {{ number_format($transaction->net_profit, 0, ',', '.') }}</td>
             <td>{{ strtoupper($transaction->payment_method) }}</td>
             <td>
                 @foreach($transaction->details as $detail)
-                {{ $detail->item->name ?? '[Item Dihapus]' }} ({{ $detail->qty }} x {{ $detail->price }}),
+                {{ $detail->item->name ?? '[Item Dihapus]' }} ({{ $detail->qty }} x Rp. {{ number_format($detail->price, 0, ',', '.') }}),
                 @endforeach
             </td>
         </tr>
         @endforeach
         <tr>
             <td colspan="4" style="text-align: right; font-weight: bold;">Total Pendapatan</td>
-            <td style="font-weight: bold;">{{ $transactions->sum('total') }}</td>
+            <td style="font-weight: bold;">Rp. {{ number_format($transactions->sum('total'), 0, ',', '.') }}</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td colspan="4" style="text-align: right; font-weight: bold;">Total Laba (Estimasi)</td>
-            <td style="font-weight: bold;">{{ $transactions->sum('net_profit') }}</td>
+            <td style="font-weight: bold;">Rp. {{ number_format($transactions->sum('net_profit'), 0, ',', '.') }}</td>
             <td></td>
             <td></td>
         </tr>

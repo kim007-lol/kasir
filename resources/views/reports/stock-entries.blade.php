@@ -39,6 +39,9 @@
                         <a href="{{ route('reports.stockEntries') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-clockwise"></i> Reset
                         </a>
+                        <a href="{{ route('reports.stockEntries.exportPdf', request()->all()) }}" class="btn btn-danger">
+                            <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                        </a>
                     </div>
                 </div>
             </form>
