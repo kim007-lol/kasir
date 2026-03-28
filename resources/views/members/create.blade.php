@@ -41,9 +41,11 @@ $layout = $routePrefix ? 'layouts.cashier' : 'layouts.app';
                 </div>
 
                 <div class="mb-3">
-                    <label for="address" class="form-label fw-bold">Alamat</label>
+                    <label for="address" class="form-label fw-bold">Alamat <small class="text-muted">(maks. 500 karakter)</small></label>
                     <textarea name="address" id="address" class="form-control @error('address') is-invalid @enderror"
-                        rows="4" placeholder="Masukkan alamat lengkap">{{ old('address') }}</textarea>
+                        rows="4" placeholder="Masukkan alamat lengkap" maxlength="500"
+                        oninput="document.getElementById('address-counter').textContent = this.value.length + '/500'">{{ old('address') }}</textarea>
+                    <small id="address-counter" class="text-muted">0/500</small>
                     @error('address')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

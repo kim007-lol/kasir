@@ -212,6 +212,39 @@ class BookingController extends Controller
             return redirect()->route('booking.menu')->with('error', 'Maaf, toko sedang tutup. Jam operasional: 07:00 - 15:00 WIB');
         }
 
+        // Cek apakah harga atau ketersediaan item berubah sejak ditambahkan ke cart
+        $priceChanged = false;
+        $changedItems = [];
+        $unavailableItems = [];
+
+        foreach ($cart as $cartItem) {
+            $dbItem = CashierItem::find($cartItem['cashier_item_id']);
+            if (!$dbItem) {
+                $unavailableItems[] = $cartItem['name'];
+                continue;
+            }
+            if (abs($dbItem->final_price - $cartItem['price']) > 0.01) {
+                $priceChanged = true;
+                $changedItems[] = "{$cartItem['name']} (Rp " . number_format($cartItem['price'], 0, ',', '.') . " → Rp " . number_format($dbItem->final_price, 0, ',', '.') . ")";
+            }
+        }
+
+        if (!empty($unavailableItems) || $priceChanged) {
+            // Hapus cart dan suruh user pesan ulang
+            session()->forget('booking_cart');
+
+            $messages = [];
+            if (!empty($unavailableItems)) {
+                $messages[] = 'Item berikut sudah tidak tersedia: ' . implode(', ', $unavailableItems);
+            }
+            if ($priceChanged) {
+                $messages[] = 'Harga item berikut telah berubah: ' . implode(', ', $changedItems);
+            }
+            $messages[] = 'Keranjang telah direset. Silakan pesan ulang dengan harga terbaru.';
+
+            return redirect()->route('booking.menu')->with('error', implode('. ', $messages));
+        }
+
         $total = collect($cart)->sum('subtotal');
         $user = Auth::user();
         $user->load('member');
@@ -257,14 +290,26 @@ class BookingController extends Controller
             $validatedCart = [];
 
             // SEC-05 + BUG-03: Validasi stok & harga dari DB dengan lock LAKUKAN PALING AWAL
+            $changedPrices = [];
             foreach ($cart as $cartItem) {
                 $item = CashierItem::where('id', $cartItem['cashier_item_id'])
                     ->lockForUpdate()
                     ->first();
 
-                if (!$item || $item->stock < $cartItem['qty']) {
+                if (!$item) {
                     DB::rollBack();
-                    return back()->with('error', "Stok {$cartItem['name']} tidak mencukupi. Tersedia: " . ($item->stock ?? 0));
+                    session()->forget('booking_cart');
+                    return redirect()->route('booking.menu')->with('error', "Item {$cartItem['name']} sudah tidak tersedia. Keranjang telah direset, silakan pesan ulang.");
+                }
+
+                if ($item->stock < $cartItem['qty']) {
+                    DB::rollBack();
+                    return back()->with('error', "Stok {$cartItem['name']} tidak mencukupi. Tersedia: {$item->stock}");
+                }
+
+                // Deteksi perubahan harga
+                if (abs($item->final_price - $cartItem['price']) > 0.01) {
+                    $changedPrices[] = "{$cartItem['name']} (Rp " . number_format($cartItem['price'], 0, ',', '.') . " → Rp " . number_format($item->final_price, 0, ',', '.') . ")";
                 }
 
                 // Gunakan harga terkini yang DILOCK dari database
@@ -284,6 +329,14 @@ class BookingController extends Controller
                 // FIX BUG-REPORT #1: Langsung kurangi stok saat pesanan dibuat
                 // agar tidak terjadi overselling ke pelanggan lain / transaksi kasir
                 $item->decrement('stock', $cartItem['qty']);
+            }
+
+            // Jika ada harga yang berubah, batalkan dan suruh user pesan ulang
+            if (!empty($changedPrices)) {
+                DB::rollBack();
+                session()->forget('booking_cart');
+                $msg = 'Harga item berikut telah berubah: ' . implode(', ', $changedPrices) . '. Keranjang telah direset. Silakan pesan ulang dengan harga terbaru.';
+                return redirect()->route('booking.menu')->with('error', $msg);
             }
 
             // Validasi uang tunai secara manual SETELAH semua harga dilock untuk menghindari race condition (perubahan harga dadakan)
