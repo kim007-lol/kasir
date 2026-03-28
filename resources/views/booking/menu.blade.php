@@ -10,8 +10,12 @@
             <div class="col-md-7 col-lg-8">
                 <div class="d-flex gap-2 overflow-auto pb-2 scroll-sm" style="white-space: nowrap;">
                     <a href="{{ route('booking.menu', ['search' => request('search')]) }}"
-                       class="btn category-pill {{ !request('category') ? 'active' : '' }}">
+                       class="btn category-pill {{ !request('category') && !request('consignment') ? 'active' : '' }}">
                         <i class="bi bi-grid-3x3-gap-fill me-1"></i> Semua
+                    </a>
+                    <a href="{{ route('booking.menu', ['consignment' => 1, 'search' => request('search')]) }}"
+                       class="btn category-pill {{ request('consignment') ? 'active' : '' }}">
+                        🍱 Titipan
                     </a>
                     @foreach($categories as $cat)
                         <a href="{{ route('booking.menu', ['category' => $cat->id, 'search' => request('search')]) }}"

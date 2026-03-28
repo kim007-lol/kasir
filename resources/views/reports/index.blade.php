@@ -87,7 +87,7 @@
                         <a href="{{ route('reports.transferHistory') }}" class="btn btn-warning text-white">
                             <i class="bi bi-clock-history"></i> Riwayat Transfer Kasir
                         </a>
-                        <a href="{{ route('reports.stockAdjustments') }}" class="btn btn-danger">
+                        <a href="{{ route('stock-adjustments.index') }}" class="btn btn-danger">
                             <i class="bi bi-clipboard-check"></i> Riwayat Stock Opname
                         </a>
                     </div>

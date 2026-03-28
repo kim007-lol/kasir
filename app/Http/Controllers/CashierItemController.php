@@ -76,6 +76,10 @@ class CashierItemController extends Controller
         ]);
 
         $inputDiscount = $request->input('discount');
+        // Normalize empty string to null so existing discount is preserved
+        if ($inputDiscount === '' || $inputDiscount === null) {
+            $inputDiscount = null;
+        }
 
         try {
             DB::transaction(function () use ($validated, $inputDiscount) {
@@ -363,6 +367,10 @@ class CashierItemController extends Controller
         ]);
 
         $inputDiscount = $request->input('discount');
+        // Normalize empty string to null so existing discount is preserved
+        if ($inputDiscount === '' || $inputDiscount === null) {
+            $inputDiscount = null;
+        }
 
         try {
             DB::transaction(function () use ($validated, $inputDiscount) {

@@ -47,9 +47,9 @@ class WarehouseItemObserver
             $cashierItem->update([
                 'code' => $warehouseItem->code,
                 'name' => $warehouseItem->name,
-                'selling_price' => $warehouseItem->final_price,
+                'selling_price' => $warehouseItem->selling_price,
                 // 'stock' => $warehouseItem->stock, // DO NOT SYNC STOCK
-                'discount' => $warehouseItem->discount,
+                // 'discount' — DO NOT SYNC: Cashier has its own discount, warehouse discount is always 0
                 'category_id' => $warehouseItem->category_id,
                 'supplier_id' => $warehouseItem->supplier_id
             ]);

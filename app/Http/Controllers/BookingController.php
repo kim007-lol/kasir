@@ -29,6 +29,7 @@ class BookingController extends Controller
         $categories = Category::orderBy('name')->get();
         $selectedCategory = $request->get('category');
         $search = $request->get('search');
+        $consignmentFilter = $request->get('consignment');
 
         $query = CashierItem::where('stock', '>', 0)
             ->with('category')
@@ -41,7 +42,10 @@ class BookingController extends Controller
                     });
             });
 
-        if ($selectedCategory) {
+        // Filter by TITIPAN (consignment) items only
+        if ($consignmentFilter) {
+            $query->where('is_consignment', true);
+        } elseif ($selectedCategory) {
             $query->where(function ($q) use ($selectedCategory) {
                 $q->where('category_id', $selectedCategory)
                     ->orWhereHas('warehouseItem', function ($sub) use ($selectedCategory) {
@@ -59,7 +63,7 @@ class BookingController extends Controller
         $isOpen = $this->isShopOpen();
         $cart = session('booking_cart', []);
 
-        return view('booking.menu', compact('items', 'categories', 'selectedCategory', 'search', 'isOpen', 'cart'));
+        return view('booking.menu', compact('items', 'categories', 'selectedCategory', 'search', 'isOpen', 'cart', 'consignmentFilter'));
     }
 
     /**
@@ -198,6 +202,7 @@ class BookingController extends Controller
 
         $total = collect($cart)->sum('subtotal');
         $user = Auth::user();
+        $user->load('member');
 
         return view('booking.checkout', compact('cart', 'total', 'user'));
     }

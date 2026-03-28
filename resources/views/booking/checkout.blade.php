@@ -12,13 +12,17 @@
             <div class="card-body">
                 <h6 class="card-title fw-bold mb-3"><i class="bi bi-person-circle"></i> Data Pemesan</h6>
                 <div class="row">
-                    <div class="col-md-6 mb-2">
+                    <div class="col-md-4 mb-2">
                         <label class="form-label text-muted small">Nama</label>
                         <input type="text" class="form-control" value="{{ $user->name }}" readonly>
                     </div>
-                    <div class="col-md-6 mb-2">
+                    <div class="col-md-4 mb-2">
                         <label class="form-label text-muted small">Email</label>
                         <input type="text" class="form-control" value="{{ $user->email }}" readonly>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label text-muted small">No. Telepon</label>
+                        <input type="text" class="form-control" value="{{ $user->member->phone ?? 'Belum diisi' }}" readonly>
                     </div>
                 </div>
             </div>
