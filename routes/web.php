@@ -146,11 +146,12 @@ Route::middleware(['auth', 'role:kasir'])->prefix('cashier')->name('cashier.')->
     Route::get('/transaksi/thermal/{id}', [TransactionController::class, 'thermalReceipt'])->name('transactions.thermalReceipt');
     Route::post('/transaksi/reset', [TransactionController::class, 'clearCart'])->name('transactions.clearCart');
 
-    // Customer-Facing Display (Second Monitor)
+    // Customer-Facing Display (Second Monitor) — scoped per kasir
     Route::get('/customer-display', function () {
+        $userId = auth()->id();
         $cart = session('cart', []);
         $total = collect($cart)->sum(fn($item) => $item['price'] * $item['qty']);
-        return view('cashier.customer-display', compact('cart', 'total'));
+        return view('cashier.customer-display', compact('cart', 'total', 'userId'));
     })->name('customer-display');
 
     // Stock Opname

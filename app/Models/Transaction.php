@@ -11,21 +11,11 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'invoice',
-        'customer_name',
-        'total',
-        'user_id',
-        'paid_amount',
-        'change_amount',
-        'payment_method',
-        'member_id',
-        'discount_percent',
-        'discount_amount',
-        'cashier_name',
-        'source',
-        'booking_id',
-    ];
+    /**
+     * Guard id and timestamps from mass assignment.
+     * All other fields are set explicitly by controllers (never from $request->all()).
+     */
+    protected $guarded = ['id', 'created_at', 'updated_at'];
 
     public function details(): HasMany
     {

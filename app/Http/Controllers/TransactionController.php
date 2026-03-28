@@ -535,10 +535,14 @@ class TransactionController extends Controller
     {
         $total = 0;
         foreach ($cart as &$item) {
-            // BUG-05: Validasi harga dari database untuk konsistensi tampilan
+            // Sync harga terkini dari database untuk konsistensi tampilan
+            // Note: Checkout melakukan validasi ulang dengan lockForUpdate()
             $dbItem = \App\Models\CashierItem::find($item['item_id'] ?? null);
             if ($dbItem) {
                 $item['price'] = $dbItem->final_price;
+                $item['currentPrice'] = $dbItem->final_price;
+                $item['currentOriginalPrice'] = $dbItem->selling_price;
+                $item['currentDiscount'] = $dbItem->discount;
             }
             $item['subtotal'] = $item['price'] * $item['qty'];
             $total += $item['subtotal'];

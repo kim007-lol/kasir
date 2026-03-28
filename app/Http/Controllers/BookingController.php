@@ -80,30 +80,37 @@ class BookingController extends Controller
             'qty' => 'required|integer|min:1',
         ]);
 
-        $item = CashierItem::findOrFail($request->cashier_item_id);
+        // SEC-06: Lock item saat cek stok untuk mencegah race condition
+        $item = CashierItem::where('id', $request->cashier_item_id)->lockForUpdate()->first();
 
-        if ($item->stock < $request->qty) {
-            return back()->with('error', "Stok {$item->name} tidak cukup. Tersedia: {$item->stock}");
+        if (!$item) {
+            return back()->with('error', 'Item tidak ditemukan.');
         }
 
         $cart = session('booking_cart', []);
 
-        // Check if item already in cart
-        $found = false;
+        // Hitung total qty di cart + qty baru
+        $existingQty = 0;
+        $existingKey = null;
         foreach ($cart as $key => $cartItem) {
             if ($cartItem['cashier_item_id'] == $item->id) {
-                $newQty = $cart[$key]['qty'] + $request->qty;
-                if ($newQty > $item->stock) {
-                    return back()->with('error', "Total qty melebihi stok yang tersedia ({$item->stock})");
-                }
-                $cart[$key]['qty'] = $newQty;
-                $cart[$key]['subtotal'] = $newQty * $cart[$key]['price'];
-                $found = true;
+                $existingQty = $cart[$key]['qty'];
+                $existingKey = $key;
                 break;
             }
         }
 
-        if (!$found) {
+        $totalQty = $existingQty + $request->qty;
+
+        if ($totalQty > $item->stock) {
+            return back()->with('error', "Stok {$item->name} tidak cukup. Tersedia: {$item->stock}" . ($existingQty > 0 ? " (sudah {$existingQty} di keranjang)" : ''));
+        }
+
+        if ($existingKey !== null) {
+            $cart[$existingKey]['qty'] = $totalQty;
+            $cart[$existingKey]['price'] = $item->final_price;
+            $cart[$existingKey]['subtotal'] = $totalQty * $item->final_price;
+        } else {
             $cart[] = [
                 'cashier_item_id' => $item->id,
                 'name' => $item->name,
