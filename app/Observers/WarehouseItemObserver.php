@@ -41,7 +41,7 @@ class WarehouseItemObserver
     private function syncToCashier(WarehouseItem $warehouseItem): void
     {
         // Only update metadata if the item already exists in Cashier
-        $cashierItem = CashierItem::where('warehouse_item_id', $warehouseItem->id)->first();
+        $cashierItem = CashierItem::withTrashed()->where('warehouse_item_id', $warehouseItem->id)->first();
 
         if ($cashierItem) {
             $cashierItem->update([

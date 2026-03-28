@@ -56,7 +56,7 @@ class MemberController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20|regex:/^[0-9]+$/',
-            'address' => 'nullable|string',
+            'address' => 'nullable|string|max:500',
         ], [
             'phone.regex' => 'Nomor telepon hanya boleh berisi angka.'
         ]);
@@ -91,7 +91,7 @@ class MemberController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20|regex:/^[0-9]+$/',
-            'address' => 'nullable|string',
+            'address' => 'nullable|string|max:500',
         ], [
             'phone.regex' => 'Nomor telepon hanya boleh berisi angka.'
         ]);

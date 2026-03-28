@@ -72,7 +72,10 @@ class CashierBookingController extends Controller
                 // Verifikasi stok masih valid
                 foreach ($lockedBooking->items as $bookingItem) {
                     $item = CashierItem::find($bookingItem->cashier_item_id);
-                    if ($item && $item->stock < 0) {
+                    if (!$item) {
+                        throw new \Exception("Item {$bookingItem->name} sudah tidak tersedia.");
+                    }
+                    if ($item->stock < 0) {
                         throw new \Exception("Stok {$item->name} bermasalah (negatif: {$item->stock}). Hubungi admin.");
                     }
                 }

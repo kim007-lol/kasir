@@ -12,8 +12,8 @@ class GeminiService
 
     public function __construct()
     {
-        $this->apiKey = env('GROQ_API_KEY', '');
-        $this->model  = 'llama-3.3-70b-versatile'; // Groq's latest very capable reasoning model
+        $this->apiKey = config('services.groq.api_key', '');
+        $this->model  = config('services.groq.model', 'llama-3.3-70b-versatile');
     }
 
     /**

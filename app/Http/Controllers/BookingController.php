@@ -140,6 +140,11 @@ class BookingController extends Controller
                     $errors[] = "{$cart[$index]['name']}: qty disesuaikan ke stok tersedia ({$item->stock})";
                 }
 
+                // Re-validate harga dari DB agar tidak stale
+                if ($item) {
+                    $cart[$index]['price'] = $item->final_price;
+                }
+
                 $cart[$index]['qty'] = $qty;
                 $cart[$index]['subtotal'] = $qty * $cart[$index]['price'];
                 $cart[$index]['notes'] = $data['notes'] ?? '';
