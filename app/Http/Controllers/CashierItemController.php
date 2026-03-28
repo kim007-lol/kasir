@@ -116,7 +116,7 @@ class CashierItemController extends Controller
                     // Siapkan array data update
                     $updateData = [
                         'stock' => $cashierItem->stock,
-                        'selling_price' => $warehouse->final_price,
+                        'selling_price' => $warehouse->selling_price,
                         'name' => $warehouse->name,
                         'code' => $warehouse->code,
                         'expiry_date' => $warehouse->exp_date,
@@ -149,7 +149,7 @@ class CashierItemController extends Controller
                         'supplier_id' => $warehouse->supplier_id,
                         'code' => $warehouse->code,
                         'name' => $warehouse->name,
-                        'selling_price' => $warehouse->final_price,
+                        'selling_price' => $warehouse->selling_price,
                         'discount' => $inputDiscount !== null ? (float) $inputDiscount : 0,
                         'stock' => $validated['quantity'],
                         'expiry_date' => $warehouse->exp_date
@@ -409,7 +409,7 @@ class CashierItemController extends Controller
                     // Siapkan array data update
                     $updateData = [
                         'stock' => $cashierItem->stock,
-                        'selling_price' => $warehouse->final_price,
+                        'selling_price' => $warehouse->selling_price,
                         'name' => $warehouse->name,
                         'code' => $warehouse->code,
                         'expiry_date' => $warehouse->exp_date,
@@ -442,7 +442,7 @@ class CashierItemController extends Controller
                         'supplier_id' => $warehouse->supplier_id,
                         'code' => $warehouse->code,
                         'name' => $warehouse->name,
-                        'selling_price' => $warehouse->final_price,
+                        'selling_price' => $warehouse->selling_price,
                         'discount' => $inputDiscount !== null ? (float) $inputDiscount : 0,
                         'stock' => $validated['quantity'],
                         'expiry_date' => $warehouse->exp_date
