@@ -19,3 +19,4 @@ yarn-error.log
 
 composer*.txt
 composer*.log
+/.phpunit.result.cache
